@@ -1,0 +1,32 @@
+# --- Clientes de APIs LLM (generación sintética) ---
+groq>=0.11.0
+cohere>=5.11.0
+google-genai>=1.0.0
+
+# --- Config / entorno ---
+python-dotenv>=1.0.0
+
+# --- Fine-tuning (LoRA) ---
+transformers>=4.44.0
+peft>=0.12.0
+accelerate>=0.33.0
+bitsandbytes>=0.43.0
+datasets>=2.20.0
+torch>=2.3.0
+sentencepiece>=0.2.0
+
+# --- Fusión de modelos ---
+mergekit>=0.0.4.5
+
+# --- API / servicio ---
+fastapi>=0.112.0
+uvicorn[standard]>=0.30.0
+pydantic>=2.8.0
+
+# --- Evaluación (BLEU, chrF) ---
+sacrebleu>=2.4.0
+evaluate>=0.4.0
+
+# --- Utilidades generales ---
+pandas>=2.2.0
+tqdm>=4.66.0

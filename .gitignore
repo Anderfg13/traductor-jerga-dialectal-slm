@@ -1,0 +1,28 @@
+# Entorno y credenciales
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Modelos y datos pesados
+*.bin
+*.safetensors
+*.gguf
+checkpoints/
+outputs/
+wandb/
+
+# SO / editores
+.DS_Store
+.vscode/
+.idea/
