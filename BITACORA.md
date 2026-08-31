@@ -1,8 +1,26 @@
 # Bitácora del proyecto
 
-Registro de commits/cambios relevantes. Formato: fecha, autor, resumen.
+Registro cronológico de lo que se hace en cada sesión de trabajo. Cada
+entrada nueva se agrega al final del archivo (no se reescriben las
+anteriores).
 
-## 2026-08-28 — Anderson García
+**Formato de cada entrada** (llenar en menos de 2 minutos al cerrar la
+sesión, no hace falta prosa elaborada):
+
+```
+## Sesión N — Fecha — Persona
+
+Qué se hizo: ...
+Decisiones tomadas: ...
+Pendiente: ...
+```
+
+Si una sesión no tuvo una decisión relevante o no dejó nada pendiente,
+se puede omitir esa línea. Lo único obligatorio es "Qué se hizo".
+
+---
+
+## Sesión 2 — 2026-08-28 — Anderson García
 
 Andamiaje inicial del repositorio según convenciones definidas en
 `CONTEXTO_PROYECTO.md`:
@@ -25,7 +43,7 @@ Pendiente: correr `python generation/test_apis.py` con las claves reales
 de cada integrante y confirmar las 3 respuestas OK antes de empezar la
 generación sintética real.
 
-## 2026-08-28 (2) — Anderson García
+## Sesión 2 — 2026-08-28 (2) — Anderson García
 
 Ajuste de generadores sintéticos tras investigar opciones gratuitas:
 
@@ -41,7 +59,7 @@ Ajuste de generadores sintéticos tras investigar opciones gratuitas:
 - Actualizado `requirements.txt`, `.env.example`, `generation/test_apis.py`
   y `README.md` en consecuencia.
 
-## 2026-08-28 (3) — Anderson García
+## Sesión 2 — 2026-08-28 (3) — Anderson García
 
 Se reemplazó Anthropic (de pago) por **Cohere** (`command-r`, capa
 gratuita "trial", 1000 llamadas/mes, sin tarjeta) para que los 3
@@ -55,7 +73,7 @@ generadores sintéticos sean 100% gratuitos:
 - Actualizado `requirements.txt`, `.env.example`,
   `generation/test_apis.py` y `README.md` en consecuencia.
 
-## 2026-08-28 (4) — Anderson García
+## Sesión 2 — 2026-08-28 (4) — Anderson García
 
 Se amplió el `README.md` con pasos más detallados de instalación
 (activación del entorno virtual por sistema operativo) y una sección
@@ -66,7 +84,7 @@ pago para la clave gratuita "trial" (pendiente de confirmar con
 soporte/documentación oficial de Cohere; se documentó Mistral como
 alternativa sin tarjeta si aplica).
 
-## 2026-08-29 — Anderson García
+## Sesión 2 — 2026-08-29 — Anderson García
 
 Los 3 modelos originalmente configurados quedaron obsoletos (retirados
 o renombrados por cada proveedor):
@@ -85,7 +103,7 @@ error 404 de modelo). Pendiente: volver a correr
 `python generation/test_apis.py` con las claves reales para confirmar
 las 3 respuestas OK.
 
-## 2026-08-29 (2) — Anderson García
+## Sesión 2 — 2026-08-29 (2) — Anderson García
 
 Los modelos de Groq y Google seguían fallando tras el ajuste anterior:
 
@@ -102,7 +120,7 @@ Los modelos de Groq y Google seguían fallando tras el ajuste anterior:
 Actualizado `generation/test_apis.py` y `README.md`. Pendiente:
 re-ejecutar `python generation/test_apis.py` para confirmar los 3 OK.
 
-## 2026-08-29 (3) — Anderson García
+## Sesión 2 — 2026-08-29 (3) — Anderson García
 
 Groq y Google respondían pero con texto vacío/None (`openai/gpt-oss-20b`
 y `gemini-3.6-flash` son modelos de razonamiento: consumían todo el
@@ -120,7 +138,7 @@ Actualizado README.md con esta causa en "Solución de problemas
 comunes". Pendiente: re-ejecutar el script para confirmar los 3 OK con
 texto real.
 
-## 2026-08-29 (4) — Anderson García
+## Sesión 2 — 2026-08-29 (4) — Anderson García
 
 Google seguía fallando (`400 INVALID_ARGUMENT`) porque `gemini-3.6-flash`
 (familia Gemini 3.x) no acepta `thinking_budget` — ese parámetro es de
