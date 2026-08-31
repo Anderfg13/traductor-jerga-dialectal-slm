@@ -1,0 +1,322 @@
+[
+  {
+    "id": "sem-006",
+    "texto_original": "¿Qué más, pues?",
+    "dialecto_region": "Caribeña",
+    "registro": "informal",
+    "traduccion_referencia": "What's up? / How's it going?",
+    "nota_contexto_cultural": "Saludo cotidiano informal entre conocidos, muy común en la costa caribe colombiana; no es jerga cerrada, es habla regional de uso diario."
+  },
+  {
+    "id": "sem-007",
+    "texto_original": "Está brutal",
+    "dialecto_region": "Caribeña",
+    "registro": "jerga",
+    "traduccion_referencia": "It's amazing",
+    "nota_contexto_cultural": "Elogio entusiasta hacia algo que impresionó mucho a quien habla, usado entre jóvenes en tono muy informal."
+  },
+  {
+    "id": "sem-008",
+    "texto_original": "¡Erda la vaina!",
+    "dialecto_region": "Caribeña",
+    "registro": "jerga",
+    "traduccion_referencia": "Damn, what a mess!",
+    "nota_contexto_cultural": "Exclamación de sorpresa o fastidio ante una situación inesperada o molesta, común en la costa caribe colombiana."
+  },
+  {
+    "id": "sem-009",
+    "texto_original": "Se le voló la piedra",
+    "dialecto_region": "Caribeña",
+    "registro": "jerga",
+    "traduccion_referencia": "He/she totally lost it",
+    "nota_contexto_cultural": "Describe a alguien que reaccionó de forma irracional o se enojó de golpe; se dice sobre la persona, no a ella directamente."
+  },
+  {
+    "id": "sem-010",
+    "texto_original": "Bacano",
+    "dialecto_region": "Caribeña",
+    "registro": "informal",
+    "traduccion_referencia": "Cool / great",
+    "nota_contexto_cultural": "Adjetivo de aprobación de uso cotidiano, aplicable a personas, objetos o planes, en tono casual entre amigos."
+  },
+  {
+    "id": "sem-011",
+    "texto_original": "Dar papaya",
+    "dialecto_region": "Caribeña",
+    "registro": "informal",
+    "traduccion_referencia": "To make yourself an easy target",
+    "nota_contexto_cultural": "Advertencia usada para decir que alguien se expuso innecesariamente a un riesgo, burla o robo; muy extendida en el habla cotidiana colombiana."
+  },
+  {
+    "id": "sem-012",
+    "texto_original": "Estar salado",
+    "dialecto_region": "Caribeña",
+    "registro": "informal",
+    "traduccion_referencia": "To be having a run of bad luck",
+    "nota_contexto_cultural": "Describe a alguien que atraviesa una racha de mala suerte; se usa tanto en tono de queja como de broma entre amigos."
+  },
+  {
+    "id": "sem-013",
+    "texto_original": "Mamar gallo",
+    "dialecto_region": "Caribeña",
+    "registro": "jerga",
+    "traduccion_referencia": "To mess with someone / to joke around",
+    "nota_contexto_cultural": "Se usa para decir que alguien está bromeando o tomándole el pelo a otra persona, en tono relajado entre conocidos."
+  },
+  {
+    "id": "sem-014",
+    "texto_original": "Eso es un peo",
+    "dialecto_region": "Caribeña",
+    "registro": "jerga",
+    "traduccion_referencia": "That's a real problem / a big mess",
+    "nota_contexto_cultural": "Describe una situación conflictiva o complicada; tono informal, se usa entre personas de confianza."
+  },
+  {
+    "id": "sem-015",
+    "texto_original": "Estar en la olla",
+    "dialecto_region": "Caribeña",
+    "registro": "jerga",
+    "traduccion_referencia": "To be broke / in a tough spot",
+    "nota_contexto_cultural": "Significa estar sin dinero o atravesando una mala situación económica; se dice con tono de queja resignada entre amigos."
+  },
+  {
+    "id": "sem-016",
+    "texto_original": "¡Qué chimba!",
+    "dialecto_region": "Andina",
+    "registro": "jerga",
+    "traduccion_referencia": "That's awesome!",
+    "nota_contexto_cultural": "Expresión de entusiasmo o aprobación muy fuerte, vulgar-informal, propia del interior de Colombia (Bogotá); se usa solo entre pares de mucha confianza."
+  },
+  {
+    "id": "sem-017",
+    "texto_original": "Parcero",
+    "dialecto_region": "Andina",
+    "registro": "informal",
+    "traduccion_referencia": "Buddy / close friend",
+    "nota_contexto_cultural": "Forma cotidiana de referirse a un amigo cercano, usada como vocativo o para hablar de un tercero, en tono cálido y casual."
+  },
+  {
+    "id": "sem-018",
+    "texto_original": "Hacer una vaca",
+    "dialecto_region": "Andina",
+    "registro": "informal",
+    "traduccion_referencia": "To pool money together",
+    "nota_contexto_cultural": "Juntar dinero entre varias personas para un fin común (un regalo, una salida); expresión de uso cotidiano, no jerga cerrada."
+  },
+  {
+    "id": "sem-019",
+    "texto_original": "Estar mosca",
+    "dialecto_region": "Andina",
+    "registro": "jerga",
+    "traduccion_referencia": "To be on the alert / on guard",
+    "nota_contexto_cultural": "Advertencia para estar atento ante una posible situación de riesgo o engaño; se dice a modo de consejo entre conocidos."
+  },
+  {
+    "id": "sem-020",
+    "texto_original": "Ponerse las pilas",
+    "dialecto_region": "Andina",
+    "registro": "informal",
+    "traduccion_referencia": "To get your act together / hurry up",
+    "nota_contexto_cultural": "Se usa para instar a alguien a esforzarse más o actuar con rapidez; tono directo, a veces de regaño leve."
+  },
+  {
+    "id": "sem-021",
+    "texto_original": "Al toque",
+    "dialecto_region": "Andina",
+    "registro": "informal",
+    "traduccion_referencia": "Right away / immediately",
+    "nota_contexto_cultural": "Indica que algo se hará de inmediato; muy usada en la zona andina de Perú y Ecuador en conversación cotidiana."
+  },
+  {
+    "id": "sem-022",
+    "texto_original": "Estar en el jato",
+    "dialecto_region": "Andina",
+    "registro": "jerga",
+    "traduccion_referencia": "To be at home / at one's place",
+    "nota_contexto_cultural": "\"Jato\" significa casa en la jerga juvenil peruana; se usa para decir dónde está alguien, en tono relajado."
+  },
+  {
+    "id": "sem-023",
+    "texto_original": "Causa",
+    "dialecto_region": "Andina",
+    "registro": "jerga",
+    "traduccion_referencia": "Buddy / pal",
+    "nota_contexto_cultural": "Forma coloquial peruana de llamar a un amigo cercano, usada como vocativo entre hombres jóvenes principalmente."
+  },
+  {
+    "id": "sem-024",
+    "texto_original": "Estar paila",
+    "dialecto_region": "Andina",
+    "registro": "jerga",
+    "traduccion_referencia": "To be screwed / in trouble",
+    "nota_contexto_cultural": "Describe una situación desfavorable o sin solución aparente; se usa en tono resignado o de broma entre amigos en Colombia y Ecuador."
+  },
+  {
+    "id": "sem-025",
+    "texto_original": "¿Un tinto?",
+    "dialecto_region": "Andina",
+    "registro": "informal",
+    "traduccion_referencia": "Want a coffee?",
+    "nota_contexto_cultural": "\"Tinto\" significa café negro en Colombia; ofrecerlo es un gesto cotidiano de hospitalidad entre colegas o vecinos, no es jerga cerrada."
+  },
+  {
+    "id": "sem-026",
+    "texto_original": "Che, boludo",
+    "dialecto_region": "Rioplatense",
+    "registro": "jerga",
+    "traduccion_referencia": "Hey, dude",
+    "nota_contexto_cultural": "Forma extremadamente común de dirigirse a un amigo en Argentina y Uruguay; entre desconocidos o en otro tono puede sonar ofensivo."
+  },
+  {
+    "id": "sem-027",
+    "texto_original": "Qué quilombo",
+    "dialecto_region": "Rioplatense",
+    "registro": "jerga",
+    "traduccion_referencia": "What a mess",
+    "nota_contexto_cultural": "Describe una situación caótica, confusa o conflictiva; se usa con frecuencia tanto en contextos personales como noticiosos informales."
+  },
+  {
+    "id": "sem-028",
+    "texto_original": "Estar re piola",
+    "dialecto_region": "Rioplatense",
+    "registro": "informal",
+    "traduccion_referencia": "To be really cool / chill",
+    "nota_contexto_cultural": "Elogia a una persona, plan o situación por ser agradable o tranquila; tono casual entre amigos."
+  },
+  {
+    "id": "sem-029",
+    "texto_original": "El laburo",
+    "dialecto_region": "Rioplatense",
+    "registro": "informal",
+    "traduccion_referencia": "The job / work",
+    "nota_contexto_cultural": "Forma coloquial de referirse al trabajo remunerado, de uso extendido en Argentina y Uruguay, no es jerga cerrada."
+  },
+  {
+    "id": "sem-030",
+    "texto_original": "Tomar unos mates",
+    "dialecto_region": "Rioplatense",
+    "registro": "informal",
+    "traduccion_referencia": "To share some mate (tea)",
+    "nota_contexto_cultural": "Actividad social de compartir la infusión mate entre amigos o familia; describe un momento cotidiano de charla relajada."
+  },
+  {
+    "id": "sem-031",
+    "texto_original": "Che, ¿todo bien?",
+    "dialecto_region": "Rioplatense",
+    "registro": "informal",
+    "traduccion_referencia": "Hey, everything good?",
+    "nota_contexto_cultural": "Saludo casual muy característico del habla rioplatense, usado al encontrarse con un conocido."
+  },
+  {
+    "id": "sem-032",
+    "texto_original": "Estar hecho percha",
+    "dialecto_region": "Rioplatense",
+    "registro": "jerga",
+    "traduccion_referencia": "To be totally wrecked / exhausted",
+    "nota_contexto_cultural": "Describe a alguien muy cansado física o emocionalmente, se dice en tono de queja entre amigos."
+  },
+  {
+    "id": "sem-033",
+    "texto_original": "Sos un capo",
+    "dialecto_region": "Rioplatense",
+    "registro": "jerga",
+    "traduccion_referencia": "You're the best / a genius",
+    "nota_contexto_cultural": "Elogio hacia alguien que hizo algo muy bien o que es muy competente en lo suyo; tono admirativo entre pares."
+  },
+  {
+    "id": "sem-034",
+    "texto_original": "Estoy remando",
+    "dialecto_region": "Rioplatense",
+    "registro": "jerga",
+    "traduccion_referencia": "I'm barely getting by / struggling",
+    "nota_contexto_cultural": "Se usa para describir dificultades económicas o un esfuerzo constante para salir adelante, en tono resignado."
+  },
+  {
+    "id": "sem-035",
+    "texto_original": "Ni en pedo",
+    "dialecto_region": "Rioplatense",
+    "registro": "jerga",
+    "traduccion_referencia": "No way / not a chance",
+    "nota_contexto_cultural": "Negación enfática e informal ante una propuesta o pregunta; tono directo, usada entre personas de confianza."
+  },
+  {
+    "id": "sem-036",
+    "texto_original": "No manches",
+    "dialecto_region": "Mexicana",
+    "registro": "jerga",
+    "traduccion_referencia": "No way / you're kidding",
+    "nota_contexto_cultural": "Expresión de sorpresa o incredulidad, versión suave de una expresión más fuerte; muy usada entre jóvenes mexicanos."
+  },
+  {
+    "id": "sem-037",
+    "texto_original": "Está padrísimo",
+    "dialecto_region": "Mexicana",
+    "registro": "informal",
+    "traduccion_referencia": "It's really great",
+    "nota_contexto_cultural": "Elogio entusiasta hacia algo que gustó mucho; tono coloquial, de uso extendido en México."
+  },
+  {
+    "id": "sem-038",
+    "texto_original": "¿Qué onda?",
+    "dialecto_region": "Mexicana",
+    "registro": "informal",
+    "traduccion_referencia": "What's up?",
+    "nota_contexto_cultural": "Saludo coloquial muy extendido en México, usado entre conocidos o amigos al encontrarse."
+  },
+  {
+    "id": "sem-039",
+    "texto_original": "Chido",
+    "dialecto_region": "Mexicana",
+    "registro": "jerga",
+    "traduccion_referencia": "Cool / awesome",
+    "nota_contexto_cultural": "Adjetivo de aprobación muy usado entre jóvenes mexicanos para calificar algo positivamente."
+  },
+  {
+    "id": "sem-040",
+    "texto_original": "Ahorita te marco",
+    "dialecto_region": "Mexicana",
+    "registro": "informal",
+    "traduccion_referencia": "I'll call you in a bit (timing may vary)",
+    "nota_contexto_cultural": "\"Ahorita\" es una expresión temporal cuya duración real depende del contexto, típica fuente de confusión para no mexicanos; no es jerga, es habla regional cotidiana."
+  },
+  {
+    "id": "sem-041",
+    "texto_original": "Está cañón",
+    "dialecto_region": "Mexicana",
+    "registro": "jerga",
+    "traduccion_referencia": "It's really tough / intense",
+    "nota_contexto_cultural": "Describe algo difícil o exigente, ya sea una tarea o una situación; tono coloquial entre amigos."
+  },
+  {
+    "id": "sem-042",
+    "texto_original": "Neta",
+    "dialecto_region": "Mexicana",
+    "registro": "jerga",
+    "traduccion_referencia": "Seriously / for real",
+    "nota_contexto_cultural": "Se usa para enfatizar la veracidad de lo dicho, o como pregunta para confirmar si algo es cierto."
+  },
+  {
+    "id": "sem-043",
+    "texto_original": "Echar relajo",
+    "dialecto_region": "Mexicana",
+    "registro": "informal",
+    "traduccion_referencia": "To fool around / cause a ruckus",
+    "nota_contexto_cultural": "Describe divertirse de forma ruidosa o desordenada en grupo; tono desenfadado, no es una crítica fuerte."
+  },
+  {
+    "id": "sem-044",
+    "texto_original": "Estoy crudo",
+    "dialecto_region": "Mexicana",
+    "registro": "jerga",
+    "traduccion_referencia": "I'm hungover",
+    "nota_contexto_cultural": "Describe el malestar físico tras haber bebido alcohol en exceso la noche anterior; tono informal entre amigos."
+  },
+  {
+    "id": "sem-045",
+    "texto_original": "Sacar la vuelta",
+    "dialecto_region": "Mexicana",
+    "registro": "informal",
+    "traduccion_referencia": "To dodge / avoid something or someone",
+    "nota_contexto_cultural": "Describe evadir una responsabilidad o a una persona; se usa en tono de crítica leve hacia quien lo hace."
+  }
+]

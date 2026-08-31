@@ -130,3 +130,41 @@ la familia Gemini 2.x. Los modelos 3.x usan `thinking_level`
 `google-genai` a la última versión. Groq y Cohere ya venían
 respondiendo OK con texto real. Pendiente: re-ejecutar el script para
 confirmar los 3 OK.
+
+## 2026-08-31 — Paula Lozano
+
+Sesión 3 — Diseño del esquema del banco de semillas:
+
+- Definidos los 6 campos mínimos de una semilla: `id`, `texto_original`,
+  `dialecto_region`, `registro` (`formal`/`informal`/`jerga`),
+  `traduccion_referencia`, `nota_contexto_cultural`, cada uno con su
+  justificación en `seeds/schema.md`.
+- Decisión clave: `dialecto_region` y `registro` quedan como campos
+  separados a propósito — dialecto (geografía) y jerga (formalidad) son
+  dimensiones distintas y no deben mezclarse en un solo campo.
+- 5 ejemplos de validación en `seeds/ejemplos.json`, cubriendo 4
+  macro-dialectos (Caribeña, Andina, Rioplatense, Mexicana). JSON válido,
+  los 6 campos llenos en cada uno.
+
+Pendiente: ninguno — esquema listo para curar el lote real (Sesión 4).
+
+## 2026-08-31 (2) — Paula Lozano
+
+Sesión 4 — Primer lote de semillas (`seeds/lote_01.json`):
+
+- 40 semillas curadas siguiendo `seeds/schema.md`, cubriendo 4
+  macro-dialectos: Caribeña, Andina, Rioplatense y Mexicana, 10 cada uno
+  (25% cada uno — muy por debajo del límite de 60/40).
+- Mezcla de registro: 18 `informal` (dialecto regional sin ser jerga
+  cerrada) y 22 `jerga`, sin mezclar ambas nociones en el mismo campo.
+- Verificado: sin duplicados exactos dentro del lote ni contra los 5
+  ejemplos de `seeds/ejemplos.json` (se corrigió un cruce inicial en
+  "Estar camellando"); ninguna semilla quedó con la traducción de
+  referencia vacía.
+
+Conteo final por dialecto: Caribeña 10, Andina 10, Rioplatense 10,
+Mexicana 10 (banco total incluyendo ejemplos.json: 45 semillas).
+
+Pendiente: ampliar cobertura dialectal en un segundo lote (Sesión 9) y
+priorizar los dialectos que queden subrepresentados frente al resto del
+banco de semillas del equipo.

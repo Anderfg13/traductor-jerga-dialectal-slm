@@ -1,0 +1,42 @@
+[
+  {
+    "id": "sem-001",
+    "texto_original": "¡Qué nota!",
+    "dialecto_region": "Caribeña",
+    "registro": "jerga",
+    "traduccion_referencia": "That's awesome!",
+    "nota_contexto_cultural": "Exclamación de aprobación entusiasta, muy usada entre jóvenes de la costa caribe colombiana ante algo que les gustó mucho."
+  },
+  {
+    "id": "sem-002",
+    "texto_original": "Estar camellando",
+    "dialecto_region": "Andina",
+    "registro": "jerga",
+    "traduccion_referencia": "To be grinding away at work",
+    "nota_contexto_cultural": "Se usa para decir que alguien está trabajando duro, típico en Bogotá y otras zonas andinas de Colombia, en tono informal entre colegas o amigos."
+  },
+  {
+    "id": "sem-003",
+    "texto_original": "Estar al horno",
+    "dialecto_region": "Rioplatense",
+    "registro": "jerga",
+    "traduccion_referencia": "To be totally screwed",
+    "nota_contexto_cultural": "Describe una situación sin salida o muy comprometida, usada en Argentina y Uruguay entre amigos, a veces con tono de queja o resignación."
+  },
+  {
+    "id": "sem-004",
+    "texto_original": "Está de pelos",
+    "dialecto_region": "Mexicana",
+    "registro": "jerga",
+    "traduccion_referencia": "It's awesome",
+    "nota_contexto_cultural": "Elogio informal hacia algo que gustó mucho, común entre jóvenes mexicanos en conversación casual."
+  },
+  {
+    "id": "sem-005",
+    "texto_original": "Ser un arroz con mango",
+    "dialecto_region": "Caribeña",
+    "registro": "informal",
+    "traduccion_referencia": "To be a total mess / a jumble of unrelated things",
+    "nota_contexto_cultural": "Describe una situación confusa, desordenada o sin ningún sentido, muy usada en la costa caribe colombiana en tono coloquial, no es jerga cerrada sino habla regional cotidiana."
+  }
+]
