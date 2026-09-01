@@ -186,3 +186,106 @@ Mexicana 10 (banco total incluyendo ejemplos.json: 45 semillas).
 Pendiente: ampliar cobertura dialectal en un segundo lote (Sesión 9) y
 priorizar los dialectos que queden subrepresentados frente al resto del
 banco de semillas del equipo.
+
+## Sesión 5 — 2026-08-30 — Mariana Malagón
+
+Estructurar el repositorio + `CONTEXTO_PROYECTO.md`:
+
+Qué se hizo:
+- Verificado que `CONTEXTO_PROYECTO.md` contiene las 6 secciones
+  esperadas (proyecto, PI1-3, pipeline, alcance por fase, arquitectura,
+  atributos de calidad) — ya estaba completo, no necesitó cambios.
+- Revisada la estructura de carpetas creada por Anderson en la Sesión 2
+  (`seeds/`, `generation/`, `finetuning/`, `merging/`, `evaluation/`,
+  `api/`) y completada con `docs/` (con `docs/README.md` explicando qué
+  documentos van a vivir ahí, según el calendario de 10 semanas).
+- Evaluado el formato de `BITACORA.md`: la prosa libre (fecha, autor,
+  resumen) ya venía funcionando, pero le faltaba número de sesión y una
+  estructura mínima de "qué se hizo / decisiones / pendiente". Se agregó
+  una plantilla explícita al inicio del archivo y se etiquetaron las
+  entradas existentes de Anderson con su número de sesión (Sesión 2).
+
+Decisiones tomadas:
+- No se creó carpeta `tests/` todavía — la primera prueba automatizada
+  del calendario (`tests/test_integracion_e2e.py`) es de la Sesión 31
+  (Semana 6); crearla ahora quedaría vacía sin propósito claro.
+- No se reescribió el contenido narrativo de las entradas ya existentes
+  de Anderson, solo se les agregó el número de sesión — evita el riesgo
+  de alterar el registro histórico real.
+
+Pendiente: ninguno para esta sesión. La plantilla de `BITACORA.md` queda
+lista para que el resto del equipo la use desde la Sesión 6 en adelante.
+
+## Sesión 6 — 2026-08-31 — Mariana Malagón
+
+Diseñar el prompt de "derivación":
+
+Qué se hizo:
+- Diseñada la plantilla de derivación en `generation/prompt_derivacion.md`,
+  cumpliendo los 4 requisitos pedidos: (1) conservar el significado real
+  de la expresión, (2) generar 5-8 variantes por semilla variando
+  contexto/registro/tono (no solo sinónimos), (3) salida en JSON
+  estructurado y parseable, (4) prohibir inventar dialectos o mezclar el
+  dialecto original con otro.
+- Escrito `generation/probar_prompt_derivacion.py`: reutiliza el patrón
+  de clientes de `generation/test_apis.py` (Groq/Cohere/Google) para
+  mandar la plantilla a cualquiera de los 3 generadores sobre semillas
+  reales de `seeds/lote_01.json`, y valida automáticamente que la salida
+  sea JSON válido con 5-8 variantes.
+- Probadas las funciones de construcción de prompt y de validación con
+  datos reales (semilla `sem-007` del lote de Paula) de forma unitaria
+  (sin llamar a ninguna API): el prompt se arma correctamente con los
+  campos de la semilla, `limpiar_json` quita bloques ```json``` si el
+  modelo los agrega pese a la instrucción, y `validar_salida` rechaza
+  correctamente una respuesta con menos de 5 variantes.
+- Confirmado que el manejo de errores del script es limpio: si falta
+  una dependencia o una variable de entorno, reporta el error por
+  semilla y sigue, en vez de tumbar todo el script.
+
+Decisiones tomadas:
+- La plantilla vive en `generation/prompt_derivacion.md` (documentación,
+  como pide la Sesión 6) y también como constante en
+  `probar_prompt_derivacion.py` (para poder ejecutarla) — ambas deben
+  mantenerse en sync manualmente; para un prompt de este tamaño no vale
+  la pena montar un mecanismo de sincronización automática.
+- Elegidas `sem-007` ("Está brutal", Caribeña) y `sem-018` ("Hacer una
+  vaca", Andina) del lote de Paula como semillas de prueba, por cubrir
+  dos dialectos y registros distintos.
+
+Pendiente: ninguno.
+
+## Sesión 6 — 2026-08-31 (2) — Mariana Malagón
+
+Cierre de la Sesión 6: prueba en vivo de la plantilla de derivación.
+
+Qué se hizo:
+- Configurado `.env` local con `COHERE_API_KEY` (trial key gratuita de
+  Cohere).
+- Instalado `cohere` de forma aislada (`pip install cohere`) en vez de
+  `pip install -r requirements.txt` completo, porque este último
+  intenta compilar `mergekit`/`pydantic-core`/`immutables` desde
+  código fuente (necesitan Rust/Visual C++ Build Tools, no instalados,
+  y sin wheels precompilados para Python 3.14 en Windows) — instalar
+  solo la librería que hacía falta evitó ese problema por completo.
+- Corrido `python generation/probar_prompt_derivacion.py --generador
+  cohere --ids sem-007 sem-018` contra la API real de Cohere
+  (`command-r-08-2024`).
+- Resultado: **las 2 semillas pasaron la validación** — 7 variantes
+  cada una, JSON válido, dialecto (Caribeña/Andina) conservado sin
+  mezclar ni inventar otro, significado conservado, variando
+  contexto/tono como se pedía.
+- Pegada la salida real de `sem-007` en la sección "Ejemplo de salida"
+  de `generation/prompt_derivacion.md`, reemplazando el placeholder de
+  "pendiente".
+
+Decisiones tomadas:
+- Instalar dependencias de a una (no `-r requirements.txt` completo)
+  cuando solo se necesita probar una parte pequeña del pipeline —
+  evita arrastrar el problema de compilación de `mergekit` en máquinas
+  sin toolchain de C++/Rust. Vale la pena que el equipo lo tenga en
+  cuenta antes de la Sesión 44 (fusión con `mergekit`), donde sí van a
+  necesitar ese toolchain instalado.
+
+Pendiente: ninguno — Sesión 6 cerrada, los 3 criterios de aceptación
+(plantilla diseñada, JSON válido, 5-8 variantes) están cumplidos con
+evidencia real.
