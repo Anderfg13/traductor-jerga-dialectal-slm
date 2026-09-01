@@ -289,3 +289,50 @@ Decisiones tomadas:
 Pendiente: ninguno — Sesión 6 cerrada, los 3 criterios de aceptación
 (plantilla diseñada, JSON válido, 5-8 variantes) están cumplidos con
 evidencia real.
+
+## Sesión 7 — 2026-08-31 — Anderson García
+
+Automatizar la generación sintética del Generador 1 (Groq).
+
+Qué se hizo:
+- Escrito `generation/generar_sintetico.py`: lee todas las semillas de
+  `seeds/lote_01.json`, arma el prompt de derivación
+  (`generation/prompt_derivacion.md`) para cada una y lo manda a la API
+  de Groq (`openai/gpt-oss-20b`, Generador 1 según `.env.example`).
+- Manejo de errores transitorios (429 rate limit, timeouts, 5xx) con
+  reintentos y backoff exponencial, respetando el header `Retry-After`
+  de la API cuando está presente; errores no transitorios (ej. clave
+  inválida) se reportan y detienen esa semilla sin tumbar el script.
+- La salida cruda de cada semilla (texto tal cual lo devuelve el
+  modelo, sin parsear como JSON, junto con el prompt enviado y
+  metadatos) se guarda en `generation/raw/generador1/{seed_id}.json`
+  **antes** de cualquier procesamiento posterior.
+- Reanudable: si el archivo de salida de una semilla ya existe, el
+  script la salta en vez de volver a llamar a la API — permite
+  interrumpir y retomar sin gastar cuota de más ni duplicar llamadas.
+- Docstring inicial con modo de uso y variable de entorno requerida
+  (`GROQ_API_KEY`).
+
+Prueba de aceptación: corrido
+`python generation/generar_sintetico.py --ids sem-007 sem-018 sem-006`
+contra la API real de Groq. Resultado: 3 archivos generados en
+`generation/raw/generador1/`, cada uno con 5-8 variantes en JSON válido
+(sem-006: 6, sem-007: 5, sem-018: 6), sin errores. Se volvió a correr
+el mismo comando y las 3 semillas se saltaron correctamente (0
+llamadas nuevas a la API), confirmando la reanudación sin duplicar
+trabajo.
+
+Decisiones tomadas:
+- La plantilla de derivación se mantiene copiada manualmente en este
+  script (igual que en `probar_prompt_derivacion.py`), siguiendo la
+  decisión ya tomada en la Sesión 6 de no montar un mecanismo de sync
+  automático para un prompt de este tamaño.
+- La salida cruda incluye el prompt enviado y metadatos (modelo,
+  timestamp) además de la respuesta, no solo el texto — facilita
+  auditar/depurar sin tener que re-derivar qué se le mandó al modelo
+  en cada llamada.
+
+Pendiente: correr el script sobre las 40 semillas completas de
+`seeds/lote_01.json` cuando el equipo esté listo para la generación
+sintética real (no solo de prueba), y replicar este mismo patrón para
+los Generadores 2 (Cohere) y 3 (Google) más adelante en el calendario.
