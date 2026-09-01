@@ -336,3 +336,52 @@ Pendiente: correr el script sobre las 40 semillas completas de
 `seeds/lote_01.json` cuando el equipo esté listo para la generación
 sintética real (no solo de prueba), y replicar este mismo patrón para
 los Generadores 2 (Cohere) y 3 (Google) más adelante en el calendario.
+
+## Sesión 8 — 2026-08-31 — Anderson García
+
+Generación sintética completa del Generador 1 (Groq) + consolidación.
+
+Qué se hizo:
+- Corrido `python generation/generar_sintetico.py` sobre las 40
+  semillas de `seeds/lote_01.json` (las 3 de la Sesión 7 se saltaron
+  por ya existir, se generaron las 37 restantes). **40/40 semillas
+  procesadas con éxito, 0 fallidas.**
+- Consumo de cuota vigilado durante la corrida: solo **1 error 429**
+  (rate limit) en toda la corrida, en `sem-012` — el reintento con
+  backoff exponencial ya implementado en la Sesión 7 esperó 6s y la
+  semilla se completó normalmente en el segundo intento. El resto (39
+  semillas) no tuvo ningún reintento.
+- Escrito `generation/consolidar.py`: junta las 40 salidas crudas de
+  `generation/raw/generador1/` en `generation/dataset_generador1.json`,
+  parseando cada `respuesta_cruda` como JSON, descartando variantes
+  con `texto_dialectal` o `traduccion` vacíos, y deduplicando
+  variantes exactas (mismo `texto_dialectal` recortado y en
+  minúsculas) antes de agregarlas al dataset final.
+- Corrido `python generation/consolidar.py`: **40/40 semillas con al
+  menos 1 variante en el dataset final, 0 semillas falladas, 0
+  variantes vacías descartadas, 0 variantes duplicadas exactas
+  descartadas.**
+
+**Totales:**
+- Semillas procesadas: 40/40 (100%).
+- Variantes totales en `generation/dataset_generador1.json`: **238**.
+- Distribución por dialecto: Caribeña 59, Andina 60, Rioplatense 59,
+  Mexicana 60 (balanceada, sin sesgo hacia un dialecto).
+- Semillas fallidas: ninguna.
+
+Decisiones tomadas:
+- El dedupe de `consolidar.py` es global sobre todo el dataset (no por
+  semilla), comparando `texto_dialectal` normalizado (recortado +
+  minúsculas) — criterio pedido explícitamente ("dedupe por texto");
+  no hizo falta en esta corrida porque no hubo duplicados exactos,
+  pero queda listo para lotes futuros donde el modelo sí repita una
+  variante.
+- Cada fila del dataset consolidado conserva metadatos de trazabilidad
+  (`seed_id`, `dialecto_region`, `registro_original_semilla`,
+  `generador`, `modelo`) además de la variante en sí, siguiendo el
+  mismo criterio de auditabilidad usado en `generar_sintetico.py`.
+
+Pendiente: repetir generación + consolidación con los Generadores 2
+(Cohere) y 3 (Google) para poder comparar entre generadores (PI1), y
+ampliar el lote de semillas (Sesión 9, ya pendiente desde la Sesión 4)
+antes de la comparación completa de la Fase 3.
