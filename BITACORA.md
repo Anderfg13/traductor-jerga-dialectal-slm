@@ -385,3 +385,88 @@ Pendiente: repetir generación + consolidación con los Generadores 2
 (Cohere) y 3 (Google) para poder comparar entre generadores (PI1), y
 ampliar el lote de semillas (Sesión 9, ya pendiente desde la Sesión 4)
 antes de la comparación completa de la Fase 3.
+
+## Sesión 9 — 2026-09-02 — Paula Lozano
+
+Ampliar el banco de semillas (segundo lote).
+
+Qué se hizo:
+- Leídos `CONTEXTO_PROYECTO.md`, `seeds/schema.md` y `seeds/lote_01.json`
+  para confirmar cobertura previa: 4 dialectos (Caribeña, Andina,
+  Rioplatense, Mexicana) parejos en 10 semillas cada uno.
+- Curadas 60 semillas nuevas en `seeds/lote_02.json`: 21 Caribeña,
+  21 Andina, 22 Rioplatense, 21 Mexicana, y **15 de un dialecto nuevo:
+  Chilena** (no cubierto en el lote 1), cumpliendo el mínimo de 60 y de
+  sumar al menos un dialecto nuevo.
+- Verificado por script que no hay duplicados exactos de
+  `texto_original` entre `lote_02.json`, `lote_01.json` y
+  `ejemplos.json`.
+
+Decisiones tomadas:
+- Como los 4 dialectos del lote 1 ya estaban perfectamente balanceados
+  (10/10/10/10), no había ninguno "subrepresentado" al que priorizar;
+  se repartió el nuevo material casi parejo entre los 4 (21/21/22/21) y
+  se usó el resto del cupo para darle a Chilena una base sólida de 15
+  semillas propias desde el arranque.
+- No se modificó `seeds/schema.md`: `dialecto_region` ya era un campo
+  de texto libre (no un enum cerrado), así que agregar "Chilena" no
+  requirió ningún cambio de esquema.
+
+Conteo final por dialecto (lote 1 + lote 2 combinados, 100 semillas):
+Caribeña 21, Andina 21, Rioplatense 22, Mexicana 21, Chilena 15 —
+ningún dialecto por debajo de 15.
+
+Pendiente: seguir ampliando Chilena en lotes futuros si se quiere llegar
+a una base tan grande como la de los otros 4 dialectos.
+
+## Sesión 10 — 2026-09-02 — Paula Lozano
+
+Muestreo humano de validación del dataset sintético.
+
+Qué se hizo:
+- Confirmado que `generation/dataset_generador1.json` existe (Sesión 8,
+  Anderson): 238 variantes, Caribeña 59, Andina 60, Rioplatense 59,
+  Mexicana 60.
+- Escrito `evaluation/muestreo.py`: toma una muestra aleatoria del 15%
+  (semilla fija `random.seed(42)` para reproducibilidad) **proporcional
+  a la cantidad de variantes por dialecto** (no una muestra global
+  ciega), y escribe `evaluation/muestreo_manual.csv` con columnas
+  `id_muestra, seed_id, dialecto_region, texto_dialectal, traduccion,
+  contexto_uso, calificacion, comentario`.
+- Muestra resultante: 36 de 238 variantes (~15.1%) — Caribeña 9, Andina
+  9, Rioplatense 9, Mexicana 9.
+- Piloto de calificación de 10 ejemplos de la muestra (elegidos a
+  propósito repartidos entre los 4 dialectos, no solo los primeros 10
+  de la hoja, que habrían caído casi todos en Caribeña por el orden de
+  las semillas), para probar que el formato de la hoja funciona:
+  calificados como `correcta`, `parcial` o `incorrecta` con comentario
+  de por qué.
+
+Resultado del piloto (10/10 calificados): **8 correctas, 1 parcial,
+1 incorrecta (80% de aciertos)**. Hallazgo concreto en la variante
+incorrecta (`sem-016`, Andina): el Generador 1 metió "Che" —marcador
+claramente Rioplatense— dentro de una variante etiquetada como Andina
+("Che, ¡qué chimba tu nuevo look!"), **violando directamente la regla
+de no mezclar dialectos** que exige `generation/prompt_derivacion.md`
+(Sesión 6). La parcial (`sem-007`) tiene un desvío de sentido menor
+("no me creías" → "I know you didn't believe it") aunque el núcleo de
+jerga sí se tradujo bien. Vale la pena revisar si el Generador 1 mezcla
+dialectos en más casos del dataset completo, no solo en este piloto.
+
+Decisiones tomadas:
+- El piloto de 10 ejemplos lo calificó el asistente de IA leyendo cada
+  par español-inglés con criterio real (no cifras inventadas de
+  antemano), como prueba del formato — no reemplaza a un hablante
+  nativo real. Queda marcado explícitamente como provisional en el
+  propio CSV (columna `comentario` con nota "[piloto IA]"); los 26
+  restantes de la muestra quedan con `calificacion` vacía para que
+  evaluadores humanos nativos (Sesión 22) los califiquen de verdad más
+  adelante.
+- El campo `contexto_uso` de cada variante se incluyó en la hoja además
+  de lo mínimo pedido, porque sin él es difícil para un evaluador saber
+  si el registro/tono de la traducción es apropiado.
+
+Pendiente: que evaluadores humanos nativos confirmen o corrijan las 10
+calificaciones piloto y completen las 26 filas restantes una vez estén
+reclutados (Sesión 22); este muestreo del Generador 1 sirve como
+plantilla reutilizable para los Generadores 2 y 3 más adelante.
