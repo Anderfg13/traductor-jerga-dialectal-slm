@@ -67,4 +67,7 @@ CONVENCIONES DE CÓDIGO: Python, entorno gestionado con
 requirements.txt (o poetry si el equipo lo prefiere), un notebook o
 script por etapa del pipeline dentro de carpetas separadas
 (seeds/, generation/, finetuning/, merging/, evaluation/, api/).
-Todo commit relevante va acompañado de una entrada en BITACORA.md.
+Todo commit relevante va acompañado de una entrada en BITACORA.md —
+regla exigida técnicamente por un git hook local
+(`.githooks/pre-commit`, ver README.md "Instalación del entorno"),
+no solo por convención escrita.

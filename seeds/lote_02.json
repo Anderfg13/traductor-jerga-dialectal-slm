@@ -1,0 +1,482 @@
+[
+  {
+    "id": "sem-046",
+    "texto_original": "Ese man es un show",
+    "dialecto_region": "Caribeña",
+    "registro": "jerga",
+    "traduccion_referencia": "That guy is a character / a lot",
+    "nota_contexto_cultural": "Describe a alguien exagerado, gracioso o llamativo en su forma de ser; tono jocoso entre amigos."
+  },
+  {
+    "id": "sem-047",
+    "texto_original": "Estar buena la vaina",
+    "dialecto_region": "Caribeña",
+    "registro": "informal",
+    "traduccion_referencia": "Things are going well",
+    "nota_contexto_cultural": "Describe que una situación o plan va bien; uso cotidiano en la costa caribe colombiana."
+  },
+  {
+    "id": "sem-048",
+    "texto_original": "Ese es un sapo",
+    "dialecto_region": "Caribeña",
+    "registro": "jerga",
+    "traduccion_referencia": "That guy is a snitch",
+    "nota_contexto_cultural": "Describe a alguien que delata o chismea sobre otros; tono despectivo, se dice sobre la persona, no a ella."
+  },
+  {
+    "id": "sem-049",
+    "texto_original": "Estar prendido",
+    "dialecto_region": "Caribeña",
+    "registro": "jerga",
+    "traduccion_referencia": "To be tipsy/drunk",
+    "nota_contexto_cultural": "Describe estar bajo los efectos del alcohol; tono relajado, se usa entre amigos en contexto de fiesta."
+  },
+  {
+    "id": "sem-050",
+    "texto_original": "Coger pa'l norte",
+    "dialecto_region": "Caribeña",
+    "registro": "informal",
+    "traduccion_referencia": "To head off / to take off",
+    "nota_contexto_cultural": "Expresión para decir que alguien se va o parte hacia algún lugar; uso cotidiano, no necesariamente literal sobre la dirección."
+  },
+  {
+    "id": "sem-051",
+    "texto_original": "Ese pelao es una nota",
+    "dialecto_region": "Caribeña",
+    "registro": "jerga",
+    "traduccion_referencia": "That kid is amazing",
+    "nota_contexto_cultural": "\"Pelao\" significa muchacho/chico en la costa caribe; elogio hacia una persona joven, tono admirativo."
+  },
+  {
+    "id": "sem-052",
+    "texto_original": "Estar mamado",
+    "dialecto_region": "Caribeña",
+    "registro": "jerga",
+    "traduccion_referencia": "To be exhausted",
+    "nota_contexto_cultural": "Describe cansancio físico extremo; tono informal, se usa entre amigos o familia después de un esfuerzo grande."
+  },
+  {
+    "id": "sem-053",
+    "texto_original": "Hacer el bulto",
+    "dialecto_region": "Caribeña",
+    "registro": "informal",
+    "traduccion_referencia": "To just be there without really helping",
+    "nota_contexto_cultural": "Describe a alguien que está presente en una tarea o grupo pero no aporta de verdad; tono de crítica leve."
+  },
+  {
+    "id": "sem-054",
+    "texto_original": "Estar embalado",
+    "dialecto_region": "Caribeña",
+    "registro": "jerga",
+    "traduccion_referencia": "To be in trouble / in a rush",
+    "nota_contexto_cultural": "Puede significar estar en problemas o apresurado según el contexto; expresión típica costeña usada en tono informal."
+  },
+  {
+    "id": "sem-055",
+    "texto_original": "Ese es un pillo",
+    "dialecto_region": "Caribeña",
+    "registro": "jerga",
+    "traduccion_referencia": "That guy is a rascal / a crook",
+    "nota_contexto_cultural": "Describe a alguien astuto o de dudosa confianza; puede decirse en tono de crítica o de admiración según el contexto."
+  },
+  {
+    "id": "sem-056",
+    "texto_original": "Estar de rumba",
+    "dialecto_region": "Caribeña",
+    "registro": "informal",
+    "traduccion_referencia": "To be out partying",
+    "nota_contexto_cultural": "Describe estar de fiesta; expresión muy usada en la costa caribe colombiana en tono festivo."
+  },
+  {
+    "id": "sem-057",
+    "texto_original": "Ese tipo es un lleva y trae",
+    "dialecto_region": "Andina",
+    "registro": "jerga",
+    "traduccion_referencia": "That guy is a gossip",
+    "nota_contexto_cultural": "Describe a alguien que chismea entre distintas personas, llevando y trayendo información; tono de crítica."
+  },
+  {
+    "id": "sem-058",
+    "texto_original": "Coger pique",
+    "dialecto_region": "Andina",
+    "registro": "jerga",
+    "traduccion_referencia": "To get annoyed / upset",
+    "nota_contexto_cultural": "Describe que alguien se molestó por algo; tono coloquial, muy usado en Bogotá."
+  },
+  {
+    "id": "sem-059",
+    "texto_original": "Ser un lambón",
+    "dialecto_region": "Andina",
+    "registro": "jerga",
+    "traduccion_referencia": "To be a suck-up / flatterer",
+    "nota_contexto_cultural": "Describe a alguien que adula en exceso, generalmente para conseguir un favor; tono despectivo."
+  },
+  {
+    "id": "sem-060",
+    "texto_original": "Estar como una cabra",
+    "dialecto_region": "Andina",
+    "registro": "informal",
+    "traduccion_referencia": "To be a bit crazy / eccentric",
+    "nota_contexto_cultural": "Describe a alguien con un comportamiento peculiar o impredecible; tono cariñoso o de broma entre conocidos."
+  },
+  {
+    "id": "sem-061",
+    "texto_original": "Pilas con eso",
+    "dialecto_region": "Andina",
+    "registro": "jerga",
+    "traduccion_referencia": "Watch out for that",
+    "nota_contexto_cultural": "Advertencia para tener cuidado con algo específico; tono directo, entre conocidos o colegas."
+  },
+  {
+    "id": "sem-062",
+    "texto_original": "Ser un teso",
+    "dialecto_region": "Andina",
+    "registro": "jerga",
+    "traduccion_referencia": "To be really skilled at something",
+    "nota_contexto_cultural": "Elogio hacia alguien muy bueno en lo que hace; tono admirativo, usado entre pares."
+  },
+  {
+    "id": "sem-063",
+    "texto_original": "Estar tragado",
+    "dialecto_region": "Andina",
+    "registro": "jerga",
+    "traduccion_referencia": "To be head over heels for someone",
+    "nota_contexto_cultural": "Describe estar muy enamorado de alguien; tono juvenil, usado entre amigos cercanos como confidencia."
+  },
+  {
+    "id": "sem-064",
+    "texto_original": "Hacer el oso",
+    "dialecto_region": "Andina",
+    "registro": "jerga",
+    "traduccion_referencia": "To embarrass oneself",
+    "nota_contexto_cultural": "Describe pasar una vergüenza en público; tono de burla cariñosa, se usa tanto hacia uno mismo como hacia otros."
+  },
+  {
+    "id": "sem-065",
+    "texto_original": "Estar de mal genio",
+    "dialecto_region": "Andina",
+    "registro": "informal",
+    "traduccion_referencia": "To be in a bad mood",
+    "nota_contexto_cultural": "Describe el estado de ánimo irritable de alguien; expresión de uso cotidiano, no es jerga cerrada."
+  },
+  {
+    "id": "sem-066",
+    "texto_original": "Ser una lata",
+    "dialecto_region": "Andina",
+    "registro": "informal",
+    "traduccion_referencia": "To be annoying / a pain",
+    "nota_contexto_cultural": "Describe algo o alguien tedioso o molesto; tono de queja leve entre conocidos."
+  },
+  {
+    "id": "sem-067",
+    "texto_original": "Coger la caña",
+    "dialecto_region": "Andina",
+    "registro": "jerga",
+    "traduccion_referencia": "To fall for a joke / take the bait",
+    "nota_contexto_cultural": "Describe cuando alguien cae en una broma o engaño de otros; tono jocoso entre amigos."
+  },
+  {
+    "id": "sem-068",
+    "texto_original": "Estar careta",
+    "dialecto_region": "Rioplatense",
+    "registro": "jerga",
+    "traduccion_referencia": "To be fake / phony",
+    "nota_contexto_cultural": "Describe a alguien que finge o no es auténtico en su forma de ser; tono crítico entre conocidos."
+  },
+  {
+    "id": "sem-069",
+    "texto_original": "Ponerse pesado",
+    "dialecto_region": "Rioplatense",
+    "registro": "informal",
+    "traduccion_referencia": "To get annoying / insistent",
+    "nota_contexto_cultural": "Describe a alguien que se vuelve molesto o exagerado en su insistencia sobre algo; tono de queja."
+  },
+  {
+    "id": "sem-070",
+    "texto_original": "Estar en pedo",
+    "dialecto_region": "Rioplatense",
+    "registro": "jerga",
+    "traduccion_referencia": "To be drunk",
+    "nota_contexto_cultural": "Describe estar borracho; tono coloquial e informal, usado entre amigos en contexto de fiesta."
+  },
+  {
+    "id": "sem-071",
+    "texto_original": "Un quilombero",
+    "dialecto_region": "Rioplatense",
+    "registro": "jerga",
+    "traduccion_referencia": "A troublemaker",
+    "nota_contexto_cultural": "Persona que genera conflictos o desorden constantemente, derivado de \"quilombo\"; tono de crítica."
+  },
+  {
+    "id": "sem-072",
+    "texto_original": "Estar de más",
+    "dialecto_region": "Rioplatense",
+    "registro": "informal",
+    "traduccion_referencia": "To be unnecessary / redundant",
+    "nota_contexto_cultural": "Describe algo o alguien que sobra en una situación específica; tono neutro a levemente crítico."
+  },
+  {
+    "id": "sem-073",
+    "texto_original": "Hacerse el otario",
+    "dialecto_region": "Rioplatense",
+    "registro": "jerga",
+    "traduccion_referencia": "To play dumb / act naive",
+    "nota_contexto_cultural": "Describe a alguien que finge no entender algo para evadir una responsabilidad; tono de reclamo."
+  },
+  {
+    "id": "sem-074",
+    "texto_original": "Estar con la soga al cuello",
+    "dialecto_region": "Rioplatense",
+    "registro": "informal",
+    "traduccion_referencia": "To be in serious financial trouble",
+    "nota_contexto_cultural": "Describe estar muy ajustado económicamente, con poco margen de maniobra; tono de preocupación."
+  },
+  {
+    "id": "sem-075",
+    "texto_original": "Ser un pibe bárbaro",
+    "dialecto_region": "Rioplatense",
+    "registro": "informal",
+    "traduccion_referencia": "To be a great guy",
+    "nota_contexto_cultural": "\"Pibe\" es la forma coloquial rioplatense de referirse a un joven; aquí se usa como elogio hacia su carácter."
+  },
+  {
+    "id": "sem-076",
+    "texto_original": "Andar a las piñas",
+    "dialecto_region": "Rioplatense",
+    "registro": "jerga",
+    "traduccion_referencia": "To be fighting / at odds",
+    "nota_contexto_cultural": "Describe una pelea física o un conflicto fuerte entre personas; tono serio o de relato de una anécdota."
+  },
+  {
+    "id": "sem-077",
+    "texto_original": "Estar copado",
+    "dialecto_region": "Rioplatense",
+    "registro": "jerga",
+    "traduccion_referencia": "To be really cool",
+    "nota_contexto_cultural": "Elogio hacia algo o alguien que agrada mucho; tono entusiasta entre amigos."
+  },
+  {
+    "id": "sem-078",
+    "texto_original": "Tener mala leche",
+    "dialecto_region": "Rioplatense",
+    "registro": "informal",
+    "traduccion_referencia": "To have bad luck / be in a foul mood",
+    "nota_contexto_cultural": "Describe mala suerte reciente o mal carácter de alguien, según el contexto en que se use."
+  },
+  {
+    "id": "sem-079",
+    "texto_original": "Hacerse humo",
+    "dialecto_region": "Rioplatense",
+    "registro": "jerga",
+    "traduccion_referencia": "To vanish / take off quickly",
+    "nota_contexto_cultural": "Describe que alguien se fue rápidamente o desapareció de una situación incómoda; tono de anécdota entre amigos."
+  },
+  {
+    "id": "sem-080",
+    "texto_original": "Está a toda madre",
+    "dialecto_region": "Mexicana",
+    "registro": "jerga",
+    "traduccion_referencia": "It's awesome",
+    "nota_contexto_cultural": "Elogio muy entusiasta hacia algo que gustó mucho; tono informal fuerte, usado entre amigos cercanos."
+  },
+  {
+    "id": "sem-081",
+    "texto_original": "No hay bronca",
+    "dialecto_region": "Mexicana",
+    "registro": "informal",
+    "traduccion_referencia": "No problem",
+    "nota_contexto_cultural": "Expresión para decir que algo no representa un problema o inconveniente; tono relajado."
+  },
+  {
+    "id": "sem-082",
+    "texto_original": "Ponte trucha",
+    "dialecto_region": "Mexicana",
+    "registro": "jerga",
+    "traduccion_referencia": "Be sharp / be careful",
+    "nota_contexto_cultural": "Advertencia para que alguien esté alerta ante una situación de riesgo o engaño; tono directo entre conocidos."
+  },
+  {
+    "id": "sem-083",
+    "texto_original": "Está bien gacho",
+    "dialecto_region": "Mexicana",
+    "registro": "jerga",
+    "traduccion_referencia": "That's really messed up",
+    "nota_contexto_cultural": "Describe algo negativo, de mal gusto o desconsiderado; tono de queja o desaprobación."
+  },
+  {
+    "id": "sem-084",
+    "texto_original": "¡Aguas!",
+    "dialecto_region": "Mexicana",
+    "registro": "jerga",
+    "traduccion_referencia": "Watch out!",
+    "nota_contexto_cultural": "Interjección de advertencia ante un peligro inmediato; muy usada en México en tono de alerta rápida."
+  },
+  {
+    "id": "sem-085",
+    "texto_original": "Estar hasta el gorro",
+    "dialecto_region": "Mexicana",
+    "registro": "informal",
+    "traduccion_referencia": "To be fed up",
+    "nota_contexto_cultural": "Describe estar cansado o harto de una situación repetitiva; tono de queja."
+  },
+  {
+    "id": "sem-086",
+    "texto_original": "Échale ganas",
+    "dialecto_region": "Mexicana",
+    "registro": "informal",
+    "traduccion_referencia": "Put in the effort / go for it",
+    "nota_contexto_cultural": "Expresión de ánimo para que alguien se esfuerce en algo; tono motivador y cálido."
+  },
+  {
+    "id": "sem-087",
+    "texto_original": "Ser un fresa",
+    "dialecto_region": "Mexicana",
+    "registro": "jerga",
+    "traduccion_referencia": "To be a snob / preppy",
+    "nota_contexto_cultural": "Describe a alguien de actitud clasista o afectada; tono crítico, usado entre jóvenes."
+  },
+  {
+    "id": "sem-088",
+    "texto_original": "Estar bien pedo",
+    "dialecto_region": "Mexicana",
+    "registro": "jerga",
+    "traduccion_referencia": "To be really drunk",
+    "nota_contexto_cultural": "Describe estar muy ebrio; tono informal fuerte, usado entre amigos cercanos en contexto de fiesta."
+  },
+  {
+    "id": "sem-089",
+    "texto_original": "Cayó el veinte",
+    "dialecto_region": "Mexicana",
+    "registro": "informal",
+    "traduccion_referencia": "It finally clicked / I finally got it",
+    "nota_contexto_cultural": "Describe el momento en que alguien entiende algo que antes no captaba; viene de las cabinas telefónicas de monedas."
+  },
+  {
+    "id": "sem-090",
+    "texto_original": "Estar en chinga",
+    "dialecto_region": "Mexicana",
+    "registro": "jerga",
+    "traduccion_referencia": "To be working really hard / rushed",
+    "nota_contexto_cultural": "Describe estar muy ocupado o esforzándose intensamente en algo, casi siempre bajo presión de tiempo."
+  },
+  {
+    "id": "sem-091",
+    "texto_original": "¿Cachai?",
+    "dialecto_region": "Chilena",
+    "registro": "jerga",
+    "traduccion_referencia": "You know? / Get it?",
+    "nota_contexto_cultural": "Muletilla característica del habla chilena, usada al final de una frase para confirmar que el interlocutor entendió."
+  },
+  {
+    "id": "sem-092",
+    "texto_original": "Al tiro",
+    "dialecto_region": "Chilena",
+    "registro": "informal",
+    "traduccion_referencia": "Right away",
+    "nota_contexto_cultural": "Indica que algo se hará de inmediato; expresión de uso cotidiano muy extendida en Chile."
+  },
+  {
+    "id": "sem-093",
+    "texto_original": "Es la raja",
+    "dialecto_region": "Chilena",
+    "registro": "jerga",
+    "traduccion_referencia": "It's awesome",
+    "nota_contexto_cultural": "Elogio entusiasta hacia algo que gustó mucho; tono informal fuerte, usado entre amigos."
+  },
+  {
+    "id": "sem-094",
+    "texto_original": "Estar pato",
+    "dialecto_region": "Chilena",
+    "registro": "jerga",
+    "traduccion_referencia": "To be broke",
+    "nota_contexto_cultural": "Describe no tener dinero; tono informal, se usa entre amigos para explicar por qué no se puede salir o gastar."
+  },
+  {
+    "id": "sem-095",
+    "texto_original": "Ese gallo",
+    "dialecto_region": "Chilena",
+    "registro": "informal",
+    "traduccion_referencia": "That guy",
+    "nota_contexto_cultural": "Forma coloquial de referirse a un hombre, muy característica del habla chilena cotidiana."
+  },
+  {
+    "id": "sem-096",
+    "texto_original": "Andar pillo",
+    "dialecto_region": "Chilena",
+    "registro": "jerga",
+    "traduccion_referencia": "To be sharp / cunning",
+    "nota_contexto_cultural": "Describe a alguien astuto o vivo para resolver situaciones; tono admirativo entre conocidos."
+  },
+  {
+    "id": "sem-097",
+    "texto_original": "Qué fome",
+    "dialecto_region": "Chilena",
+    "registro": "informal",
+    "traduccion_referencia": "How boring",
+    "nota_contexto_cultural": "Adjetivo muy chileno para describir algo aburrido o poco entretenido; tono de queja leve."
+  },
+  {
+    "id": "sem-098",
+    "texto_original": "Estar chato",
+    "dialecto_region": "Chilena",
+    "registro": "jerga",
+    "traduccion_referencia": "To be fed up",
+    "nota_contexto_cultural": "Describe estar harto de algo o de alguien; tono de queja entre amigos o familia."
+  },
+  {
+    "id": "sem-099",
+    "texto_original": "Lo pasamos la raja",
+    "dialecto_region": "Chilena",
+    "registro": "jerga",
+    "traduccion_referencia": "We had an awesome time",
+    "nota_contexto_cultural": "Describe haberla pasado muy bien en una situación o evento; tono entusiasta al contar una anécdota."
+  },
+  {
+    "id": "sem-100",
+    "texto_original": "Andar con la caña",
+    "dialecto_region": "Chilena",
+    "registro": "jerga",
+    "traduccion_referencia": "To have a hangover",
+    "nota_contexto_cultural": "Describe estar con resaca tras haber bebido alcohol; tono informal, usado entre amigos al día siguiente."
+  },
+  {
+    "id": "sem-101",
+    "texto_original": "Ya po",
+    "dialecto_region": "Chilena",
+    "registro": "jerga",
+    "traduccion_referencia": "Come on / okay then",
+    "nota_contexto_cultural": "Muletilla de cierre, insistencia o acuerdo muy característica del habla chilena, usada en tono casual."
+  },
+  {
+    "id": "sem-102",
+    "texto_original": "Estar chuncho",
+    "dialecto_region": "Chilena",
+    "registro": "jerga",
+    "traduccion_referencia": "To be reluctant / hesitant",
+    "nota_contexto_cultural": "Describe indecisión o desgano frente a hacer algo; tono coloquial entre amigos."
+  },
+  {
+    "id": "sem-103",
+    "texto_original": "Qué bacán",
+    "dialecto_region": "Chilena",
+    "registro": "informal",
+    "traduccion_referencia": "How cool / great",
+    "nota_contexto_cultural": "Elogio hacia algo o alguien, de uso muy extendido en Chile; matiz distinto al costeño colombiano \"bacano\"."
+  },
+  {
+    "id": "sem-104",
+    "texto_original": "Andar volado",
+    "dialecto_region": "Chilena",
+    "registro": "jerga",
+    "traduccion_referencia": "To be absent-minded / spaced out",
+    "nota_contexto_cultural": "Describe a alguien distraído o desconectado de lo que pasa a su alrededor; tono de broma leve."
+  },
+  {
+    "id": "sem-105",
+    "texto_original": "Qué cuático",
+    "dialecto_region": "Chilena",
+    "registro": "jerga",
+    "traduccion_referencia": "How wild / intense",
+    "nota_contexto_cultural": "Describe algo exagerado, extraño o impactante que acaba de suceder; tono de sorpresa entre amigos."
+  }
+]

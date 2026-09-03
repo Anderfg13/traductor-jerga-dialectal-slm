@@ -22,6 +22,12 @@ checkpoints/
 outputs/
 wandb/
 
+# Excepción: adaptadores LoRA (pocos MB, no pesan como un modelo
+# completo — sí queremos versionarlos, a diferencia de checkpoints/
+# de entrenamiento o los pesos del modelo base)
+!finetuning/**/adapter/*.safetensors
+!finetuning/**/adapter/*.bin
+
 # SO / editores
 .DS_Store
 .vscode/
