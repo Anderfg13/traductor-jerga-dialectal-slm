@@ -726,3 +726,19 @@ GPU, traer los resultados al repo, y completar
 reales (pérdida por paso, confirmación de que baja de forma
 consistente, comparación de las salidas del adaptador contra el
 baseline sin ajustar).
+
+## Sesión 14 — 2026-09-03 (2) — Anderson García
+
+Bug encontrado al correr `entrenar_lora_colab.ipynb` por primera vez
+en Colab: la celda 2 (clonar + `%cd`) usaba una ruta relativa
+(`%cd traductor-jerga-dialectal-slm`); al volver a correrla (sin
+reiniciar el entorno) el `%cd` partía de dentro del repo ya clonado,
+dejando un clon anidado dentro de sí mismo
+(`/content/traductor-jerga-dialectal-slm/traductor-jerga-dialectal-slm`),
+y la celda 4 fallaba con `python3: can't open file
+'.../finetuning/entrenar_lora.py'` porque el archivo real quedaba un
+nivel más arriba. Corregido en el notebook: ahora usa `%cd /content`
+al inicio, solo clona si el repo no existe todavía, y hace `%cd` con
+ruta absoluta al final — así queda seguro volver a correr la celda
+cualquier número de veces. Todavía pendiente confirmar que el
+entrenamiento corre completo en Colab con este fix.
