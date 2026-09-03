@@ -145,7 +145,8 @@ class RegistrarPerdida(TrainerCallback):
 
 
 def entrenar() -> RegistrarPerdida:
-    print(f"Cargando {MODEL_ID} en bfloat16 (CPU, sin cuantizar) para entrenar...")
+    dispositivo = "GPU (CUDA)" if torch.cuda.is_available() else "CPU"
+    print(f"Cargando {MODEL_ID} en bfloat16 (sin cuantizar) para entrenar, dispositivo: {dispositivo}...")
     tokenizer, modelo_base = cargar_modelo()
 
     lora_config = LoraConfig(

@@ -740,5 +740,20 @@ y la celda 4 fallaba con `python3: can't open file
 nivel más arriba. Corregido en el notebook: ahora usa `%cd /content`
 al inicio, solo clona si el repo no existe todavía, y hace `%cd` con
 ruta absoluta al final — así queda seguro volver a correr la celda
-cualquier número de veces. Todavía pendiente confirmar que el
-entrenamiento corre completo en Colab con este fix.
+cualquier número de veces.
+
+Con ese fix, la celda 4 sí llegó a descargar y cargar el modelo
+(6.17GB en ~1 min, gracias al ancho de banda de Colab), pero falló en
+`get_peft_model()` con `ImportError: Found an incompatible version of
+torchao. Found version 0.10.0, but only versions above 0.16.0 are
+supported`. Causa: Colab trae `torchao` preinstalado en una versión
+vieja, y la versión más reciente de `peft` (instalada sin pin de
+versión en la celda 3) revisa esa versión al despachar el módulo LoRA
+aunque no se use cuantización con `torchao` para nada en este
+entrenamiento. Arreglado agregando `!pip uninstall -y -q torchao` a la
+celda 3 — sin el paquete, `peft` simplemente se salta esa revisión y
+sigue por el camino normal (sin cuantizar). De paso, corregido un
+mensaje de log engañoso en `entrenar_lora.py` y `probar_baseline.py`
+que decía "(CPU, sin cuantizar)" siempre, sin reflejar el dispositivo
+real detectado. Todavía pendiente confirmar que el entrenamiento corre
+completo en Colab con este fix.

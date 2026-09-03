@@ -122,7 +122,8 @@ def main() -> int:
     test = json.loads(TEST_PATH.read_text(encoding="utf-8"))
     muestra = [test[i] for i in INDICES_MUESTRA]
 
-    print(f"Cargando {MODEL_ID} en bfloat16 (CPU, sin cuantizar)...")
+    dispositivo = "GPU (CUDA)" if torch.cuda.is_available() else "CPU"
+    print(f"Cargando {MODEL_ID} en bfloat16 (sin cuantizar), dispositivo: {dispositivo}...")
     tokenizer, modelo = cargar_modelo()
     print("Modelo cargado. Generando traducciones (zero-shot, sin ajustar)...")
 
