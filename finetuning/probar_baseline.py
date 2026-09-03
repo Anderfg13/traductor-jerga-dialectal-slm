@@ -22,19 +22,29 @@ Meta. Cuando el acceso a Llama 3.2 3B quede aprobado, correr este
 mismo script cambiando solo `MODEL_ID` reproduce el mismo baseline
 para el candidato principal.
 
-Precisión del modelo — bfloat16 SIN cuantizar, en CPU:
-  - El `torch` instalado en este entorno es la build CPU-only
-    (`torch==2.13.0+cpu`; `torch.cuda.is_available()` devuelve
-    `False`). La única GPU NVIDIA de esta máquina (MX230) tiene 2GB de
-    VRAM: insuficiente incluso para un 3B cuantizado en 4-bit de forma
-    confiable, y `bitsandbytes` solo acelera de verdad con CUDA — sin
-    CUDA no aporta nada, solo complejidad extra.
-  - El equipo sí tiene 18GB de RAM. Un modelo de 3B parámetros en
-    bfloat16 pesa ~6-6.5GB, muy por debajo de ese límite: no hace
-    falta cuantizar para que quepa en memoria.
-  - Conclusión: se carga tal cual en bfloat16 (`torch_dtype=torch.bfloat16`,
-    `device_map="cpu"`), sin cuantización, porque el cuello de botella
-    real en esta máquina es la ausencia de GPU utilizable, no la RAM.
+Precisión del modelo — bfloat16 SIN cuantizar, en el mejor dispositivo
+disponible (GPU si hay CUDA, si no CPU):
+  - En la máquina local de desarrollo, el `torch` instalado es la
+    build CPU-only (`torch==2.13.0+cpu`; `torch.cuda.is_available()`
+    devuelve `False`). La única GPU NVIDIA de esa máquina (MX230)
+    tiene 2GB de VRAM: insuficiente incluso para un 3B cuantizado en
+    4-bit de forma confiable, y `bitsandbytes` solo acelera de verdad
+    con CUDA — sin CUDA no aporta nada, solo complejidad extra. Esa
+    máquina sí tiene 18GB de RAM, suficiente para un 3B en bfloat16
+    (~6-6.5GB) sin cuantizar.
+  - En Google Colab (GPU T4/L4 gratuita, usada para
+    `entrenar_lora.py` desde la Sesión 14 — ver BITACORA.md, en la
+    máquina local un entrenamiento de prueba tardó ~80-95 min POR
+    PASO y se abandonó a las 10h con 5% de avance), la VRAM libre
+    (~15GB) también alcanza de sobra para un 3B en bfloat16 sin
+    cuantizar.
+  - **Conclusión**: en ambos casos no hace falta cuantizar — el
+    modelo se carga tal cual en bfloat16 (`torch_dtype=torch.bfloat16`),
+    con `device_map="auto"` para usar la GPU automáticamente cuando
+    esté disponible (Colab) y caer a CPU si no (máquina local). El
+    cuello de botella real es la ausencia de GPU en la máquina local
+    (por eso conviene Colab para entrenar), no la memoria disponible
+    en ninguno de los dos entornos.
 
 Salida: guarda las 8 traducciones generadas (crudas, sin editar) en
 finetuning/baseline_sin_ajustar_salidas.json. El análisis narrado de
@@ -82,7 +92,7 @@ def cargar_modelo():
         MODEL_ID,
         token=token,
         torch_dtype=torch.bfloat16,
-        device_map="cpu",
+        device_map="auto" if torch.cuda.is_available() else "cpu",
     )
     modelo.eval()
     return tokenizer, modelo
@@ -96,6 +106,7 @@ def traducir(tokenizer, modelo, texto: str) -> str:
     entrada = tokenizer.apply_chat_template(
         mensajes, add_generation_prompt=True, return_tensors="pt", return_dict=True
     )
+    entrada = {k: v.to(modelo.device) for k, v in entrada.items()}
     with torch.no_grad():
         salida = modelo.generate(
             **entrada,

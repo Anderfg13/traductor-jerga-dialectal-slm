@@ -631,3 +631,98 @@ Pendiente: reintentar con Llama 3.2 3B Instruct cuando el equipo
 verifique el correo de la cuenta de HuggingFace y Meta apruebe el
 acceso; comparar este baseline contra las salidas del modelo ya
 ajustado con LoRA cuando esté listo (Fase 2, Semana 4-5).
+
+## Sesión 14 — 2026-09-02/03 — Anderson García
+
+Prueba de humo del pipeline de fine-tuning con LoRA (EN CURSO — se
+movió a Google Colab a mitad de sesión, resultados finales pendientes).
+
+Qué se hizo:
+- Confirmado en BITACORA.md que Paula no había dejado listo el script
+  de LoRA (solo estaban los archivos del baseline de la Sesión 13).
+  Sin script que coordinar, se escribió `finetuning/entrenar_lora.py`
+  desde cero esta sesión: carga el subconjunto de prueba de
+  `generation/splits/dataset_generador1/train.json` (50 ejemplos,
+  límite inferior del rango 50-100 pedido), tokeniza cada ejemplo con
+  el MISMO prompt de sistema que `probar_baseline.py` (mismo formato
+  en entrenamiento y evaluación), enmascara con `label=-100` los
+  tokens del prompt para que la pérdida solo se calcule sobre la
+  traducción, entrena un adaptador LoRA (`r=8`, `alpha=16`, sobre
+  `q_proj/k_proj/v_proj/o_proj`) con `peft` + `transformers.Trainer`,
+  guarda el adaptador en disco, y luego lo **recarga desde disco**
+  (no reutiliza el objeto en memoria) para probar inferencia sobre los
+  mismos 8 ejemplos de `test.json` que usa el baseline — así se puede
+  comparar "antes" vs. "después" sobre exactamente los mismos casos.
+- **Bloqueo real, no cubierto por el plan original**: se intentó
+  correr el entrenamiento de prueba en la máquina local (sin GPU
+  CUDA, la misma usada para la Sesión 13). Encontrado y corregido en
+  el camino un bug de compatibilidad (`tokenizer.apply_chat_template`
+  sin `return_tensors` devuelve un `BatchEncoding`, no una lista de
+  ids — hacía falta `["input_ids"]` explícito). Una vez corregido el
+  código, el entrenamiento sí arrancó y la pérdida sí se calculaba
+  correctamente paso a paso, pero **cada paso tardaba 80-95 minutos en
+  CPU pura** — a las 10 horas de correr solo se había completado el
+  5% (8 de 150 pasos) y se interrumpió manualmente. CPU pura NO es
+  viable ni para una prueba de humo de 150 pasos con un modelo de 3B,
+  aunque sea con LoRA (los pesos base congelados igual participan del
+  forward/backward, así que LoRA no evita el costo de cómputo del
+  backprop a través del modelo completo, solo reduce cuántos
+  parámetros se actualizan).
+- **Decisión del equipo**: mover el entrenamiento a Google Colab (GPU
+  gratuita T4/L4). Se actualizó `probar_baseline.py` para detectar el
+  dispositivo automáticamente (`device_map="auto"` si hay CUDA, si no
+  `"cpu"`) y mover los tensores de entrada al dispositivo del modelo
+  en `traducir()` — así el mismo código sirve para la máquina local
+  (CPU) y para Colab (GPU) sin cuantizar en ningún caso, porque un 3B
+  en bfloat16 (~6-6.5GB) cabe cómodo tanto en 18GB de RAM local como
+  en la VRAM libre de una GPU gratuita de Colab (~15GB) — cuantizar no
+  habría resuelto el problema real, que era la falta de GPU, no de
+  memoria.
+- Creado `finetuning/entrenar_lora_colab.ipynb`: notebook listo para
+  correr en Colab (clona el repo público desde GitHub, instala solo
+  las dependencias necesarias sin tocar el `torch`+CUDA que ya trae
+  Colab preinstalado, corre `entrenar_lora.py`, y empaqueta/descarga
+  el adaptador + la curva de pérdida + las traducciones de prueba al
+  final).
+- Ajustado `.gitignore`: la regla genérica de "no versionar modelos
+  pesados" (`*.safetensors`, `*.bin`) bloqueaba también los
+  adaptadores LoRA (solo unos MB, no un modelo completo) — agregada
+  una excepción explícita para `finetuning/**/adapter/`.
+- **Aparte, a pedido del equipo**: agregado `.githooks/pre-commit`,
+  que bloquea cualquier commit que modifique archivos del proyecto sin
+  incluir una entrada nueva en `BITACORA.md` (documentado en
+  README.md, sección "Instalación del entorno", paso 4 — hay que
+  activarlo a mano una vez por clon con
+  `git config core.hooksPath .githooks`, git no lo activa solo).
+  Mencionado también en `CONTEXTO_PROYECTO.md` para que quede claro
+  que la regla de "todo commit relevante lleva entrada en BITACORA.md"
+  ya no es solo una convención escrita.
+
+**Lo que falta (bloqueado en traer los resultados de Colab, no en
+código)**: correr `entrenar_lora_colab.ipynb`, confirmar que la
+pérdida baja de forma consistente, y traer de vuelta al repo el
+adaptador entrenado (`finetuning/lora_prueba/adapter/`), la curva de
+pérdida real (`finetuning/lora_prueba/loss_log.json`) y las
+traducciones de prueba con el adaptador
+(`finetuning/lora_prueba/salidas_con_adapter.json`) para escribir
+`finetuning/prueba_loss.md` con datos reales y comparar contra
+`finetuning/baseline_sin_ajustar_salidas.json`. No se inventan estos
+resultados en esta entrada — se documentan en una sesión de
+continuación en cuanto estén disponibles.
+
+Decisiones tomadas:
+- Escribir el script de LoRA en esta sesión en vez de esperar a Paula,
+  documentado explícitamente como tal, para no bloquear la prueba
+  end-to-end (decisión tomada con el equipo).
+- No inventar una curva de pérdida ni resultados de comparación —
+  aunque el prompt pedía documentarlos en esta sesión, el
+  entrenamiento real todavía no ha terminado en ningún entorno; se
+  prefiere dejarlo pendiente y honesto en vez de rellenar
+  `finetuning/prueba_loss.md` con datos ficticios.
+
+Pendiente: correr `finetuning/entrenar_lora_colab.ipynb` en Colab con
+GPU, traer los resultados al repo, y completar
+`finetuning/prueba_loss.md` + esta entrada de bitácora con los números
+reales (pérdida por paso, confirmación de que baja de forma
+consistente, comparación de las salidas del adaptador contra el
+baseline sin ajustar).

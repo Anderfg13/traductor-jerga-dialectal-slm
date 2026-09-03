@@ -1,0 +1,47 @@
+#!/bin/sh
+# Hook de pre-commit del proyecto: exige que todo commit que toque
+# archivos del proyecto venga acompañado de una entrada en
+# BITACORA.md, tal como pide CONTEXTO_PROYECTO.md ("Todo commit
+# relevante va acompañado de una entrada en BITACORA.md").
+#
+# Activación (una sola vez por clon del repo, no se activa solo):
+#     git config core.hooksPath .githooks
+#
+# Para un commit genuinamente trivial que no amerite entrada en la
+# bitácora (ej. un typo en un comentario), usa `git commit --no-verify`
+# a propósito — este hook no puede distinguir eso por sí solo.
+
+# No bloquear en medio de un merge (el commit de merge no es el lugar
+# para forzar una entrada de bitácora).
+if [ -f "$(git rev-parse --git-dir)/MERGE_HEAD" ]; then
+    exit 0
+fi
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+
+if [ -z "$staged" ]; then
+    exit 0
+fi
+
+# Archivos que NO cuentan como "cambio relevante" por sí solos: la
+# propia bitácora, config trivial y los hooks del repo.
+non_trivial=$(echo "$staged" | grep -vE '^(BITACORA\.md|\.gitignore|\.env\.example|\.githooks/.*)$')
+
+if [ -n "$non_trivial" ] && ! echo "$staged" | grep -qx "BITACORA.md"; then
+    echo "----------------------------------------------------------------"
+    echo "ERROR: este commit modifica archivos del proyecto pero no agrega"
+    echo "una entrada en BITACORA.md."
+    echo
+    echo "Archivos en el commit (sin contar BITACORA.md/config trivial):"
+    echo "$non_trivial" | sed 's/^/  - /'
+    echo
+    echo "Agrega una entrada siguiendo el formato al inicio de BITACORA.md"
+    echo "y vuelve a stagearla (git add BITACORA.md)."
+    echo
+    echo "Si de verdad este commit no amerita entrada de bitácora, usa:"
+    echo "  git commit --no-verify"
+    echo "----------------------------------------------------------------"
+    exit 1
+fi
+
+exit 0

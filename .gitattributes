@@ -1,0 +1,4 @@
+# Los hooks son scripts de shell (#!/bin/sh) -- deben mantener saltos
+# de línea LF sin importar la config de autocrlf de cada quien, o se
+# rompen al clonar en Mac/Linux/Git Bash (CRLF hace fallar el shebang).
+.githooks/* text eol=lf

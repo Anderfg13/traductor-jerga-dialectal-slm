@@ -77,6 +77,16 @@ Requiere Python 3.10+.
    ```bash
    pip install -r requirements.txt
    ```
+4. Activa los git hooks del proyecto (una sola vez por clon — git no
+   los activa solo):
+   ```bash
+   git config core.hooksPath .githooks
+   ```
+   Esto habilita [`.githooks/pre-commit`](./.githooks/pre-commit): un
+   commit que modifique archivos del proyecto sin incluir una entrada
+   nueva en `BITACORA.md` se rechaza (mensaje explicando qué falta).
+   Para un commit genuinamente trivial que no amerite entrada de
+   bitácora, usa `git commit --no-verify` a propósito.
 
 > Si al correr `generation/test_apis.py` ves errores como
 > `ModuleNotFoundError: No module named 'groq'` o
