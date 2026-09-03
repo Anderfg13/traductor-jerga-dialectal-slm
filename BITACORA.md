@@ -562,3 +562,72 @@ Pendiente: ninguno — Sesión 12 cerrada, los tres criterios de
 aceptación (splits existen, tamaños suman el total, sin semillas
 repetidas entre splits) verificados automáticamente por el propio
 script.
+
+## Sesión 13 — 2026-09-02 — Anderson García
+
+Línea base del SLM candidato sin ajustar.
+
+Qué se hizo:
+- Bloqueo inicial: `meta-llama/Llama-3.2-3B-Instruct` (candidato
+  principal) tiene `gated="manual"` en HuggingFace — Meta revisa el
+  acceso a mano, no automático — y la cuenta usada para pedir el
+  token tenía el correo sin verificar. La descarga falló con
+  `GatedRepoError` (403 "not in authorized list") pese a tener
+  `HF_TOKEN` válido con permiso de lectura, aunque `HfApi.model_info`
+  sí funcionaba (esa llamada solo lee metadata pública, no exige
+  acceso aprobado). Consultado con el equipo: se decidió usar
+  **Qwen2.5-3B-Instruct** para esta línea base — es la alternativa ya
+  listada en `CONTEXTO_PROYECTO.md`, sin licencia restringida, y
+  desbloqueaba la tarea sin esperar la revisión de Meta.
+- Escrito `finetuning/probar_baseline.py`: carga el modelo en
+  `bfloat16` sin cuantizar, en CPU, y prueba traducción zero-shot
+  sobre 8 ejemplos reales de `generation/splits/dataset_generador1/test.json`
+  (2 por cada uno de los 4 dialectos).
+- **Decisión de precisión, justificada en el código**: bfloat16 sin
+  cuantizar. El `torch` de este entorno es la build CPU-only
+  (`torch==2.13.0+cpu`, sin CUDA), y la única GPU NVIDIA de la máquina
+  (MX230) tiene solo 2GB de VRAM — insuficiente incluso para un 3B en
+  4-bit, y `bitsandbytes` no acelera nada sin CUDA. La máquina sí
+  tiene 18GB de RAM, y un 3B en bfloat16 pesa ~6-6.5GB: entra sin
+  problema sin necesidad de cuantizar. El cuello de botella real es la
+  ausencia de GPU, no la memoria.
+- Bug encontrado y corregido: con `transformers==5.12.1`,
+  `tokenizer.apply_chat_template(..., return_tensors="pt")` sin
+  `return_dict=True` devuelve un `BatchEncoding` en vez de un tensor
+  plano, y `modelo.generate()` fallaba con `AttributeError` al pedir
+  `.shape`. Arreglado pasando `return_dict=True` y desempacando con
+  `**entrada` en `generate()`.
+- Corrido el script: **las 8 generaciones terminaron sin errores de
+  memoria** (descarga ~6GB del modelo la primera vez, ~18 min por
+  ancho de banda; la generación en sí tardó menos de 1 minuto una vez
+  cargado el modelo).
+- Guardadas las salidas crudas en
+  `finetuning/baseline_sin_ajustar_salidas.json` y el análisis
+  narrado en `finetuning/baseline_sin_ajustar.md`, con los 8 ejemplos
+  reales (español dialectal, referencia, salida del modelo) y 5 tipos
+  de error identificados: (1) falso amigo con el significado estándar
+  en vez del dialectal ("tinto" → "red wine" en vez de "coffee", en
+  el 100% de sus apariciones), (2) traducción literal de modismos
+  ("estar remando" → "rowing" en vez de "barely getting by"), (3)
+  muletillas de jerga tratadas de forma inconsistente ("neta" omitida
+  una vez, traducida como "Surely" otra vez), (4) la misma palabra de
+  jerga traducida bien en una oración y literal en otra ("brutal" →
+  "fantastic" vs. "brutal", ambas de la semilla `sem-007`), (5) calcos
+  gramaticales menores ("armó la fiesta" → "did a... party").
+
+Decisiones tomadas:
+- Sustituir Llama 3.2 3B por Qwen2.5-3B-Instruct SOLO para esta línea
+  base, documentado explícitamente en el docstring de
+  `probar_baseline.py` y en `baseline_sin_ajustar.md`, con el motivo
+  exacto — para no perder trazabilidad de por qué el candidato
+  principal no es el que aparece en esta línea base. El script queda
+  listo para reproducir el mismo baseline con Llama 3.2 3B cambiando
+  solo `MODEL_ID` en cuanto el acceso quede aprobado.
+- Agregado `HF_TOKEN` a `.env.example`, documentado (necesario para
+  modelos con licencia restringida como Llama 3.2, aunque Qwen2.5 no
+  lo necesite).
+
+Pendiente: reintentar con Llama 3.2 3B Instruct cuando el equipo
+verifique el correo de la cuenta de HuggingFace y Meta apruebe el
+acceso; comparar este baseline contra las salidas del modelo ya
+ajustado con LoRA cuando esté listo (Fase 2, Semana 4-5).
