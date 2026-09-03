@@ -470,3 +470,95 @@ Pendiente: que evaluadores humanos nativos confirmen o corrijan las 10
 calificaciones piloto y completen las 26 filas restantes una vez estén
 reclutados (Sesión 22); este muestreo del Generador 1 sirve como
 plantilla reutilizable para los Generadores 2 y 3 más adelante.
+
+## Sesión 11 — 2026-09-02 — Mariana Malagón
+
+Validación automática de datos sintéticos (filtros).
+
+Qué se hizo:
+- Escrito `generation/validar.py` con 4 reglas: (1) longitud fuera de
+  rango (<3 o >40 palabras — el máximo se calibró mirando la
+  distribución real del dataset, que no pasa de 26 palabras), (2)
+  casi idéntica a la semilla original sin variación real (similitud
+  >= 0.8 con `difflib`, calibrado contra los datos reales: separa los
+  2 casos genuinamente problemáticos de los que sí agregan contexto
+  real), (3) idioma inesperado (heurística de palabras frecuentes
+  es/en, exige >=2 coincidencias para evitar falsos positivos con
+  frases cortas — probado explícitamente contra el dataset completo
+  antes de fijar el umbral), (4) duplicada exacta dentro del dataset.
+- Decisión de diseño explicada en el docstring: reglas 1, 2 y 4
+  DESCARTAN (no hay ambigüedad); la regla 3 solo MARCA COMO SOSPECHOSA
+  porque es una heurística aproximada, no un detector de idioma real.
+- Corrido sobre `generation/dataset_generador1.json` (238 variantes):
+  **236 aprobadas, 0 sospechosas, 2 descartadas (0.8%)** — muy por
+  debajo del límite de 20%, no hizo falta ajustar la plantilla de
+  derivación. Las 2 descartadas fueron variantes que solo le pegaban
+  una palabra suelta a la semilla ("Che, ¿todo bien, che?" y "Ahorita
+  te marco, ¿vale?").
+- Generados `generation/dataset_generador1_limpio.json` (236
+  variantes) y `generation/reporte_filtrado.md` con el desglose y
+  ejemplos concretos de lo descartado.
+- **Hallazgo importante, no cubierto por estas 4 reglas:** el caso de
+  mezcla de dialecto que Paula encontró en su muestreo piloto (Sesión
+  10, semilla `sem-016` Andina con un "Che" Rioplatense) sigue
+  presente en el dataset limpio — ninguna de las 4 reglas de
+  `validar.py` busca marcadores de otro dialecto, solo longitud,
+  parecido a la semilla, idioma y duplicados. Queda documentado
+  explícitamente en `generation/data_card_generador1.md` como
+  limitación conocida y candidato a una futura Regla 5.
+
+Decisiones tomadas:
+- No se implementó una Regla 5 de detección de mezcla de dialectos en
+  esta sesión — no estaba en el alcance pedido (las 4 reglas del
+  prompt), y una heurística confiable para eso (lista de marcadores
+  por dialecto) merece su propia sesión de diseño y calibración, no
+  un agregado apurado.
+
+Pendiente: evaluar si vale la pena agregar la Regla 5 (mezcla de
+dialectos) antes del entrenamiento completo (Sesión 19), a la luz de
+que ya hay evidencia real de que ocurre.
+
+## Sesión 12 — 2026-09-02 (2) — Mariana Malagón
+
+Splits train/val/test + data card.
+
+Qué se hizo:
+- Confirmado que `generation/dataset_generador1_limpio.json` existe
+  (Sesión 11): 236 variantes, 40 semillas, 10 por cada uno de los 4
+  dialectos.
+- Escrito `generation/split_dataset.py`: reparte 80/10/10 **por
+  semilla** (todas las variantes de una semilla van al mismo split,
+  para no filtrar la respuesta correcta de entrenamiento a test) y
+  **estratificado por dialecto** (el reparto 80/10/10 se hace dentro
+  de cada dialecto por separado, no sobre el total mezclado), con
+  semilla aleatoria fija (42) para reproducibilidad.
+- El propio script verifica automáticamente, antes de escribir nada:
+  que ninguna semilla quede en más de un split, y que la suma de
+  variantes de los tres splits coincida con el total del dataset
+  limpio. Si algo no cuadra, el script no escribe los archivos y
+  reporta el error explícitamente (falla con código de salida 1).
+- Resultado: train 32 semillas/189 variantes, val 4 semillas/24
+  variantes, test 4 semillas/23 variantes (suma 236, correcto).
+  Guardado en `generation/splits/dataset_generador1/{train,val,test}.json`.
+- Escrita la data card `generation/data_card_generador1.md`: tamaño,
+  cobertura por dialecto, cómo se generó, filtros aplicados (Sesión
+  11), splits, y limitaciones conocidas — incluyendo explícitamente el
+  hueco de la Regla 5 (mezcla de dialectos) de la sesión anterior, y
+  que este dataset solo cubre `seeds/lote_01.json` (no el lote 2 de
+  Paula, que llegó después de que Anderson generara este dataset).
+
+Decisiones tomadas:
+- Los splits quedan en `generation/splits/<nombre_dataset>/` (no
+  sueltos en `generation/`) para que cuando se generen los splits de
+  los Generadores 2 y 3 (Sesión 41-42) no se sobrescriban entre sí —
+  cada uno en su propia subcarpeta con el mismo nombre de archivo
+  (`train.json`, `val.json`, `test.json`) que pide la Sesión 12.
+- Split estratificado por dialecto en vez de aleatorio simple sobre
+  las 40 semillas, porque con solo 40 semillas un split aleatorio
+  simple podía dejar algún dialecto fuera de val o test por pura
+  casualidad; estratificar lo evita de raíz.
+
+Pendiente: ninguno — Sesión 12 cerrada, los tres criterios de
+aceptación (splits existen, tamaños suman el total, sin semillas
+repetidas entre splits) verificados automáticamente por el propio
+script.
