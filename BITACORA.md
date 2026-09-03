@@ -812,3 +812,54 @@ Pendiente: entrenamiento completo con el dataset completo (Sesión
 ejemplos distintos) al escalar — considerar más datos, más
 variedad por paso (batch size > 1), o menos épocas si se repite con
 un dataset más grande.
+
+## Sesión 14 — 2026-09-03 (4) — Anderson García
+
+Mejoras de proceso (no calendario oficial — pedido aparte del equipo,
+motivado directamente por lo aprendido en esta sesión): reforzar la
+exigencia de documentación en cada commit y dejar por escrito la
+política de "cómputo pesado siempre en Colab".
+
+Qué se hizo:
+- Reforzado `.githooks/pre-commit`: ya no basta con que `BITACORA.md`
+  esté en el commit (Sesión 14 (1)) — ahora también revisa que el
+  diff agregue contenido real (no un `git add` vacío) y que ese
+  contenido siga el formato mínimo de la plantilla (busca la línea
+  "Qué se hizo"). Bloquea el commit si falta cualquiera de las dos
+  cosas. Agregado también un aviso NO bloqueante: si el commit crea
+  archivos fuera de las carpetas que ya describe `README.md` y el
+  README no está en el commit, recuerda considerar actualizarlo.
+- Probado a mano (`sh .githooks/pre-commit` sobre un archivo de
+  prueba) que la regla bloqueante 1 sigue funcionando igual que en la
+  Sesión 14 (1).
+- Agregada a `CONTEXTO_PROYECTO.md` la sección "CÓMPUTO PESADO:
+  SIEMPRE EN GOOGLE COLAB, NUNCA EN LA MÁQUINA LOCAL": paso a paso
+  genérico (no específico de LoRA) para correr cualquier script pesado
+  futuro en Colab — cómo evitar el bug de clon anidado, instalar solo
+  dependencias puntuales (no `requirements.txt` completo), el fix de
+  `torchao` con `peft`, detección automática de dispositivo sin
+  cuantizar de más, y cómo traer los resultados de vuelta al repo.
+  Referencia cruzada agregada en `README.md`.
+- Creado `CLAUDE.md` en la raíz del repo: instrucciones persistentes
+  para que Claude Code, en cualquier sesión futura en este
+  repositorio, (1) **nunca agregue coautoría de Claude en los
+  commits** salvo que se le pida explícitamente para un commit
+  puntual, (2) siga Conventional Commits, (3) respete la regla de
+  entrada real en `BITACORA.md` por commit, y (4) use siempre Google
+  Colab para cómputo pesado, nunca la máquina local.
+
+Decisiones tomadas:
+- Poner el paso a paso de Colab en `CONTEXTO_PROYECTO.md` (no en
+  `BITACORA.md`) porque `BITACORA.md` es un registro cronológico de
+  solo-agregar por convención propia del archivo ("no se reescriben
+  las anteriores") — no es el lugar para una guía de referencia
+  permanente que se vaya a consultar y actualizar con el tiempo;
+  `CONTEXTO_PROYECTO.md` sí es ese documento vivo.
+- Esta entrada usa "Sesión 14 (4)" en vez de un número nuevo: no
+  corresponde a ningún número del calendario oficial del curso (la
+  Sesión 15 ya está asignada a otra persona del equipo para otra
+  tarea) — es trabajo de proceso/tooling motivado por el cierre de la
+  Sesión 14, no una sesión nueva del calendario.
+
+Pendiente: ninguno para esta entrada — el resto de pendientes sigue
+siendo el mismo que el cierre de la Sesión 14 de arriba.

@@ -1,8 +1,11 @@
 #!/bin/sh
 # Hook de pre-commit del proyecto: exige que todo commit que toque
-# archivos del proyecto venga acompañado de una entrada en
-# BITACORA.md, tal como pide CONTEXTO_PROYECTO.md ("Todo commit
-# relevante va acompañado de una entrada en BITACORA.md").
+# archivos del proyecto venga acompañado de una entrada REAL en
+# BITACORA.md (no solo tocar el archivo), tal como pide
+# CONTEXTO_PROYECTO.md ("Todo commit relevante va acompañado de una
+# entrada en BITACORA.md"). El objetivo es que, cerca de la entrega,
+# se pueda entender qué se hizo en cada commit sin tener que
+# reconstruirlo desde el diff.
 #
 # Activación (una sola vez por clon del repo, no se activa solo):
 #     git config core.hooksPath .githooks
@@ -25,9 +28,14 @@ fi
 
 # Archivos que NO cuentan como "cambio relevante" por sí solos: la
 # propia bitácora, config trivial y los hooks del repo.
-non_trivial=$(echo "$staged" | grep -vE '^(BITACORA\.md|\.gitignore|\.env\.example|\.githooks/.*)$')
+non_trivial=$(echo "$staged" | grep -vE '^(BITACORA\.md|\.gitignore|\.gitattributes|\.env\.example|\.githooks/.*)$')
 
-if [ -n "$non_trivial" ] && ! echo "$staged" | grep -qx "BITACORA.md"; then
+if [ -z "$non_trivial" ]; then
+    exit 0
+fi
+
+# --- Regla 1 (bloqueante): BITACORA.md debe estar en el commit ---
+if ! echo "$staged" | grep -qx "BITACORA.md"; then
     echo "----------------------------------------------------------------"
     echo "ERROR: este commit modifica archivos del proyecto pero no agrega"
     echo "una entrada en BITACORA.md."
@@ -42,6 +50,52 @@ if [ -n "$non_trivial" ] && ! echo "$staged" | grep -qx "BITACORA.md"; then
     echo "  git commit --no-verify"
     echo "----------------------------------------------------------------"
     exit 1
+fi
+
+# --- Regla 2 (bloqueante): la entrada tiene que ser real, no solo ---
+# tocar el archivo (evita "git add BITACORA.md" sin agregar nada, o
+# agregar una línea suelta sin seguir el formato mínimo).
+bitacora_agregado=$(git diff --cached -- BITACORA.md | grep -E '^\+[^+]')
+
+if [ -z "$bitacora_agregado" ]; then
+    echo "----------------------------------------------------------------"
+    echo "ERROR: BITACORA.md está en el commit pero no tiene contenido"
+    echo "nuevo agregado (¿olvidaste guardar la entrada antes de hacer"
+    echo "git add?)."
+    echo "----------------------------------------------------------------"
+    exit 1
+fi
+
+if ! echo "$bitacora_agregado" | grep -qi "se hizo"; then
+    echo "----------------------------------------------------------------"
+    echo "ERROR: la entrada nueva de BITACORA.md no sigue el formato"
+    echo "mínimo (falta la línea 'Qué se hizo: ...' — ver la plantilla al"
+    echo "inicio de BITACORA.md)."
+    echo
+    echo "Esto importa para que cerca de la entrega se pueda entender qué"
+    echo "pasó en cada commit sin tener que releer el diff completo."
+    echo "----------------------------------------------------------------"
+    exit 1
+fi
+
+# --- Regla 3 (aviso, NO bloqueante): ¿este commit toca algo fuera de ---
+# las carpetas ya documentadas en README.md sin tocar el README?
+# Sirve de recordatorio, no se puede detectar de forma confiable si el
+# README "de verdad" necesita cambiar, así que no bloquea el commit.
+carpetas_conocidas='^(seeds|generation|finetuning|merging|evaluation|api|docs|\.githooks)/'
+nuevos_fuera_de_lo_conocido=$(git diff --cached --name-only --diff-filter=A | grep -vE "$carpetas_conocidas" | grep -vE '^(BITACORA\.md|README\.md|CONTEXTO_PROYECTO\.md|\.gitignore|\.gitattributes|\.env\.example|requirements\.txt)$')
+
+if [ -n "$nuevos_fuera_de_lo_conocido" ] && ! echo "$staged" | grep -qx "README.md"; then
+    echo "----------------------------------------------------------------"
+    echo "Aviso (no bloquea el commit): este commit agrega archivos fuera"
+    echo "de las carpetas que ya describe README.md, y el README no está"
+    echo "en el commit:"
+    echo "$nuevos_fuera_de_lo_conocido" | sed 's/^/  - /'
+    echo
+    echo "Si esto cambia la estructura del repo o cómo se corre algo,"
+    echo "considera actualizar README.md (sección 'Estructura del"
+    echo "repositorio') en el mismo commit o en uno de seguimiento."
+    echo "----------------------------------------------------------------"
 fi
 
 exit 0
