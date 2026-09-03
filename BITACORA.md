@@ -755,5 +755,60 @@ celda 3 — sin el paquete, `peft` simplemente se salta esa revisión y
 sigue por el camino normal (sin cuantizar). De paso, corregido un
 mensaje de log engañoso en `entrenar_lora.py` y `probar_baseline.py`
 que decía "(CPU, sin cuantizar)" siempre, sin reflejar el dispositivo
-real detectado. Todavía pendiente confirmar que el entrenamiento corre
-completo en Colab con este fix.
+real detectado.
+
+## Sesión 14 — 2026-09-03 (3) — Anderson García
+
+Cierre: entrenamiento completo en Colab, resultados reales.
+
+Qué se hizo:
+- Con el fix del `torchao`, el entrenamiento completo (150 pasos, 3
+  épocas, 50 ejemplos) corrió sin errores en Colab (GPU T4) en pocos
+  minutos — nada que ver con las 10h+ que llevaba en CPU local.
+- **Pérdida: baja de forma consistente.** Promedio por época: 1.011
+  (época 1) → 0.458 (época 2) → 0.263 (época 3) — ~4x menor entre la
+  primera y la última época, pese al ruido normal de correr con batch
+  size 1. Se cumple el criterio de calidad pedido sin necesitar tocar
+  la tasa de aprendizaje ni el formato de los datos.
+- **Adaptador guardado y recargado desde disco, verificado de
+  verdad**: el script libera de memoria el modelo de entrenamiento
+  (`del trainer, modelo, modelo_base; gc.collect()`) y vuelve a
+  cargarlo desde cero + el adaptador (`PeftModel.from_pretrained`)
+  antes de generar las traducciones de prueba — no reutiliza el
+  objeto que quedó en memoria tras entrenar.
+- **Comparación contra el baseline sin ajustar (Sesión 13), mismos 8
+  ejemplos de `test.json`**: las 8 salidas cambiaron respecto al
+  baseline (100%). Mejoras claras en 2-3 de los 8 (el error de
+  "brutal" → "brutal" literal del baseline se corrige a "insane"; el
+  modismo "estar remando" se traduce como "struggling" en vez de
+  "rowing" en uno de los dos casos, parcialmente en el otro). El
+  error más sistemático del baseline ("tinto" → vino en vez de café)
+  **no se corrigió** — la semilla `sem-025` cayó en el split de test,
+  no en los 50 ejemplos de entrenamiento, así que no había señal de la
+  que aprender ese caso puntual; comportamiento esperado de una
+  prueba de humo con tan pocos datos, no un defecto del pipeline.
+- **Hallazgo a vigilar**: dos ejemplos distintos de test (`sem-025`,
+  "amigo" vs. "colega") dieron exactamente la misma salida — posible
+  señal de memorización/sobreajuste con tan pocos ejemplos y épocas,
+  a revisar cuando se entrene con el dataset completo.
+- Escrito `finetuning/prueba_loss.md` con la curva de pérdida completa,
+  la tabla comparativa baseline-vs-adaptador de los 8 ejemplos, y el
+  análisis de qué mejoró y qué no.
+- Traídos al repo desde Colab: `finetuning/lora_prueba/adapter/`
+  (~14.8MB, adaptador LoRA), `finetuning/lora_prueba/loss_log.json`
+  (150 valores de pérdida) y
+  `finetuning/lora_prueba/salidas_con_adapter.json` (las 8
+  traducciones de prueba).
+
+Decisiones tomadas:
+- No reentrenar con más datos/épocas en esta sesión para "arreglar" el
+  caso de "tinto" — esta sesión era una prueba de humo del pipeline,
+  no el entrenamiento final; ese caso queda documentado como pendiente
+  natural para el entrenamiento completo (Sesión 19+), que sí cubre
+  todas las semillas.
+
+Pendiente: entrenamiento completo con el dataset completo (Sesión
+19+); vigilar el indicio de sobreajuste (misma salida para dos
+ejemplos distintos) al escalar — considerar más datos, más
+variedad por paso (batch size > 1), o menos épocas si se repite con
+un dataset más grande.
