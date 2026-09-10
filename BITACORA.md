@@ -863,3 +863,106 @@ Decisiones tomadas:
 
 Pendiente: ninguno para esta entrada — el resto de pendientes sigue
 siendo el mismo que el cierre de la Sesión 14 de arriba.
+
+## Sesión 15 — 2026-09-10 — Paula Lozano
+
+Configurar LoRA + script de fine-tuning.
+
+Contexto: `finetuning/entrenar_lora.py` ya existía — Anderson lo escribió
+en la Sesión 14 para no bloquear la prueba end-to-end, documentado
+explícitamente ahí como una desviación (Paula no lo había dejado listo
+todavía). Esta sesión no repite ese trabajo: cierra los dos requisitos
+concretos del prompt original de la Sesión 15 que ese script no
+cumplía.
+
+Qué se hizo:
+- **Justificación de hiperparámetros**: agregado un comentario por cada
+  valor de `LoraConfig` en `entrenar_lora.py` (antes no tenían
+  ninguno) — por qué `r=8` (capacidad modesta apropiada para ~3B con
+  dataset chico, adaptador liviano acorde a portabilidad), por qué
+  `lora_alpha=16` (heurística estándar `alpha=2*r`, para que siga
+  siendo válida si `r` cambia al escalar en la Sesión 19+), por qué
+  `lora_dropout=0.05` (regularización barata; se deja igual porque ya
+  hay indicio de sobreajuste documentado en la Sesión 14 con este mismo
+  valor), por qué `bias="none"` (default estándar de LoRA para LLMs
+  causales) y por qué `target_modules` son solo las proyecciones de
+  atención Q/K/V/O (mayor impacto en adaptar el modelo a la tarea,
+  adaptador más chico que si se incluyeran las capas MLP).
+- **Dataset configurable por parámetro**: agregado `--dataset-dir` (CLI,
+  `argparse`) para poder reutilizar el mismo script con los Generadores
+  2 y 3 en la Semana 7, tal como pedía el prompt original. Refactor de
+  `entrenar()` y `probar_adapter_recargado()` para recibir las rutas
+  como parámetros en vez de constantes de módulo fijas.
+- Para no pisar los resultados de la Sesión 14 (`finetuning/lora_prueba/`,
+  ya committeados: adaptador, curva de pérdida, salidas), el default de
+  `--dataset-dir` sigue siendo `dataset_generador1` y sigue escribiendo
+  en `finetuning/lora_prueba/` igual que antes; cualquier otro dataset
+  escribe en `finetuning/lora_prueba_<generadorN>/` en vez de
+  sobrescribir.
+- Actualizado el docstring del script con el nuevo uso (`--dataset-dir`)
+  y la nota de que la Sesión 15 completó lo que la Sesión 14 dejó
+  pendiente.
+
+Decisiones tomadas:
+- No se volvió a correr el entrenamiento completo en Colab: el cambio
+  es de refactor (parametrizar rutas ya usadas) + comentarios (no toca
+  lógica de entrenamiento), así que no había necesidad de repetir el
+  cómputo pesado que Anderson ya corrió y documentó en la Sesión 14.
+  Verificado en su lugar, sin GPU, que (a) el script sigue compilando
+  (`python -m py_compile`) y (b) la lógica de resolución de rutas
+  (`--dataset-dir` por default vs. uno nuevo) produce exactamente las
+  rutas esperadas, probada de forma aislada sin importar `torch`/`peft`
+  (no instalados en esta máquina — ver política de Colab en
+  `CLAUDE.md`).
+- No se creó un script nuevo (`finetuning/entrenar.py`) separado del ya
+  existente `entrenar_lora.py` — habría duplicado exactamente el mismo
+  pipeline ya probado end-to-end; se prefirió completar el que ya
+  funciona.
+
+Pendiente: correr `entrenar_lora.py --dataset-dir
+generation/splits/dataset_generadorN` de verdad en Colab cuando existan
+los splits de los Generadores 2 y 3 (Semana 7) para confirmar que el
+parámetro nuevo funciona en la práctica, no solo en la prueba aislada
+de rutas.
+
+## Sesión 16 — 2026-09-10 — Paula Lozano
+
+Depurar el primer entrenamiento.
+
+Contexto: el objetivo de esta sesión (que el entrenamiento de prueba
+converja de forma estable, con los problemas encontrados documentados)
+**ya quedó cumplido en la Sesión 14**, hecho por Anderson junto con el
+script de LoRA. No se repite el entrenamiento para no duplicar cómputo
+ya hecho y documentado.
+
+Qué se hizo (verificación, no repetición):
+- Revisados `BITACORA.md` (Sesión 14, entradas 2 y 3) y
+  `finetuning/prueba_loss.md`: se depuraron 3 problemas reales antes de
+  llegar a una corrida estable — bug de clon anidado en el notebook de
+  Colab, incompatibilidad de `torchao` con la versión de `peft` sin
+  pin, y un bug de formato en `apply_chat_template` (devuelve un
+  `BatchEncoding`, no una lista de ids directamente).
+- Confirmado que, con esos tres fixes, la pérdida **converge de forma
+  estable y sin picos erráticos**: 1.011 (época 1) → 0.458 (época 2) →
+  0.263 (época 3), ~4x de mejora entre la primera y la última época.
+- Confirmado que cada cambio respecto a la configuración anterior está
+  explicado con su causa en la Sesión 14 (no un genérico "probé varias
+  cosas"), cumpliendo el criterio de calidad pedido en el prompt
+  original de esta sesión.
+
+Decisiones tomadas:
+- No volver a correr el entrenamiento de prueba: repetirlo en Colab
+  solo para generar una "Sesión 16" separada habría sido cómputo
+  redundante sobre exactamente el mismo script, mismo dataset y misma
+  configuración que la Sesión 14 ya corrió y dejó documentada con
+  evidencia real (curva de pérdida, comparación baseline-vs-adaptador).
+- El único cambio de código tocado en esta sesión que afecta a
+  `entrenar_lora.py` es el de la Sesión 15 (arriba) — ninguno de los
+  dos cambios (comentarios, `--dataset-dir`) altera la lógica de
+  entrenamiento en sí, así que la curva de pérdida ya documentada en
+  `finetuning/prueba_loss.md` sigue siendo válida sin necesidad de
+  volver a correrla.
+
+Pendiente: ninguno específico de esta sesión — el pendiente real (vigilar
+el indicio de sobreajuste al escalar a más datos) ya quedó registrado en
+la Sesión 14 para la Sesión 19+.

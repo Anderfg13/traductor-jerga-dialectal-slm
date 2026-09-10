@@ -5,13 +5,17 @@ Prueba de humo (smoke test) del pipeline COMPLETO de fine-tuning con
 LoRA: carga de datos -> tokenización -> entrenamiento -> guardado del
 adaptador -> recarga del adaptador desde disco -> inferencia. Corre
 sobre un subconjunto pequeño (50 ejemplos, dentro del rango 50-100
-pedido) de `generation/splits/dataset_generador1/train.json` y pocas
-épocas. El objetivo NO es un modelo bueno — es confirmar que las
-piezas del pipeline encajan de punta a punta, y que la pérdida baja de
-forma consistente, ANTES de escalar al entrenamiento completo (Sesión
-19+). Este script no existía en el repo (Paula no lo había dejado
-listo); se escribió en esta sesión para no bloquear la prueba
-end-to-end (ver BITACORA.md).
+pedido) del `train.json` de un generador (por default
+`generation/splits/dataset_generador1/`, configurable con
+`--dataset-dir` para reutilizar el mismo script con los Generadores 2 y
+3 en la Semana 7 — ver Sesión 15) y pocas épocas. El objetivo NO es un
+modelo bueno — es confirmar que las piezas del pipeline encajan de
+punta a punta, y que la pérdida baja de forma consistente, ANTES de
+escalar al entrenamiento completo (Sesión 19+). Este script no existía
+en el repo (Paula no lo había dejado listo); se escribió en la Sesión
+14 para no bloquear la prueba end-to-end, y se completó en la Sesión 15
+con la justificación de hiperparámetros y el parámetro de dataset que
+pedía originalmente esa sesión (ver BITACORA.md).
 
 Modelo base: el mismo candidato usado en la línea base zero-shot
 (`finetuning/probar_baseline.py`) — **Qwen2.5-3B-Instruct**, NO Llama
@@ -54,8 +58,9 @@ Uso (recomendado, en Google Colab):
 Uso (local, solo si hay GPU CUDA disponible; en CPU pura NO
 terminará en un tiempo razonable, ver arriba):
     python finetuning/entrenar_lora.py
+    python finetuning/entrenar_lora.py --dataset-dir generation/splits/dataset_generador2
 
-Salidas:
+Salidas (Generador 1, default):
     finetuning/lora_prueba/adapter/              adaptador LoRA entrenado
     finetuning/lora_prueba/loss_log.json         pérdida por paso, cruda
     finetuning/lora_prueba/salidas_con_adapter.json  traducciones de prueba
@@ -63,8 +68,13 @@ Salidas:
         ejemplos de test.json que usa probar_baseline.py — permite
         comparar directamente "antes" (sin ajustar) vs. "después"
         (con LoRA) sobre exactamente los mismos ejemplos.
+
+Con --dataset-dir apuntando a otro generador, las mismas tres salidas
+se guardan en finetuning/lora_prueba_<generadorN>/ en vez de
+finetuning/lora_prueba/, para no pisar los resultados de otro dataset.
 """
 
+import argparse
 import gc
 import json
 import random
@@ -78,19 +88,16 @@ from transformers import AutoModelForCausalLM, Trainer, TrainerCallback, Trainin
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from probar_baseline import INDICES_MUESTRA, MODEL_ID, SYSTEM_PROMPT, TEST_PATH, cargar_modelo, traducir  # noqa: E402
 
-TRAIN_PATH = Path(__file__).resolve().parent.parent / "generation" / "splits" / "dataset_generador1" / "train.json"
-OUT_DIR = Path(__file__).resolve().parent / "lora_prueba"
-ADAPTER_DIR = OUT_DIR / "adapter"
-LOSS_LOG_PATH = OUT_DIR / "loss_log.json"
-SALIDAS_ADAPTER_PATH = OUT_DIR / "salidas_con_adapter.json"
+SPLITS_DIR_DEFAULT = Path(__file__).resolve().parent.parent / "generation" / "splits" / "dataset_generador1"
+FINETUNING_DIR = Path(__file__).resolve().parent
 
 N_EJEMPLOS = 50  # subconjunto pequeño, límite inferior del rango 50-100 pedido (CPU sin GPU: cada paso es caro)
 EPOCAS = 3
 SEMILLA_ALEATORIA = 42  # misma semilla que generation/split_dataset.py, por consistencia
 
 
-def cargar_muestra_entrenamiento() -> list[dict]:
-    datos = json.loads(TRAIN_PATH.read_text(encoding="utf-8"))
+def cargar_muestra_entrenamiento(train_path: Path) -> list[dict]:
+    datos = json.loads(train_path.read_text(encoding="utf-8"))
     random.Random(SEMILLA_ALEATORIA).shuffle(datos)
     return datos[:N_EJEMPLOS]
 
@@ -144,29 +151,55 @@ class RegistrarPerdida(TrainerCallback):
             self.historial.append({"paso": state.global_step, "epoca": round(state.epoch, 3), "loss": logs["loss"]})
 
 
-def entrenar() -> RegistrarPerdida:
+def entrenar(train_path: Path, adapter_dir: Path, loss_log_path: Path, checkpoints_dir: Path) -> RegistrarPerdida:
     dispositivo = "GPU (CUDA)" if torch.cuda.is_available() else "CPU"
     print(f"Cargando {MODEL_ID} en bfloat16 (sin cuantizar) para entrenar, dispositivo: {dispositivo}...")
     tokenizer, modelo_base = cargar_modelo()
 
     lora_config = LoraConfig(
+        # Rango del adaptador (r): controla cuántos parámetros nuevos se
+        # entrenan. 8 es un punto de partida modesto y muy usado para
+        # modelos ~3B — suficiente para que el adaptador aprenda el patrón
+        # de traducción dialectal sin sobreajustar con un dataset chico
+        # (50-100 ejemplos en esta prueba de humo), y mantiene el adaptador
+        # en pocos MB, alineado con el objetivo de portabilidad del
+        # proyecto (CONTEXTO_PROYECTO.md).
         r=8,
+        # alpha = 2*r es la heurística estándar de la literatura de LoRA:
+        # mantiene la magnitud efectiva de la actualización estable aunque
+        # se cambie r más adelante (ej. si se sube a r=16 al escalar en la
+        # Sesión 19+, alpha subiría a 32 con el mismo criterio).
         lora_alpha=16,
+        # Dropout leve sobre las activaciones del adaptador: regularización
+        # barata contra sobreajuste dado lo pequeño del dataset de esta
+        # prueba — ya se observó un indicio de sobreajuste (dos ejemplos
+        # distintos con la misma salida, ver BITACORA.md Sesión 14) con
+        # este mismo valor, así que no conviene bajarlo más; tampoco se
+        # sube porque con solo 3 épocas ya es un entrenamiento corto.
         lora_dropout=0.05,
+        # No adaptar los términos de bias: es el default estándar de LoRA
+        # para LLMs causales — los bias de atención rara vez aportan valor
+        # al adaptarlos y hacerlo agregaría parámetros sin beneficio claro
+        # para esta tarea.
         bias="none",
         task_type="CAUSAL_LM",
+        # Proyecciones de atención (Q/K/V/O): es donde más impacto tiene
+        # adaptar un modelo para una tarea nueva de comprensión de entrada
+        # (interpretar jerga/dialecto), sin tocar las capas MLP — mantiene
+        # el adaptador más chico y el entrenamiento más rápido, en línea
+        # con el objetivo de eficiencia del proyecto.
         target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
     )
     modelo = get_peft_model(modelo_base, lora_config)
     modelo.print_trainable_parameters()
 
-    muestra = cargar_muestra_entrenamiento()
-    print(f"Entrenando sobre {len(muestra)} ejemplos de train.json, {EPOCAS} épocas...")
+    muestra = cargar_muestra_entrenamiento(train_path)
+    print(f"Entrenando sobre {len(muestra)} ejemplos de {train_path}, {EPOCAS} épocas...")
     dataset = DatasetTraduccion(muestra, tokenizer)
 
     registrador = RegistrarPerdida()
     args_entrenamiento = TrainingArguments(
-        output_dir=str(OUT_DIR / "checkpoints"),
+        output_dir=str(checkpoints_dir),
         per_device_train_batch_size=1,
         num_train_epochs=EPOCAS,
         learning_rate=2e-4,
@@ -184,13 +217,13 @@ def entrenar() -> RegistrarPerdida:
     )
     trainer.train()
 
-    ADAPTER_DIR.mkdir(parents=True, exist_ok=True)
-    modelo.save_pretrained(str(ADAPTER_DIR))
-    tokenizer.save_pretrained(str(ADAPTER_DIR))
-    print(f"Adaptador LoRA guardado en {ADAPTER_DIR}")
+    adapter_dir.mkdir(parents=True, exist_ok=True)
+    modelo.save_pretrained(str(adapter_dir))
+    tokenizer.save_pretrained(str(adapter_dir))
+    print(f"Adaptador LoRA guardado en {adapter_dir}")
 
-    LOSS_LOG_PATH.write_text(json.dumps(registrador.historial, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"Curva de pérdida guardada en {LOSS_LOG_PATH}")
+    loss_log_path.write_text(json.dumps(registrador.historial, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"Curva de pérdida guardada en {loss_log_path}")
 
     # Liberar el modelo de entrenamiento de memoria antes de recargar desde
     # disco — así la prueba de inferencia de abajo usa de verdad el
@@ -201,10 +234,10 @@ def entrenar() -> RegistrarPerdida:
     return registrador
 
 
-def probar_adapter_recargado():
-    print(f"\nRecargando {MODEL_ID} + adaptador LoRA desde disco ({ADAPTER_DIR})...")
+def probar_adapter_recargado(adapter_dir: Path, salidas_path: Path):
+    print(f"\nRecargando {MODEL_ID} + adaptador LoRA desde disco ({adapter_dir})...")
     tokenizer, modelo_base = cargar_modelo()
-    modelo_ajustado = PeftModel.from_pretrained(modelo_base, str(ADAPTER_DIR))
+    modelo_ajustado = PeftModel.from_pretrained(modelo_base, str(adapter_dir))
     modelo_ajustado.eval()
     print("Adaptador recargado. Generando traducciones de prueba (mismos ejemplos que el baseline)...")
 
@@ -226,16 +259,51 @@ def probar_adapter_recargado():
         )
         print(f"  [{i + 1}/{len(muestra)}] {ejemplo['seed_id']} -> {salida!r}")
 
-    SALIDAS_ADAPTER_PATH.write_text(json.dumps(resultados, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"\nGuardado en {SALIDAS_ADAPTER_PATH}")
+    salidas_path.write_text(json.dumps(resultados, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"\nGuardado en {salidas_path}")
 
 
 def main() -> int:
-    registrador = entrenar()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--dataset-dir",
+        type=Path,
+        default=SPLITS_DIR_DEFAULT,
+        help=(
+            "Carpeta con train.json del generador a usar (ej. "
+            "generation/splits/dataset_generador2), para reutilizar este "
+            "mismo script con los Generadores 2 y 3 en la Semana 7. "
+            f"Default: {SPLITS_DIR_DEFAULT}"
+        ),
+    )
+    args = parser.parse_args()
+
+    train_path = args.dataset_dir / "train.json"
+    if not train_path.exists():
+        print(f"ERROR: no existe {train_path}")
+        return 1
+
+    # Con el dataset por default (Generador 1) la salida va en
+    # "lora_prueba" (la carpeta que ya existe en el repo desde la Sesión
+    # 14, con resultados reales ya committeados). Para cualquier otro
+    # generador (Semana 7+), la salida va en una carpeta con su propio
+    # nombre (ej. lora_prueba_generador2) para no sobrescribir resultados
+    # de una corrida anterior con otro dataset.
+    if args.dataset_dir == SPLITS_DIR_DEFAULT:
+        out_dir = FINETUNING_DIR / "lora_prueba"
+    else:
+        sufijo = args.dataset_dir.name.removeprefix("dataset_")
+        out_dir = FINETUNING_DIR / f"lora_prueba_{sufijo}"
+    adapter_dir = out_dir / "adapter"
+    loss_log_path = out_dir / "loss_log.json"
+    salidas_path = out_dir / "salidas_con_adapter.json"
+    checkpoints_dir = out_dir / "checkpoints"
+
+    registrador = entrenar(train_path, adapter_dir, loss_log_path, checkpoints_dir)
     if not registrador.historial:
         print("ERROR: no se registró ninguna pérdida durante el entrenamiento.")
         return 1
-    probar_adapter_recargado()
+    probar_adapter_recargado(adapter_dir, salidas_path)
     return 0
 
 
