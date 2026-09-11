@@ -1078,3 +1078,87 @@ Pendiente: que el equipo revise el borrador contra esta bitácora
 inconsistencia de alcance de la fusión de modelos entre
 `CONTEXTO_PROYECTO.md` y el calendario de sesiones antes de integrar
 esta sección al `.tex` final (Sesión 32).
+
+## Sesión 19 — 2026-09-11 — Anderson García
+
+Entrenamiento completo de LoRA del Generador 1, con validación (EN
+CURSO — código listo, corrida real pendiente en Colab).
+
+Contexto: la configuración de LoRA (`r=8`, `alpha=16`, `dropout=0.05`,
+`bias="none"`, Q/K/V/O) quedó validada y justificada en las Sesiones
+15-16 y no cambia aquí. Esta sesión extiende `entrenar_lora.py` (no
+crea un script nuevo, mismo criterio de la Sesión 15) para agregar lo
+que le faltaba: entrenar sobre TODOS los ejemplos (no solo la muestra
+de 50 de la prueba de humo) y validar durante el entrenamiento.
+
+Qué se hizo:
+- Agregado el modo `--todos` a `entrenar_lora.py`: usa el `train.json`
+  completo (189 ejemplos para el Generador 1) en vez de la muestra de
+  50, valida sobre `val.json` (24 ejemplos) al final de cada época
+  (`eval_strategy="epoch"`), y usa `load_best_model_at_end=True` +
+  `EarlyStoppingCallback(patience=2)` de `transformers` para detectar
+  sobreajuste automáticamente: si la pérdida de validación no mejora
+  durante 2 épocas seguidas mientras la de entrenamiento sigue
+  bajando, el entrenamiento se detiene ahí y el adaptador que se
+  guarda es el del MEJOR checkpoint según validación, no el de la
+  última época — cumple el criterio de calidad pedido sin necesitar
+  vigilancia manual de la curva.
+- Límite superior de épocas generoso (`EPOCAS_COMPLETO_MAX = 10`, no
+  un número "adivinado" como el real) porque el early stopping corta
+  antes si hace falta; documentado en el código por qué no se fija un
+  número exacto de antemano.
+- `RegistrarPerdida` ahora registra también la pérdida de validación
+  (antes solo entrenamiento) — el log queda como `{"train": [...],
+  "eval": [...]}` cuando hay validación; se mantiene el formato plano
+  de antes (lista simple) cuando no la hay, para no romper
+  `finetuning/lora_prueba/loss_log.json` ya committeado (Sesión 14).
+- Salida del modo `--todos` en `finetuning/checkpoints/<generadorN>/`
+  (para el Generador 1: `finetuning/checkpoints/generador1/`), NO en
+  `finetuning/lora_prueba/` — esa carpeta sigue siendo solo de la
+  prueba de humo. Los checkpoints INTERMEDIOS del Trainer (uno por
+  época, con estado del optimizador — mucho más pesados que el
+  adaptador final y sin valor una vez elegido el mejor) se guardan en
+  un directorio temporal FUERA del repo (`tempfile.mkdtemp()`), nunca
+  dentro de `finetuning/checkpoints/` — solo el adaptador ya elegido
+  se trae de vuelta.
+- Ajustado `.gitignore`: `finetuning/checkpoints/` chocaba con la
+  regla genérica que ignora cualquier carpeta llamada "checkpoints"
+  (pensada para checkpoints intermedios, no para este adaptador final
+  que sí se quiere versionar) — agregada la excepción de directorio
+  correspondiente, verificada con archivos de prueba reales
+  (`git add -n`) antes de confiar en ella.
+- Actualizado `finetuning/entrenar_lora_colab.ipynb`: dividido en
+  Parte A (prueba de humo, sin cambios) y Parte B nueva (entrenamiento
+  completo — reutiliza las celdas 1-3 de setup de la Parte A, corre
+  `--todos`, y empaqueta/descarga `finetuning/checkpoints/generador1/`).
+- **Validación local antes de gastar cómputo de Colab**: corrido
+  `entrenar_lora.py --todos --epocas 1` en la máquina local (sin GPU,
+  sabiendo que NO se dejaría terminar) solo para confirmar que la
+  configuración nueva no tiene errores de arranque — carga del modelo,
+  `LoraConfig`, construcción de los datasets de train (189) y val (24),
+  y construcción del `Trainer` con `eval_strategy`/`save_strategy`/
+  `load_best_model_at_end`/`EarlyStoppingCallback` todo correcto.
+  Llegó sin errores hasta el primer paso de entrenamiento (confirmado
+  por el log: tamaños de datasets correctos, sin excepciones) antes de
+  matarlo manualmente — no tenía sentido dejarlo avanzar en CPU
+  (~80-95 min/paso ya documentado en la Sesión 14).
+
+Decisiones tomadas:
+- Extender `entrenar_lora.py` en vez de crear `finetuning/entrenar.py`
+  (nombre que usaba el prompt original de esta sesión) — mismo
+  criterio que la Sesión 15: habría duplicado un pipeline ya probado
+  end-to-end en vez de reutilizarlo.
+- No intentar completar el entrenamiento real en la máquina local ni
+  siquiera parcialmente — la política de `CONTEXTO_PROYECTO.md`
+  ("CÓMPUTO PESADO") y la evidencia ya documentada (Sesión 14) son
+  concluyentes: esto tiene que correr en Colab.
+
+Pendiente (bloquea el cierre de esta sesión): correr la Parte B de
+`finetuning/entrenar_lora_colab.ipynb` en Colab de verdad, traer
+`finetuning/checkpoints/generador1/` (adaptador, `loss_log.json`,
+`salidas_con_adapter.json`) al repo, confirmar con los datos reales que
+la pérdida de validación no sube mientras la de entrenamiento baja (o
+documentar en qué época se detuvo si sí pasó), escribir
+`finetuning/curva_final_generador1.md`, y completar esta entrada con
+cuánto tardó el entrenamiento real y en qué hardware (GPU de Colab
+asignada).
