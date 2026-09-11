@@ -1162,3 +1162,72 @@ documentar en qué época se detuvo si sí pasó), escribir
 `finetuning/curva_final_generador1.md`, y completar esta entrada con
 cuánto tardó el entrenamiento real y en qué hardware (GPU de Colab
 asignada).
+
+## Sesión 19 — 2026-09-11 (2) — Anderson García
+
+Cierre: entrenamiento completo corrido en Colab, con sobreajuste real
+detectado y manejado automáticamente.
+
+Qué se hizo:
+- **Bug real encontrado al ejecutar**: la celda 2 del notebook clona
+  el repo desde GitHub sin especificar rama, así que Colab traía
+  `main` — y todo el trabajo de esta sesión (y de varias anteriores)
+  vive en `develop`, nunca fusionado a `main`. El primer intento de
+  correr `--todos` corrió en silencio la versión vieja del script (sin
+  ese flag reconocido de verdad, ejecutó el comportamiento por
+  default) porque además la celda 2 solo clona si la carpeta no existe
+  — un clon viejo de una corrida anterior en la misma VM de Colab
+  nunca se actualiza. Resuelto por el usuario actualizando `main` con
+  el contenido de `develop`; pendiente evaluar si conviene que la
+  celda de clonado especifique rama explícitamente para no depender de
+  que `main` esté al día (queda para una sesión de mejora del
+  notebook, no bloqueaba esta).
+- Corrido `finetuning/entrenar_lora.py --todos` en Colab (GPU **Tesla
+  T4**, 15360MiB VRAM): **189 ejemplos de entrenamiento, 24 de
+  validación, ~9 minutos en total**.
+- **Sobreajuste real, detectado y manejado automáticamente**: pérdida
+  de validación 1.0972 (época 1, mejor) → 1.5414 (época 2, sube) →
+  1.5243 (época 3, sigue peor que la época 1) — mientras la pérdida de
+  ENTRENAMIENTO siguió bajando sin parar (promedio 0.72 → 0.36 → 0.19
+  por época). `EarlyStoppingCallback(patience=2)` agotó la paciencia
+  después de la época 3 y detuvo el entrenamiento ahí (no llegó a las
+  10 épocas del límite superior); `load_best_model_at_end=True` dejó
+  guardado el adaptador de la **época 1** (el de mejor validación), no
+  el de la última época entrenada — exactamente el comportamiento
+  pedido por el criterio de calidad de esta sesión, sin intervención
+  manual.
+- **Checkpoint verificado en disco, dos veces**: (1) dentro del propio
+  Colab, recargado desde disco justo después de guardarlo, generando
+  las 8 traducciones de prueba de siempre; (2) de forma INDEPENDIENTE
+  en la máquina local, después de copiar el adaptador al repo —
+  `PeftModel.from_pretrained(...)` cargó sin errores, y se probaron 3
+  frases dialectales nuevas (fuera de cualquier split) además de las 8
+  de `test.json`, las 11 con salidas coherentes, sin texto corrupto ni
+  repetido.
+- Escrito `finetuning/curva_final_generador1.md`: hardware y tiempo
+  real, tabla de pérdida entrenamiento/validación por época, análisis
+  del sobreajuste, confirmación de selección del mejor checkpoint, y
+  las 11 traducciones de prueba (8 del test set + 3 nuevas) comparadas
+  contra la referencia.
+- Traídos al repo `finetuning/checkpoints/generador1/` (adaptador
+  ~15MB, `loss_log.json` con 567 pasos de entrenamiento + 3 de
+  validación, `salidas_con_adapter.json`).
+
+Decisiones tomadas:
+- No reentrenar con un `patience` más alto para "forzar" que llegue
+  más lejos — el objetivo de esta sesión era confirmar que el
+  mecanismo de detección de sobreajuste funciona, y funcionó
+  exactamente como se diseñó; forzarlo a entrenar más solo habría
+  empeorado la validación sin ganar nada.
+- El hallazgo de que el modelo sobreajusta ya desde la época 2 con
+  solo 189 ejemplos queda registrado como señal real para priorizar
+  ampliar el dataset (más semillas, o los Generadores 2/3) antes de
+  seguir ajustando hiperparámetros de LoRA sobre este mismo tamaño.
+
+Pendiente: ninguno específico de esta sesión — los 3 criterios de
+aceptación (checkpoint en disco, carga sin errores, traducciones
+coherentes en ≥5 ejemplos) y el criterio de calidad (detener en el
+mejor checkpoint ante sobreajuste) quedaron cumplidos con evidencia
+real. Aparte, queda como mejora futura del notebook de Colab: que la
+celda de clonado especifique rama explícitamente en vez de depender
+del branch por default del repo.
