@@ -94,6 +94,12 @@ FINETUNING_DIR = Path(__file__).resolve().parent
 N_EJEMPLOS = 50  # subconjunto pequeño, límite inferior del rango 50-100 pedido (CPU sin GPU: cada paso es caro)
 EPOCAS = 3
 SEMILLA_ALEATORIA = 42  # misma semilla que generation/split_dataset.py, por consistencia
+MAX_LENGTH = 512  # margen amplio: la secuencia más larga observada en el
+# dataset actual (generation/splits/dataset_generador1/) son 125 tokens,
+# muy por debajo de esto. Este límite no se activa hoy con estos datos —
+# existe como red de seguridad para no reventar la memoria de la GPU si
+# en el futuro entra un ejemplo inusualmente largo (otro generador,
+# variantes más elaboradas), en vez de fallar sin control (Sesión 17).
 
 
 def cargar_muestra_entrenamiento(train_path: Path) -> list[dict]:
@@ -129,9 +135,22 @@ class DatasetTraduccion(torch.utils.data.Dataset):
         ids_completos = self.tokenizer.apply_chat_template(mensajes_completos, add_generation_prompt=False)[
             "input_ids"
         ]
+        n_prompt = len(ids_prompt)
+
+        # Truncamiento: si la secuencia completa supera MAX_LENGTH, se
+        # recorta desde la IZQUIERDA (el inicio del prompt), nunca desde
+        # la derecha -- cortar por la derecha eliminaría parte de la
+        # traducción de referencia, que es justo lo que el modelo tiene
+        # que aprender a generar. Recortar el inicio del prompt es más
+        # seguro: en el peor caso se pierde parte del SYSTEM_PROMPT fijo,
+        # no la señal de entrenamiento.
+        if len(ids_completos) > MAX_LENGTH:
+            exceso = len(ids_completos) - MAX_LENGTH
+            ids_completos = ids_completos[exceso:]
+            n_prompt = max(0, n_prompt - exceso)
 
         etiquetas = list(ids_completos)
-        n_prompt = min(len(ids_prompt), len(etiquetas))
+        n_prompt = min(n_prompt, len(etiquetas))
         for i in range(n_prompt):
             etiquetas[i] = -100
 

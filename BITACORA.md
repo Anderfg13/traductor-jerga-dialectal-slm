@@ -1004,10 +1004,77 @@ Qué se hizo:
   verificaciones de round-trip).
 
 Decisiones tomadas:
-- No se tocó `entrenar_lora.py` ni `probar_baseline.py` — el formato ya
-  funcionaba correctamente (confirmado por esta misma verificación), no
-  había nada que corregir, solo documentar y probar formalmente.
+- Inicialmente no se tocó `entrenar_lora.py` — se pensó que el formato
+  ya estaba completo porque el round-trip con un ejemplo normal daba
+  bien. Al revisar el prompt original de la Sesión 17 otra vez punto
+  por punto (a raíz de que el usuario preguntó explícitamente "¿ya
+  cumplimos esto?"), se encontró que faltaba un requisito real: "el
+  truncamiento de secuencias largas". `entrenar_lora.py` no tenía
+  ninguna lógica de truncamiento (verificado: cero menciones de
+  `truncat`/`max_length` en el archivo) — no rompía nada hoy porque la
+  secuencia más larga del dataset actual son 125 tokens contra un
+  contexto de 131,072 del tokenizador, pero el código no lo manejaba
+  explícitamente. Corregido: agregado `MAX_LENGTH = 512` con
+  truncamiento desde la izquierda (nunca desde la derecha, para no
+  cortar la traducción de referencia), verificado con un ejemplo
+  sintético de 703 tokens (queda en exactamente 512, la respuesta
+  sobrevive intacta) y sin regresión en el ejemplo normal de 89
+  tokens. Documentado en `finetuning/formato_instruccion.md`.
 
-Pendiente: ninguno — Sesión 17 cerrada, la prueba de aceptación
-(tokenizar, decodificar, confirmar coincidencia exacta) quedó verificada
-con un ejemplo real, no simulada.
+Pendiente: ninguno — Sesión 17 cerrada. Los dos requisitos del prompt
+original quedaron cubiertos con evidencia real: manejo de tokens
+especiales (ya existía) y truncamiento de secuencias largas (agregado
+y verificado en esta revisión).
+
+## Sesión 18 — 2026-09-10 (2) — Mariana Malagón
+
+Actualizar paper: Arquitectura (Fase 2).
+
+Qué se hizo:
+- Leído el paper de Fase 1 completo (compartido por el usuario como
+  PDF, no estaba en este repo) para poder mantener el mismo tono y voz
+  en el borrador nuevo — primera persona plural, honestidad explícita
+  sobre limitaciones, sin sonar a lista genérica.
+- Releídas todas las entradas de `BITACORA.md` de las Sesiones 1-17
+  para extraer únicamente decisiones técnicas ya tomadas, sin rellenar
+  con nada no verificado.
+- Escrito `docs/fase2_arquitectura_borrador.md`, continuando la
+  numeración del paper como Sección 8, con 4 subsecciones: 8.1
+  arquitectura de datos (banco de semillas → derivación → generación
+  → validación → splits, con las cifras reales de cada etapa), 8.2
+  arquitectura de aplicación (lo que existe: scripts de línea de
+  comandos; lo que falta: API/despliegue/Docker/seguridad/
+  observabilidad, Semanas 5-6), 8.3 arquitectura de tecnología (Qwen2.5-3B-Instruct
+  y por qué no Llama, configuración de LoRA con su justificación,
+  formato de instrucción, resultados reales de la prueba de humo), y
+  8.4 un resumen consolidado de pendientes.
+- **Encontrado y corregido un error propio antes de entregar el
+  borrador**: había escrito que `generar_sintetico.py` ya estaba
+  parametrizado para cualquier generador, igual que `validar.py` y
+  `split_dataset.py`. Al verificar contra el código real (no contra la
+  memoria de la sesión), confirmé que `generar_sintetico.py` sigue
+  fijo a Groq (cliente, carpeta de salida y el campo `"generador"`
+  hardcodeados) — la parametrización real solo existe en
+  `validar.py`/`split_dataset.py` (reciben la ruta del dataset como
+  parámetro) y en `entrenar_lora.py` (`--dataset-dir`, Sesión 15).
+  Corregido antes de que quedara una afirmación falsa en el
+  documento del equipo.
+
+Decisiones tomadas:
+- Dejar la fusión de modelos fuera de esta sección de arquitectura sin
+  comprometerme con un número de semana específico: noté que
+  `CONTEXTO_PROYECTO.md` dice que la fusión simple entra en el alcance
+  de la Fase 2, pero el calendario de sesiones la ubica en la Semana 8
+  (dentro del rango que el propio `CONTEXTO_PROYECTO.md` llama Fase
+  3) — es una inconsistencia real entre los documentos de planeación
+  del equipo, no algo que me corresponda resolver unilateralmente en
+  un borrador de arquitectura. La dejé mencionada como "pendiente,
+  fuera del alcance de esta fase por decisión explícita" sin fijar una
+  fecha, y avisé de la inconsistencia en esta misma entrada para que
+  el equipo la resuelva.
+
+Pendiente: que el equipo revise el borrador contra esta bitácora
+(criterio de aceptación de la Sesión 18) y decida cómo resolver la
+inconsistencia de alcance de la fusión de modelos entre
+`CONTEXTO_PROYECTO.md` y el calendario de sesiones antes de integrar
+esta sección al `.tex` final (Sesión 32).

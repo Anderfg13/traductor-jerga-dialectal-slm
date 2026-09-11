@@ -98,6 +98,28 @@ según `CONTEXTO_PROYECTO.md`):
    `probar_baseline.py` sobre la salida generada). ✅
 
 Ambas verificaciones confirman que el formato de tokenización no
-corrompe ni trunca el texto en ningún punto, y que el enmascarado de
-`-100` aísla exactamente la parte de la secuencia que se quiere que el
+corrompe el texto en ningún punto, y que el enmascarado de `-100`
+aísla exactamente la parte de la secuencia que se quiere que el
 modelo aprenda a generar.
+
+## Truncamiento de secuencias largas
+
+El código original (Sesión 14) no tenía ninguna lógica de
+truncamiento. En la práctica no era un problema — la secuencia más
+larga del dataset actual (`generation/splits/dataset_generador1/`)
+son 125 tokens, muy por debajo del contexto de 131,072 tokens del
+tokenizador — pero el código no lo *manejaba* explícitamente, que es
+justo lo que pedía el criterio de esta sesión. Se agregó
+`MAX_LENGTH = 512` en `entrenar_lora.py`: si la secuencia completa
+(prompt + respuesta) supera ese límite, se recorta desde la
+**izquierda** (el inicio del prompt), nunca desde la derecha —
+truncar por la derecha cortaría la traducción de referencia, que es
+justo la señal que el modelo debe aprender.
+
+Verificado con un ejemplo sintético deliberadamente largo (una frase
+repetida hasta llegar a 703 tokens): la secuencia truncada queda en
+exactamente 512 tokens, y decodificando solo los tokens sin
+enmascarar se reconstruye la traducción de referencia completa,
+carácter por carácter, sin corromperse. Con un ejemplo normal del
+dataset (89 tokens, muy por debajo de 512), el comportamiento no
+cambia respecto a antes de este ajuste — no hay regresión.
