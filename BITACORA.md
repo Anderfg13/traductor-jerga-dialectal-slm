@@ -966,3 +966,48 @@ Decisiones tomadas:
 Pendiente: ninguno específico de esta sesión — el pendiente real (vigilar
 el indicio de sobreajuste al escalar a más datos) ya quedó registrado en
 la Sesión 14 para la Sesión 19+.
+
+## Sesión 17 — 2026-09-10 — Mariana Malagón
+
+Preparar tokenizador/formato de instrucción.
+
+Contexto: igual que las Sesiones 15-16, el formato de instrucción
+(`SYSTEM_PROMPT` + `apply_chat_template`, turnos system/user/assistant)
+ya estaba implementado desde la Sesión 13-14 (`probar_baseline.py`,
+`entrenar_lora.py`), y ya es idéntico en entrenamiento e inferencia
+porque ambos scripts importan el mismo `SYSTEM_PROMPT` de un solo
+lugar. Esta sesión no repite ese trabajo: documenta el formato
+formalmente y corre la verificación de round-trip que pedía el prompt
+original, que todavía no existía como prueba explícita.
+
+Qué se hizo:
+- Instalado `transformers` de forma aislada (no `-r requirements.txt`
+  completo, mismo criterio que la Sesión 6) solo para cargar el
+  tokenizador de `Qwen/Qwen2.5-3B-Instruct` — **sin PyTorch ni pesos
+  del modelo**, confirmado explícitamente que esto no es "cómputo
+  pesado" según la política de Colab de `CONTEXTO_PROYECTO.md`
+  (fine-tuning, fusión, evaluación masiva o inferencia sobre muchos
+  ejemplos): es una sola operación de tokenización/decodificación,
+  instantánea, sin necesidad de GPU.
+- Tomado un ejemplo real de `generation/splits/dataset_generador1/train.json`
+  (`sem-013`), armado el prompt con el mismo código que usa
+  `entrenar_lora.py` (`DatasetTraduccion.__getitem__`), y verificado:
+  (1) el texto decodificado de los ids tokenizados coincide EXACTO,
+  carácter por carácter, con el texto de la plantilla de chat antes de
+  tokenizar; (2) decodificando solo los tokens no enmascarados con
+  `-100` (la parte que de verdad aprende el modelo) se reconstruye
+  exactamente la traducción de referencia del ejemplo.
+- Escrito `finetuning/formato_instruccion.md`: explica el formato (3
+  turnos, por qué es el mismo en entrenamiento/inferencia, cómo
+  funciona el enmascarado de la pérdida) con el ejemplo real completo
+  (antes de tokenizar, después de tokenizar, y el resultado de las dos
+  verificaciones de round-trip).
+
+Decisiones tomadas:
+- No se tocó `entrenar_lora.py` ni `probar_baseline.py` — el formato ya
+  funcionaba correctamente (confirmado por esta misma verificación), no
+  había nada que corregir, solo documentar y probar formalmente.
+
+Pendiente: ninguno — Sesión 17 cerrada, la prueba de aceptación
+(tokenizar, decodificar, confirmar coincidencia exacta) quedó verificada
+con un ejemplo real, no simulada.
