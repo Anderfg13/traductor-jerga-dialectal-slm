@@ -84,9 +84,14 @@ Requiere Python 3.10+.
    ```
    Esto habilita [`.githooks/pre-commit`](./.githooks/pre-commit): un
    commit que modifique archivos del proyecto sin incluir una entrada
-   nueva en `BITACORA.md` se rechaza (mensaje explicando qué falta).
-   Para un commit genuinamente trivial que no amerite entrada de
-   bitácora, usa `git commit --no-verify` a propósito.
+   real nueva en `BITACORA.md` se rechaza (mensaje explicando qué
+   falta). Para un commit genuinamente trivial que no amerite entrada
+   de bitácora, usa `git commit --no-verify` a propósito.
+
+> **¿Vas a entrenar/ajustar un modelo, fusionar pesos, o correr algo
+> pesado sobre todo el dataset?** Ver `CONTEXTO_PROYECTO.md`, sección
+> "CÓMPUTO PESADO": siempre en Google Colab, nunca en tu máquina local
+> (confirmado que no dan abasto — ver `BITACORA.md` Sesión 13-14).
 
 > Si al correr `generation/test_apis.py` ves errores como
 > `ModuleNotFoundError: No module named 'groq'` o

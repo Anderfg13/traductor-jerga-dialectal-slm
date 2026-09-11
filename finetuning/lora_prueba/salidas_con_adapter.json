@@ -1,0 +1,66 @@
+[
+  {
+    "seed_id": "sem-007",
+    "dialecto_region": "Caribeña",
+    "registro": "jerga",
+    "texto_dialectal": "¡Qué bueno, está brutal la fiesta que armó el grupo de bachata!",
+    "traduccion_referencia": "The party the bachata group threw is absolutely amazing!",
+    "traduccion_modelo_con_adapter": "Wow, the bachata group really pulled off a great party!"
+  },
+  {
+    "seed_id": "sem-007",
+    "dialecto_region": "Caribeña",
+    "registro": "informal",
+    "texto_dialectal": "Mira, la vista desde la cima está brutal, no me lo puedo creer.",
+    "traduccion_referencia": "Look, the view from the top is amazing, I can't believe it.",
+    "traduccion_modelo_con_adapter": "Look, the view from the top is insane, I can't believe it."
+  },
+  {
+    "seed_id": "sem-025",
+    "dialecto_region": "Andina",
+    "registro": "informal",
+    "texto_dialectal": "¿Un tinto, amigo?",
+    "traduccion_referencia": "Coffee, buddy?",
+    "traduccion_modelo_con_adapter": "A glass of red, buddy?"
+  },
+  {
+    "seed_id": "sem-025",
+    "dialecto_region": "Andina",
+    "registro": "jerga",
+    "texto_dialectal": "¿Un tinto, colega?",
+    "traduccion_referencia": "Coffee, mate?",
+    "traduccion_modelo_con_adapter": "A glass of red, buddy?"
+  },
+  {
+    "seed_id": "sem-034",
+    "dialecto_region": "Rioplatense",
+    "registro": "jerga",
+    "texto_dialectal": "Che, estoy remando con el sueldo que me dan.",
+    "traduccion_referencia": "Dude, I'm barely getting by with the paycheck I get.",
+    "traduccion_modelo_con_adapter": "Hey, I'm struggling to paddle with the salary they give me."
+  },
+  {
+    "seed_id": "sem-034",
+    "dialecto_region": "Rioplatense",
+    "registro": "jerga",
+    "texto_dialectal": "¡Qué quilombo! Yo sigo remando con este salario, pero no llega.",
+    "traduccion_referencia": "What a mess! I'm still getting by with this salary, but it's not enough.",
+    "traduccion_modelo_con_adapter": "What a mess! I'm still struggling with this salary, but it's not enough."
+  },
+  {
+    "seed_id": "sem-042",
+    "dialecto_region": "Mexicana",
+    "registro": "informal",
+    "texto_dialectal": "¿Neta, ese plan es viable?",
+    "traduccion_referencia": "Seriously, is that plan doable?",
+    "traduccion_modelo_con_adapter": "So, is that plan feasible?"
+  },
+  {
+    "seed_id": "sem-042",
+    "dialecto_region": "Mexicana",
+    "registro": "jerga",
+    "texto_dialectal": "¡Neta! Si eso pasa, no lo creo.",
+    "traduccion_referencia": "Seriously! If that happens, I don't believe it.",
+    "traduccion_modelo_con_adapter": "Damn! If that happens, I don't believe it."
+  }
+]

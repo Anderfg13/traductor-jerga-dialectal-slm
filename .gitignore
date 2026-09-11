@@ -28,6 +28,15 @@ wandb/
 !finetuning/**/adapter/*.safetensors
 !finetuning/**/adapter/*.bin
 
+# Excepción: finetuning/checkpoints/<generadorN>/ guarda el adaptador
+# LoRA FINAL del entrenamiento completo (Sesión 19+) — choca de nombre
+# con la regla genérica "checkpoints/" de arriba (pensada para
+# checkpoints INTERMEDIOS de entrenamiento, que entrenar_lora.py nunca
+# guarda dentro del repo, ver su docstring). Sin este !, git ni
+# siquiera miraría dentro de la carpeta para aplicar la excepción de
+# *.safetensors/*.bin de arriba.
+!finetuning/checkpoints/
+
 # SO / editores
 .DS_Store
 .vscode/

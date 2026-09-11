@@ -740,5 +740,425 @@ y la celda 4 fallaba con `python3: can't open file
 nivel más arriba. Corregido en el notebook: ahora usa `%cd /content`
 al inicio, solo clona si el repo no existe todavía, y hace `%cd` con
 ruta absoluta al final — así queda seguro volver a correr la celda
-cualquier número de veces. Todavía pendiente confirmar que el
-entrenamiento corre completo en Colab con este fix.
+cualquier número de veces.
+
+Con ese fix, la celda 4 sí llegó a descargar y cargar el modelo
+(6.17GB en ~1 min, gracias al ancho de banda de Colab), pero falló en
+`get_peft_model()` con `ImportError: Found an incompatible version of
+torchao. Found version 0.10.0, but only versions above 0.16.0 are
+supported`. Causa: Colab trae `torchao` preinstalado en una versión
+vieja, y la versión más reciente de `peft` (instalada sin pin de
+versión en la celda 3) revisa esa versión al despachar el módulo LoRA
+aunque no se use cuantización con `torchao` para nada en este
+entrenamiento. Arreglado agregando `!pip uninstall -y -q torchao` a la
+celda 3 — sin el paquete, `peft` simplemente se salta esa revisión y
+sigue por el camino normal (sin cuantizar). De paso, corregido un
+mensaje de log engañoso en `entrenar_lora.py` y `probar_baseline.py`
+que decía "(CPU, sin cuantizar)" siempre, sin reflejar el dispositivo
+real detectado.
+
+## Sesión 14 — 2026-09-03 (3) — Anderson García
+
+Cierre: entrenamiento completo en Colab, resultados reales.
+
+Qué se hizo:
+- Con el fix del `torchao`, el entrenamiento completo (150 pasos, 3
+  épocas, 50 ejemplos) corrió sin errores en Colab (GPU T4) en pocos
+  minutos — nada que ver con las 10h+ que llevaba en CPU local.
+- **Pérdida: baja de forma consistente.** Promedio por época: 1.011
+  (época 1) → 0.458 (época 2) → 0.263 (época 3) — ~4x menor entre la
+  primera y la última época, pese al ruido normal de correr con batch
+  size 1. Se cumple el criterio de calidad pedido sin necesitar tocar
+  la tasa de aprendizaje ni el formato de los datos.
+- **Adaptador guardado y recargado desde disco, verificado de
+  verdad**: el script libera de memoria el modelo de entrenamiento
+  (`del trainer, modelo, modelo_base; gc.collect()`) y vuelve a
+  cargarlo desde cero + el adaptador (`PeftModel.from_pretrained`)
+  antes de generar las traducciones de prueba — no reutiliza el
+  objeto que quedó en memoria tras entrenar.
+- **Comparación contra el baseline sin ajustar (Sesión 13), mismos 8
+  ejemplos de `test.json`**: las 8 salidas cambiaron respecto al
+  baseline (100%). Mejoras claras en 2-3 de los 8 (el error de
+  "brutal" → "brutal" literal del baseline se corrige a "insane"; el
+  modismo "estar remando" se traduce como "struggling" en vez de
+  "rowing" en uno de los dos casos, parcialmente en el otro). El
+  error más sistemático del baseline ("tinto" → vino en vez de café)
+  **no se corrigió** — la semilla `sem-025` cayó en el split de test,
+  no en los 50 ejemplos de entrenamiento, así que no había señal de la
+  que aprender ese caso puntual; comportamiento esperado de una
+  prueba de humo con tan pocos datos, no un defecto del pipeline.
+- **Hallazgo a vigilar**: dos ejemplos distintos de test (`sem-025`,
+  "amigo" vs. "colega") dieron exactamente la misma salida — posible
+  señal de memorización/sobreajuste con tan pocos ejemplos y épocas,
+  a revisar cuando se entrene con el dataset completo.
+- Escrito `finetuning/prueba_loss.md` con la curva de pérdida completa,
+  la tabla comparativa baseline-vs-adaptador de los 8 ejemplos, y el
+  análisis de qué mejoró y qué no.
+- Traídos al repo desde Colab: `finetuning/lora_prueba/adapter/`
+  (~14.8MB, adaptador LoRA), `finetuning/lora_prueba/loss_log.json`
+  (150 valores de pérdida) y
+  `finetuning/lora_prueba/salidas_con_adapter.json` (las 8
+  traducciones de prueba).
+
+Decisiones tomadas:
+- No reentrenar con más datos/épocas en esta sesión para "arreglar" el
+  caso de "tinto" — esta sesión era una prueba de humo del pipeline,
+  no el entrenamiento final; ese caso queda documentado como pendiente
+  natural para el entrenamiento completo (Sesión 19+), que sí cubre
+  todas las semillas.
+
+Pendiente: entrenamiento completo con el dataset completo (Sesión
+19+); vigilar el indicio de sobreajuste (misma salida para dos
+ejemplos distintos) al escalar — considerar más datos, más
+variedad por paso (batch size > 1), o menos épocas si se repite con
+un dataset más grande.
+
+## Sesión 14 — 2026-09-03 (4) — Anderson García
+
+Mejoras de proceso (no calendario oficial — pedido aparte del equipo,
+motivado directamente por lo aprendido en esta sesión): reforzar la
+exigencia de documentación en cada commit y dejar por escrito la
+política de "cómputo pesado siempre en Colab".
+
+Qué se hizo:
+- Reforzado `.githooks/pre-commit`: ya no basta con que `BITACORA.md`
+  esté en el commit (Sesión 14 (1)) — ahora también revisa que el
+  diff agregue contenido real (no un `git add` vacío) y que ese
+  contenido siga el formato mínimo de la plantilla (busca la línea
+  "Qué se hizo"). Bloquea el commit si falta cualquiera de las dos
+  cosas. Agregado también un aviso NO bloqueante: si el commit crea
+  archivos fuera de las carpetas que ya describe `README.md` y el
+  README no está en el commit, recuerda considerar actualizarlo.
+- Probado a mano (`sh .githooks/pre-commit` sobre un archivo de
+  prueba) que la regla bloqueante 1 sigue funcionando igual que en la
+  Sesión 14 (1).
+- Agregada a `CONTEXTO_PROYECTO.md` la sección "CÓMPUTO PESADO:
+  SIEMPRE EN GOOGLE COLAB, NUNCA EN LA MÁQUINA LOCAL": paso a paso
+  genérico (no específico de LoRA) para correr cualquier script pesado
+  futuro en Colab — cómo evitar el bug de clon anidado, instalar solo
+  dependencias puntuales (no `requirements.txt` completo), el fix de
+  `torchao` con `peft`, detección automática de dispositivo sin
+  cuantizar de más, y cómo traer los resultados de vuelta al repo.
+  Referencia cruzada agregada en `README.md`.
+- Creado `CLAUDE.md` en la raíz del repo: instrucciones persistentes
+  para que Claude Code, en cualquier sesión futura en este
+  repositorio, (1) **nunca agregue coautoría de Claude en los
+  commits** salvo que se le pida explícitamente para un commit
+  puntual, (2) siga Conventional Commits, (3) respete la regla de
+  entrada real en `BITACORA.md` por commit, y (4) use siempre Google
+  Colab para cómputo pesado, nunca la máquina local.
+
+Decisiones tomadas:
+- Poner el paso a paso de Colab en `CONTEXTO_PROYECTO.md` (no en
+  `BITACORA.md`) porque `BITACORA.md` es un registro cronológico de
+  solo-agregar por convención propia del archivo ("no se reescriben
+  las anteriores") — no es el lugar para una guía de referencia
+  permanente que se vaya a consultar y actualizar con el tiempo;
+  `CONTEXTO_PROYECTO.md` sí es ese documento vivo.
+- Esta entrada usa "Sesión 14 (4)" en vez de un número nuevo: no
+  corresponde a ningún número del calendario oficial del curso (la
+  Sesión 15 ya está asignada a otra persona del equipo para otra
+  tarea) — es trabajo de proceso/tooling motivado por el cierre de la
+  Sesión 14, no una sesión nueva del calendario.
+
+Pendiente: ninguno para esta entrada — el resto de pendientes sigue
+siendo el mismo que el cierre de la Sesión 14 de arriba.
+
+## Sesión 15 — 2026-09-10 — Paula Lozano
+
+Configurar LoRA + script de fine-tuning.
+
+Contexto: `finetuning/entrenar_lora.py` ya existía — Anderson lo escribió
+en la Sesión 14 para no bloquear la prueba end-to-end, documentado
+explícitamente ahí como una desviación (Paula no lo había dejado listo
+todavía). Esta sesión no repite ese trabajo: cierra los dos requisitos
+concretos del prompt original de la Sesión 15 que ese script no
+cumplía.
+
+Qué se hizo:
+- **Justificación de hiperparámetros**: agregado un comentario por cada
+  valor de `LoraConfig` en `entrenar_lora.py` (antes no tenían
+  ninguno) — por qué `r=8` (capacidad modesta apropiada para ~3B con
+  dataset chico, adaptador liviano acorde a portabilidad), por qué
+  `lora_alpha=16` (heurística estándar `alpha=2*r`, para que siga
+  siendo válida si `r` cambia al escalar en la Sesión 19+), por qué
+  `lora_dropout=0.05` (regularización barata; se deja igual porque ya
+  hay indicio de sobreajuste documentado en la Sesión 14 con este mismo
+  valor), por qué `bias="none"` (default estándar de LoRA para LLMs
+  causales) y por qué `target_modules` son solo las proyecciones de
+  atención Q/K/V/O (mayor impacto en adaptar el modelo a la tarea,
+  adaptador más chico que si se incluyeran las capas MLP).
+- **Dataset configurable por parámetro**: agregado `--dataset-dir` (CLI,
+  `argparse`) para poder reutilizar el mismo script con los Generadores
+  2 y 3 en la Semana 7, tal como pedía el prompt original. Refactor de
+  `entrenar()` y `probar_adapter_recargado()` para recibir las rutas
+  como parámetros en vez de constantes de módulo fijas.
+- Para no pisar los resultados de la Sesión 14 (`finetuning/lora_prueba/`,
+  ya committeados: adaptador, curva de pérdida, salidas), el default de
+  `--dataset-dir` sigue siendo `dataset_generador1` y sigue escribiendo
+  en `finetuning/lora_prueba/` igual que antes; cualquier otro dataset
+  escribe en `finetuning/lora_prueba_<generadorN>/` en vez de
+  sobrescribir.
+- Actualizado el docstring del script con el nuevo uso (`--dataset-dir`)
+  y la nota de que la Sesión 15 completó lo que la Sesión 14 dejó
+  pendiente.
+
+Decisiones tomadas:
+- No se volvió a correr el entrenamiento completo en Colab: el cambio
+  es de refactor (parametrizar rutas ya usadas) + comentarios (no toca
+  lógica de entrenamiento), así que no había necesidad de repetir el
+  cómputo pesado que Anderson ya corrió y documentó en la Sesión 14.
+  Verificado en su lugar, sin GPU, que (a) el script sigue compilando
+  (`python -m py_compile`) y (b) la lógica de resolución de rutas
+  (`--dataset-dir` por default vs. uno nuevo) produce exactamente las
+  rutas esperadas, probada de forma aislada sin importar `torch`/`peft`
+  (no instalados en esta máquina — ver política de Colab en
+  `CLAUDE.md`).
+- No se creó un script nuevo (`finetuning/entrenar.py`) separado del ya
+  existente `entrenar_lora.py` — habría duplicado exactamente el mismo
+  pipeline ya probado end-to-end; se prefirió completar el que ya
+  funciona.
+
+Pendiente: correr `entrenar_lora.py --dataset-dir
+generation/splits/dataset_generadorN` de verdad en Colab cuando existan
+los splits de los Generadores 2 y 3 (Semana 7) para confirmar que el
+parámetro nuevo funciona en la práctica, no solo en la prueba aislada
+de rutas.
+
+## Sesión 16 — 2026-09-10 — Paula Lozano
+
+Depurar el primer entrenamiento.
+
+Contexto: el objetivo de esta sesión (que el entrenamiento de prueba
+converja de forma estable, con los problemas encontrados documentados)
+**ya quedó cumplido en la Sesión 14**, hecho por Anderson junto con el
+script de LoRA. No se repite el entrenamiento para no duplicar cómputo
+ya hecho y documentado.
+
+Qué se hizo (verificación, no repetición):
+- Revisados `BITACORA.md` (Sesión 14, entradas 2 y 3) y
+  `finetuning/prueba_loss.md`: se depuraron 3 problemas reales antes de
+  llegar a una corrida estable — bug de clon anidado en el notebook de
+  Colab, incompatibilidad de `torchao` con la versión de `peft` sin
+  pin, y un bug de formato en `apply_chat_template` (devuelve un
+  `BatchEncoding`, no una lista de ids directamente).
+- Confirmado que, con esos tres fixes, la pérdida **converge de forma
+  estable y sin picos erráticos**: 1.011 (época 1) → 0.458 (época 2) →
+  0.263 (época 3), ~4x de mejora entre la primera y la última época.
+- Confirmado que cada cambio respecto a la configuración anterior está
+  explicado con su causa en la Sesión 14 (no un genérico "probé varias
+  cosas"), cumpliendo el criterio de calidad pedido en el prompt
+  original de esta sesión.
+
+Decisiones tomadas:
+- No volver a correr el entrenamiento de prueba: repetirlo en Colab
+  solo para generar una "Sesión 16" separada habría sido cómputo
+  redundante sobre exactamente el mismo script, mismo dataset y misma
+  configuración que la Sesión 14 ya corrió y dejó documentada con
+  evidencia real (curva de pérdida, comparación baseline-vs-adaptador).
+- El único cambio de código tocado en esta sesión que afecta a
+  `entrenar_lora.py` es el de la Sesión 15 (arriba) — ninguno de los
+  dos cambios (comentarios, `--dataset-dir`) altera la lógica de
+  entrenamiento en sí, así que la curva de pérdida ya documentada en
+  `finetuning/prueba_loss.md` sigue siendo válida sin necesidad de
+  volver a correrla.
+
+Pendiente: ninguno específico de esta sesión — el pendiente real (vigilar
+el indicio de sobreajuste al escalar a más datos) ya quedó registrado en
+la Sesión 14 para la Sesión 19+.
+
+## Sesión 17 — 2026-09-10 — Mariana Malagón
+
+Preparar tokenizador/formato de instrucción.
+
+Contexto: igual que las Sesiones 15-16, el formato de instrucción
+(`SYSTEM_PROMPT` + `apply_chat_template`, turnos system/user/assistant)
+ya estaba implementado desde la Sesión 13-14 (`probar_baseline.py`,
+`entrenar_lora.py`), y ya es idéntico en entrenamiento e inferencia
+porque ambos scripts importan el mismo `SYSTEM_PROMPT` de un solo
+lugar. Esta sesión no repite ese trabajo: documenta el formato
+formalmente y corre la verificación de round-trip que pedía el prompt
+original, que todavía no existía como prueba explícita.
+
+Qué se hizo:
+- Instalado `transformers` de forma aislada (no `-r requirements.txt`
+  completo, mismo criterio que la Sesión 6) solo para cargar el
+  tokenizador de `Qwen/Qwen2.5-3B-Instruct` — **sin PyTorch ni pesos
+  del modelo**, confirmado explícitamente que esto no es "cómputo
+  pesado" según la política de Colab de `CONTEXTO_PROYECTO.md`
+  (fine-tuning, fusión, evaluación masiva o inferencia sobre muchos
+  ejemplos): es una sola operación de tokenización/decodificación,
+  instantánea, sin necesidad de GPU.
+- Tomado un ejemplo real de `generation/splits/dataset_generador1/train.json`
+  (`sem-013`), armado el prompt con el mismo código que usa
+  `entrenar_lora.py` (`DatasetTraduccion.__getitem__`), y verificado:
+  (1) el texto decodificado de los ids tokenizados coincide EXACTO,
+  carácter por carácter, con el texto de la plantilla de chat antes de
+  tokenizar; (2) decodificando solo los tokens no enmascarados con
+  `-100` (la parte que de verdad aprende el modelo) se reconstruye
+  exactamente la traducción de referencia del ejemplo.
+- Escrito `finetuning/formato_instruccion.md`: explica el formato (3
+  turnos, por qué es el mismo en entrenamiento/inferencia, cómo
+  funciona el enmascarado de la pérdida) con el ejemplo real completo
+  (antes de tokenizar, después de tokenizar, y el resultado de las dos
+  verificaciones de round-trip).
+
+Decisiones tomadas:
+- Inicialmente no se tocó `entrenar_lora.py` — se pensó que el formato
+  ya estaba completo porque el round-trip con un ejemplo normal daba
+  bien. Al revisar el prompt original de la Sesión 17 otra vez punto
+  por punto (a raíz de que el usuario preguntó explícitamente "¿ya
+  cumplimos esto?"), se encontró que faltaba un requisito real: "el
+  truncamiento de secuencias largas". `entrenar_lora.py` no tenía
+  ninguna lógica de truncamiento (verificado: cero menciones de
+  `truncat`/`max_length` en el archivo) — no rompía nada hoy porque la
+  secuencia más larga del dataset actual son 125 tokens contra un
+  contexto de 131,072 del tokenizador, pero el código no lo manejaba
+  explícitamente. Corregido: agregado `MAX_LENGTH = 512` con
+  truncamiento desde la izquierda (nunca desde la derecha, para no
+  cortar la traducción de referencia), verificado con un ejemplo
+  sintético de 703 tokens (queda en exactamente 512, la respuesta
+  sobrevive intacta) y sin regresión en el ejemplo normal de 89
+  tokens. Documentado en `finetuning/formato_instruccion.md`.
+
+Pendiente: ninguno — Sesión 17 cerrada. Los dos requisitos del prompt
+original quedaron cubiertos con evidencia real: manejo de tokens
+especiales (ya existía) y truncamiento de secuencias largas (agregado
+y verificado en esta revisión).
+
+## Sesión 18 — 2026-09-10 (2) — Mariana Malagón
+
+Actualizar paper: Arquitectura (Fase 2).
+
+Qué se hizo:
+- Leído el paper de Fase 1 completo (compartido por el usuario como
+  PDF, no estaba en este repo) para poder mantener el mismo tono y voz
+  en el borrador nuevo — primera persona plural, honestidad explícita
+  sobre limitaciones, sin sonar a lista genérica.
+- Releídas todas las entradas de `BITACORA.md` de las Sesiones 1-17
+  para extraer únicamente decisiones técnicas ya tomadas, sin rellenar
+  con nada no verificado.
+- Escrito `docs/fase2_arquitectura_borrador.md`, continuando la
+  numeración del paper como Sección 8, con 4 subsecciones: 8.1
+  arquitectura de datos (banco de semillas → derivación → generación
+  → validación → splits, con las cifras reales de cada etapa), 8.2
+  arquitectura de aplicación (lo que existe: scripts de línea de
+  comandos; lo que falta: API/despliegue/Docker/seguridad/
+  observabilidad, Semanas 5-6), 8.3 arquitectura de tecnología (Qwen2.5-3B-Instruct
+  y por qué no Llama, configuración de LoRA con su justificación,
+  formato de instrucción, resultados reales de la prueba de humo), y
+  8.4 un resumen consolidado de pendientes.
+- **Encontrado y corregido un error propio antes de entregar el
+  borrador**: había escrito que `generar_sintetico.py` ya estaba
+  parametrizado para cualquier generador, igual que `validar.py` y
+  `split_dataset.py`. Al verificar contra el código real (no contra la
+  memoria de la sesión), confirmé que `generar_sintetico.py` sigue
+  fijo a Groq (cliente, carpeta de salida y el campo `"generador"`
+  hardcodeados) — la parametrización real solo existe en
+  `validar.py`/`split_dataset.py` (reciben la ruta del dataset como
+  parámetro) y en `entrenar_lora.py` (`--dataset-dir`, Sesión 15).
+  Corregido antes de que quedara una afirmación falsa en el
+  documento del equipo.
+
+Decisiones tomadas:
+- Dejar la fusión de modelos fuera de esta sección de arquitectura sin
+  comprometerme con un número de semana específico: noté que
+  `CONTEXTO_PROYECTO.md` dice que la fusión simple entra en el alcance
+  de la Fase 2, pero el calendario de sesiones la ubica en la Semana 8
+  (dentro del rango que el propio `CONTEXTO_PROYECTO.md` llama Fase
+  3) — es una inconsistencia real entre los documentos de planeación
+  del equipo, no algo que me corresponda resolver unilateralmente en
+  un borrador de arquitectura. La dejé mencionada como "pendiente,
+  fuera del alcance de esta fase por decisión explícita" sin fijar una
+  fecha, y avisé de la inconsistencia en esta misma entrada para que
+  el equipo la resuelva.
+
+Pendiente: que el equipo revise el borrador contra esta bitácora
+(criterio de aceptación de la Sesión 18) y decida cómo resolver la
+inconsistencia de alcance de la fusión de modelos entre
+`CONTEXTO_PROYECTO.md` y el calendario de sesiones antes de integrar
+esta sección al `.tex` final (Sesión 32).
+
+## Sesión 19 — 2026-09-11 — Anderson García
+
+Entrenamiento completo de LoRA del Generador 1, con validación (EN
+CURSO — código listo, corrida real pendiente en Colab).
+
+Contexto: la configuración de LoRA (`r=8`, `alpha=16`, `dropout=0.05`,
+`bias="none"`, Q/K/V/O) quedó validada y justificada en las Sesiones
+15-16 y no cambia aquí. Esta sesión extiende `entrenar_lora.py` (no
+crea un script nuevo, mismo criterio de la Sesión 15) para agregar lo
+que le faltaba: entrenar sobre TODOS los ejemplos (no solo la muestra
+de 50 de la prueba de humo) y validar durante el entrenamiento.
+
+Qué se hizo:
+- Agregado el modo `--todos` a `entrenar_lora.py`: usa el `train.json`
+  completo (189 ejemplos para el Generador 1) en vez de la muestra de
+  50, valida sobre `val.json` (24 ejemplos) al final de cada época
+  (`eval_strategy="epoch"`), y usa `load_best_model_at_end=True` +
+  `EarlyStoppingCallback(patience=2)` de `transformers` para detectar
+  sobreajuste automáticamente: si la pérdida de validación no mejora
+  durante 2 épocas seguidas mientras la de entrenamiento sigue
+  bajando, el entrenamiento se detiene ahí y el adaptador que se
+  guarda es el del MEJOR checkpoint según validación, no el de la
+  última época — cumple el criterio de calidad pedido sin necesitar
+  vigilancia manual de la curva.
+- Límite superior de épocas generoso (`EPOCAS_COMPLETO_MAX = 10`, no
+  un número "adivinado" como el real) porque el early stopping corta
+  antes si hace falta; documentado en el código por qué no se fija un
+  número exacto de antemano.
+- `RegistrarPerdida` ahora registra también la pérdida de validación
+  (antes solo entrenamiento) — el log queda como `{"train": [...],
+  "eval": [...]}` cuando hay validación; se mantiene el formato plano
+  de antes (lista simple) cuando no la hay, para no romper
+  `finetuning/lora_prueba/loss_log.json` ya committeado (Sesión 14).
+- Salida del modo `--todos` en `finetuning/checkpoints/<generadorN>/`
+  (para el Generador 1: `finetuning/checkpoints/generador1/`), NO en
+  `finetuning/lora_prueba/` — esa carpeta sigue siendo solo de la
+  prueba de humo. Los checkpoints INTERMEDIOS del Trainer (uno por
+  época, con estado del optimizador — mucho más pesados que el
+  adaptador final y sin valor una vez elegido el mejor) se guardan en
+  un directorio temporal FUERA del repo (`tempfile.mkdtemp()`), nunca
+  dentro de `finetuning/checkpoints/` — solo el adaptador ya elegido
+  se trae de vuelta.
+- Ajustado `.gitignore`: `finetuning/checkpoints/` chocaba con la
+  regla genérica que ignora cualquier carpeta llamada "checkpoints"
+  (pensada para checkpoints intermedios, no para este adaptador final
+  que sí se quiere versionar) — agregada la excepción de directorio
+  correspondiente, verificada con archivos de prueba reales
+  (`git add -n`) antes de confiar en ella.
+- Actualizado `finetuning/entrenar_lora_colab.ipynb`: dividido en
+  Parte A (prueba de humo, sin cambios) y Parte B nueva (entrenamiento
+  completo — reutiliza las celdas 1-3 de setup de la Parte A, corre
+  `--todos`, y empaqueta/descarga `finetuning/checkpoints/generador1/`).
+- **Validación local antes de gastar cómputo de Colab**: corrido
+  `entrenar_lora.py --todos --epocas 1` en la máquina local (sin GPU,
+  sabiendo que NO se dejaría terminar) solo para confirmar que la
+  configuración nueva no tiene errores de arranque — carga del modelo,
+  `LoraConfig`, construcción de los datasets de train (189) y val (24),
+  y construcción del `Trainer` con `eval_strategy`/`save_strategy`/
+  `load_best_model_at_end`/`EarlyStoppingCallback` todo correcto.
+  Llegó sin errores hasta el primer paso de entrenamiento (confirmado
+  por el log: tamaños de datasets correctos, sin excepciones) antes de
+  matarlo manualmente — no tenía sentido dejarlo avanzar en CPU
+  (~80-95 min/paso ya documentado en la Sesión 14).
+
+Decisiones tomadas:
+- Extender `entrenar_lora.py` en vez de crear `finetuning/entrenar.py`
+  (nombre que usaba el prompt original de esta sesión) — mismo
+  criterio que la Sesión 15: habría duplicado un pipeline ya probado
+  end-to-end en vez de reutilizarlo.
+- No intentar completar el entrenamiento real en la máquina local ni
+  siquiera parcialmente — la política de `CONTEXTO_PROYECTO.md`
+  ("CÓMPUTO PESADO") y la evidencia ya documentada (Sesión 14) son
+  concluyentes: esto tiene que correr en Colab.
+
+Pendiente (bloquea el cierre de esta sesión): correr la Parte B de
+`finetuning/entrenar_lora_colab.ipynb` en Colab de verdad, traer
+`finetuning/checkpoints/generador1/` (adaptador, `loss_log.json`,
+`salidas_con_adapter.json`) al repo, confirmar con los datos reales que
+la pérdida de validación no sube mientras la de entrenamiento baja (o
+documentar en qué época se detuvo si sí pasó), escribir
+`finetuning/curva_final_generador1.md`, y completar esta entrada con
+cuánto tardó el entrenamiento real y en qué hardware (GPU de Colab
+asignada).
