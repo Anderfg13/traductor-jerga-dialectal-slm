@@ -1231,3 +1231,62 @@ mejor checkpoint ante sobreajuste) quedaron cumplidos con evidencia
 real. Aparte, queda como mejora futura del notebook de Colab: que la
 celda de clonado especifique rama explícitamente en vez de depender
 del branch por default del repo.
+
+## Sesión 20 — 2026-09-11 — Anderson García
+
+Comparación honesta: modelo sin ajustar vs. modelo ajustado con LoRA.
+
+Qué se hizo:
+- Confirmado que `finetuning/checkpoints/generador1/` existe (Sesión
+  19) y que `finetuning/baseline_sin_ajustar.md` (Sesión 13) documenta
+  8 ejemplos de línea base — no hizo falta correr nada de nuevo: el
+  checkpoint final ya genera sus traducciones de prueba sobre los
+  MISMOS 8 ejemplos de `test.json` (`INDICES_MUESTRA`, importado de
+  `probar_baseline.py` por ambos scripts), guardadas en
+  `finetuning/checkpoints/generador1/salidas_con_adapter.json` desde
+  la Sesión 19 — solo faltaba compararlas lado a lado con las del
+  baseline, no volver a generarlas.
+- Escrito `evaluation/comparacion_base_vs_ajustado.md`: tabla de los 8
+  ejemplos (español, referencia, sin ajustar, ajustado) + análisis
+  honesto categorizado en 3 grupos, sin maquillar nada:
+  - **4 de 8 mejoraron claramente**: los dos casos de "estar remando"
+    (modismo de apuro económico, antes traducido literal como
+    "rowing", ahora correcto), el caso de "brutal" con connotación
+    negativa en inglés (corregido a "awesome"), y una mejora de
+    fluidez menor.
+  - **2 de 8 NO mejoraron en nada**: el error de "tinto" (café en
+    habla andina, mal traducido como vino) persiste exactamente igual
+    — la semilla correspondiente está en el split de test, nunca la
+    vio el modelo durante el entrenamiento. Dicho explícitamente en el
+    documento, sin suavizarlo.
+  - **2 de 8 en mejora parcial/ambigua**, uno de ellos con un **error
+    NUEVO que el baseline no tenía**: la traducción de "¡Neta! Si eso
+    pasa, no lo creo" quedó envuelta en comillas literales en la
+    salida (`"Hey, really! ..."`), un artefacto de formato que no
+    aparece en ningún otro ejemplo ni en el baseline.
+- **Confirmación adicional del sobreajuste** (ya detectado por la
+  curva de pérdida en la Sesión 19): los ejemplos #3 y #4 de la tabla
+  son dos semillas DISTINTAS ("¿Un tinto, amigo?" vs. "¿Un tinto,
+  colega?") y el modelo ajustado dio la MISMA salida exacta para
+  ambas — visible aquí como comportamiento concreto, no solo como un
+  número de pérdida.
+
+Decisiones tomadas:
+- No presentar el resultado como "el modelo mejoró" de forma genérica
+  — el prompt pedía explícitamente honestidad si no mejoraba en
+  algunos casos, así que el documento cuenta los 8 casos uno por uno
+  (4 mejoran, 2 no, 2 ambiguos) en vez de un resumen optimista.
+  Reportado también el error nuevo de formato (comillas) sin
+  minimizarlo, aunque no afecta la inteligibilidad de esa traducción.
+- No se generaron traducciones nuevas ni se corrió el modelo de nuevo
+  — reutilizar las salidas ya generadas y guardadas en la Sesión 19
+  evita cómputo redundante y usa exactamente los mismos ejemplos que
+  pedía el prompt para la comparación directa.
+
+Pendiente: ninguno específico de esta sesión — los criterios de
+aceptación (tabla existe, cubre los mismos ejemplos del baseline,
+permite comparación directa antes/después) están cumplidos. El
+pendiente de fondo (ampliar el dataset antes de seguir ajustando
+hiperparámetros) sigue siendo el mismo de la Sesión 19, reforzado aquí
+con evidencia concreta de sobreajuste (dos semillas colapsando a la
+misma salida).
