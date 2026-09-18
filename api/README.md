@@ -5,9 +5,75 @@ Servicio de traducción vía API REST (FastAPI). Ver el docstring de
 
 ## Endpoints
 
-- `GET /salud` — healthcheck, responde `{"estado": "ok"}`.
+- `GET /salud` — healthcheck, responde `{"estado": "ok"}`. Sin límite
+  de tasa.
+- `GET /metricas` — contadores agregados de uso (`total_solicitudes`,
+  `traducciones_exitosas`, `rechazadas_validacion`,
+  `rechazadas_rate_limit`) — nunca el texto de ninguna solicitud. Sin
+  límite de tasa. Ver "Seguridad y privacidad" abajo.
 - `POST /traducir` — body `{"texto": "...", "dialecto": "opcional"}`,
-  responde `{"traduccion": "...", "dialecto": "..."}`.
+  responde `{"traduccion": "...", "dialecto": "..."}`. Limitado a 10
+  solicitudes/minuto por IP (configurable, ver abajo).
+
+## Seguridad y privacidad (Sesión 28)
+
+Punto de diferenciación de producto de `CONTEXTO_PROYECTO.md`: "los
+datos sensibles no salen a una nube de terceros" y "es auditable".
+Esto es lo que el servicio SÍ hace y lo que explícitamente NO hace:
+
+**Qué SÍ hace:**
+
+- **Límite de tasa (rate limiting)**: `POST /traducir` está limitado a
+  `RATE_LIMIT_MAX_SOLICITUDES` solicitudes cada
+  `RATE_LIMIT_VENTANA_SEGUNDOS` segundos, por IP de cliente (default:
+  **10 cada 60 segundos** — configurable por variable de entorno). Al
+  superarlo, responde `429 Too Many Requests` con un mensaje claro y
+  un header `Retry-After`. Implementado en memoria (ventana deslizante
+  por IP, con `threading.Lock` para ser seguro entre hilos) — pensado
+  para una sola instancia del servicio; si se escala a varias
+  instancias, esto necesitaría moverse a un almacén compartido (ej.
+  Redis).
+- **Validación de entrada**: `texto` es obligatorio, no puede estar
+  vacío ni ser solo espacios, y tiene un máximo de 500 caracteres.
+  Cualquier solicitud mal formada (campo faltante, tipo incorrecto,
+  fuera de esos límites) se rechaza con `422` (o `400` para el caso de
+  solo-espacios, que Pydantic no detecta por sí solo) y un mensaje
+  entendible en `detail` — nunca con un `500` genérico.
+- **Errores claros, nunca un stack trace crudo**: cualquier excepción
+  no prevista (un bug, un fallo del modelo) devuelve `500` con un
+  mensaje genérico entendible. El traceback real, si existe, queda
+  solo en los logs del proceso del servidor — nunca en la respuesta
+  HTTP que recibe quien llama a la API.
+
+**Qué NO hace (y por qué se puede confiar en eso):**
+
+- **Nunca escribe a disco ni a un log externo el texto de ninguna
+  solicitud ni de ninguna traducción generada.** Se puede verificar
+  leyendo `api/main.py`: no hay ninguna llamada a
+  `logging`/`print`/escritura de archivo que incluya el texto de
+  entrada, el dialecto, ni la traducción devuelta. El log de acceso
+  por default de `uvicorn` registra únicamente método HTTP, ruta,
+  código de estado y latencia — nunca el cuerpo de la solicitud ni de
+  la respuesta.
+- **`GET /metricas` solo expone 4 contadores agregados**, nunca datos
+  de ninguna solicitud individual. Probado explícitamente en
+  `api/test_main.py::test_metricas_solo_expone_contadores_agregados`:
+  se manda un texto de prueba, se confirma que NO aparece en la
+  respuesta de `/metricas`.
+- **No hay persistencia de ningún tipo**: ni las métricas ni el
+  historial de rate limiting se guardan en disco — todo vive en
+  memoria del proceso y se reinicia en ceros si el servicio se
+  reinicia. Eso demuestra en la práctica (no solo en un comentario)
+  que "solo métricas agregadas, no el texto en sí" es literalmente
+  cierto: no hay ningún lugar donde el texto podría haber quedado
+  guardado.
+
+**Configuración del límite de tasa** (variables de entorno, opcionales):
+
+```bash
+export RATE_LIMIT_MAX_SOLICITUDES=10      # default: 10
+export RATE_LIMIT_VENTANA_SEGUNDOS=60     # default: 60
+```
 
 ## Levantar el servicio con el modelo real
 
@@ -53,15 +119,53 @@ la latencia real, no.
 
 ## Correr las pruebas SIN el modelo real
 
-`api/test_main.py` prueba la capa de API (validación de entrada,
-códigos de estado, forma de la respuesta) con el modelo mockeado, para
-poder correrlas en cualquier máquina sin `torch`/`peft` instalados ni
-descargar el modelo de 3B:
+`api/test_main.py` (11 pruebas) prueba la capa de API — validación de
+entrada, rate limiting, métricas agregadas, códigos de estado, forma
+de la respuesta — con el modelo mockeado, para poder correrlas en
+cualquier máquina sin `torch`/`peft` instalados ni descargar el modelo
+de 3B:
 
 ```
 pip install pytest httpx  # si no están instalados ya
 SKIP_MODEL_LOAD=1 python -m pytest api/test_main.py -v
 ```
+
+### Prueba de aceptación real: rate limiting y validación (Sesión 28)
+
+Corrido contra el servicio real levantado en local (no solo `pytest`),
+con `curl`, tal como pedía la prueba de aceptación:
+
+**13 solicitudes seguidas a `/traducir` contra el límite default de
+10/60s** — las primeras 10 pasan el rate limit (503 porque el modelo
+no estaba cargado en esta prueba puntual, sin relación al límite de
+tasa), las siguientes 3 responden `429`:
+
+```
+solicitud 1  -> HTTP 503
+...
+solicitud 10 -> HTTP 503
+solicitud 11 -> HTTP 429
+solicitud 12 -> HTTP 429
+solicitud 13 -> HTTP 429
+```
+
+Respuesta completa de una de las rechazadas:
+
+```
+HTTP/1.1 429 Too Many Requests
+retry-after: 60
+content-type: application/json
+
+{"detail":"Demasiadas solicitudes. Máximo 10 cada 60 segundos por cliente. Espera unos segundos y vuelve a intentar."}
+```
+
+**Texto vacío** (`{"texto": ""}`) → `422`, mensaje claro:
+`{"detail":[{"type":"string_too_short","loc":["body","texto"],"msg":"String should have at least 1 character",...}]}`
+
+**Texto de 600 caracteres** (límite 500) → `422`, mensaje claro:
+`{"detail":[{"type":"string_too_long","loc":["body","texto"],"msg":"String should have at most 500 characters",...}]}`
+
+Ninguno de los dos casos devuelve `500` ni expone un stack trace.
 
 ## Contenedor (Docker / Podman)
 

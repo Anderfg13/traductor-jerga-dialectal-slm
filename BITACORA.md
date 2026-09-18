@@ -1952,3 +1952,99 @@ máquina, confirmar si el bug #1 (`dockerfile:` ignorado por
 exclusivo de `podman-compose` en Windows — de ser exclusivo, se podría
 volver a separar `Dockerfile` dentro de `api/` para quien use Docker
 real.
+
+## Sesión 28 — 2026-09-18 — Anderson García
+
+Rate limiting, validación de entrada, y confirmación de privacidad
+(NO persistencia de texto) en el servicio de la API.
+
+Contexto: `api/main.py` ya tenía validación básica de longitud/vacío
+desde la Sesión 25 (adelantada como "porción pequeña de la Sesión
+28"). Esta sesión completa lo que faltaba: rate limiting, y sobre todo
+convertir la promesa de privacidad de `CONTEXTO_PROYECTO.md` ("los
+datos sensibles no salen a una nube de terceros", "es auditable") en
+algo verificable en el código, no solo en un comentario.
+
+Qué se hizo:
+- **Rate limiting**: `_verificar_rate_limit()` — ventana deslizante en
+  memoria, por IP de cliente (`request.client.host`), con
+  `threading.Lock` (los endpoints corren en el threadpool de FastAPI,
+  así que sí hacía falta para seguridad entre hilos, no es solo
+  cosmético). Default 10 solicitudes/60s, configurable por
+  `RATE_LIMIT_MAX_SOLICITUDES`/`RATE_LIMIT_VENTANA_SEGUNDOS`. Al
+  superarse, `429` con mensaje claro y header `Retry-After`. Aplica
+  solo a `POST /traducir` (la operación cara) — `GET /salud` y el
+  `/metricas` nuevo quedan sin límite, a propósito.
+- **Validación de entrada**: la de la Sesión 25 ya cubría vacío/solo-
+  espacios (400) y longitud máxima 500 (422 vía Pydantic) — se dejó
+  igual, ya era correcta.
+- **Errores claros, nunca un stack trace crudo**: agregado
+  `manejador_errores_no_previstos` (captura cualquier `Exception` no
+  prevista → `500` con mensaje genérico entendible, el detalle real
+  solo queda en los logs del servidor) — FastAPI ya no exponía
+  tracebacks por default (`debug=False`), pero ahora queda garantizado
+  explícitamente en el código, no implícito en una configuración que
+  alguien podría cambiar sin darse cuenta de esta consecuencia.
+- **Confirmación de privacidad, hecha verificable, no solo dicha**:
+  agregado `GET /metricas` — SOLO 4 contadores agregados
+  (`total_solicitudes`, `traducciones_exitosas`,
+  `rechazadas_validacion`, `rechazadas_rate_limit`), nunca texto de
+  ninguna solicitud, sin persistencia a disco (se reinician en ceros
+  si el proceso reinicia). Agregado también
+  `manejador_error_validacion` para que los rechazos 422 de Pydantic
+  (que antes no pasaban por el cuerpo de `traducir()`) sí queden
+  contados en `rechazadas_validacion` — sin esto, las métricas
+  quedaban incompletas/engañosas para alguien auditando.
+- Prueba explícita de que la promesa se cumple, no solo se afirma:
+  `api/test_main.py::test_metricas_solo_expone_contadores_agregados`
+  manda un texto de prueba y confirma que NO aparece en la respuesta
+  de `/metricas` (ni el texto de entrada ni la traducción simulada).
+- 4 pruebas nuevas en `api/test_main.py` (11 en total, antes 7):
+  rate limit → 429 tras exceder el límite (con `Retry-After` y mensaje
+  claro), `/salud`/`/metricas` sin límite, métricas solo agregadas, y
+  error no previsto sin traceback expuesto. Agregado un fixture
+  `autouse` que limpia el estado de rate limiting y métricas entre
+  cada prueba — sin esto, las pruebas se habrían contaminado entre sí
+  (todas comparten la misma IP de `TestClient`).
+- **Prueba de aceptación real, con `curl` contra el servicio real
+  corriendo** (no solo `pytest`): 13 solicitudes seguidas a
+  `/traducir` contra el límite de 10/60s → las primeras 10 pasan el
+  rate limit, las 3 siguientes responden `429` con
+  `Retry-After: 60` y mensaje claro. Texto vacío y texto de 600
+  caracteres (límite 500) → ambos `422` con mensaje entendible en
+  `detail`, ningún `500`.
+- Sección nueva "Seguridad y privacidad" en `api/README.md`: qué SÍ
+  hace el servicio (rate limiting, validación, errores claros) y qué
+  NO hace (no persiste ni loguea texto, `/metricas` solo agregados,
+  sin persistencia de ningún tipo) — con cómo verificarlo cada punto,
+  no solo la afirmación.
+
+Decisiones tomadas:
+- Rate limiting en memoria (no Redis/almacén externo) — correcto para
+  una sola instancia del servicio (el estado actual del proyecto,
+  `CONTEXTO_PROYECTO.md`); agregar esa dependencia ahora habría sido
+  complejidad sin beneficio real todavía. Documentado explícitamente
+  como limitación a revisar si el servicio se escala a varias
+  instancias.
+- Agregar `GET /metricas` no lo pedía el prompt explícitamente, pero
+  la frase "confirma explícitamente... (solo métricas agregadas, no el
+  texto en sí)" pedía que la promesa de privacidad fuera verificable,
+  no solo un comentario — un endpoint real con una prueba que
+  confirma que no filtra texto es más convincente para "auditable" que
+  solo decirlo en la documentación.
+- Agregado el manejador de `RequestValidationError` (para contar los
+  422 de Pydantic en las métricas) tras notar, probando en vivo, que
+  `/metricas` mostraba `rechazadas_validacion: 0` pese a haber
+  rechazado texto vacío y texto largo — una métrica "agregada" que no
+  cuenta todo lo que dice contar no sirve para auditar nada.
+
+Pruebas de aceptación: `api/test_main.py` 11/11 pasan ✅; rate limiting
+real con `curl` → `429` en la solicitud 11 en adelante, con
+`Retry-After` y mensaje claro ✅; texto vacío/demasiado largo → `422`
+con mensaje entendible, nunca `500` ✅.
+
+Pendiente: ninguno específico de esta sesión — los 3 puntos pedidos
+(rate limiting, validación, confirmación de privacidad) y el criterio
+de calidad (errores claros, no stack traces) quedaron cumplidos con
+evidencia real, tanto en `pytest` como contra el servicio real
+corriendo.
