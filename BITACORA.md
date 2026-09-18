@@ -1290,3 +1290,78 @@ pendiente de fondo (ampliar el dataset antes de seguir ajustando
 hiperparámetros) sigue siendo el mismo de la Sesión 19, reforzado aquí
 con evidencia concreta de sobreajuste (dos semillas colapsando a la
 misma salida).
+
+## Sesión extra — 2026-09-17 — Paula Lozano
+
+Respuesta directa a la retroalimentación del profesor sobre la Fase 1
++ requisito de "governance model" del syllabus para el Project Advance
+2 (entrega en ~15 días, coincide con el cierre de nuestra Fase 2,
+Sesión 36). No corresponde a ningún número del calendario de 60
+sesiones — es trabajo nuevo motivado por una entrega externa, igual
+que la Sesión 14 (4) de Anderson.
+
+Qué se hizo:
+- Auditoría completa del repo contra los 4 puntos de la
+  retroalimentación del profesor: presupuesto de tiempo/cómputo
+  (pendiente desde la Sesión 1, que nunca se ejecutó — no existe
+  ningún `.tex` en este repositorio, el paper vive en Overleaf),
+  alcance dialectal declarado desde el inicio (creció de forma
+  incidental, nunca se declaró como decisión de alcance), validación
+  de datos sintéticos (ya bien cubierta, Sesiones 10-11) y conjunto de
+  prueba independiente (ya bien resuelto por diseño, Sesión 12).
+- Detectado que "governance model", que el syllabus pide
+  explícitamente para el Project Advance 2, no tenía ninguna sesión
+  asignada en el calendario interno de 60 sesiones — se trata como
+  trabajo nuevo, no como algo ya en curso que se retrasó.
+- Escrito `docs/presupuesto_tiempo_computo.md`: 5-8h/semana por
+  integrante (dato real dado por el equipo, no inventado), ninguna
+  máquina del equipo con GPU utilizable (ya confirmado en la práctica,
+  Sesión 13-14), todo el cómputo pesado en Colab gratuito, costo total
+  de cómputo del proyecto a la fecha: $0.
+- Escrito `docs/alcance_banco_semillas.md`: declara formalmente los 5
+  dialectos cubiertos (Caribeña, Andina, Rioplatense, Mexicana,
+  Chilena) y los tipos de expresión, con la justificación de por qué
+  esos 5 y no otros, y declarando explícitamente como limitación
+  conocida los dialectos NO cubiertos (español peninsular, Caribe
+  insular) — honesto sobre que la cobertura creció de forma
+  incremental (Sesiones 4 y 9) en vez de decidirse toda de una vez.
+- Escrito `docs/modelo_gobernanza.md`: roles y decisiones del equipo
+  (quién es dueño de qué área), gobernanza de datos (qué se versiona,
+  qué nunca se persiste en producción), gobernanza de modelos
+  (versionado de adaptadores, criterio de checkpoint final, cuándo
+  re-entrenar), gobernanza de proceso/código (git hook, Conventional
+  Commits, política de Colab, `CLAUDE.md`) y riesgos éticos.
+- Actualizado `docs/fase2_arquitectura_borrador.md` (que se había
+  quedado en la Sesión 18, antes del entrenamiento completo): agregada
+  la sección de resultados del entrenamiento completo con validación
+  (Sesión 19), el sobreajuste real detectado y manejado, la
+  comparación honesta contra la línea base (Sesión 20), una
+  explicación explícita de por qué el split de prueba es
+  genuinamente independiente (con el caso de "tinto" como evidencia
+  empírica de que no hay fuga de datos), una hoja de ruta a 15 días, y
+  referencias cruzadas a los 3 documentos nuevos de arriba.
+- Actualizado `docs/README.md` para listar los 3 documentos nuevos.
+
+Decisiones tomadas:
+- No se inventó el número de horas/semana ni se asumió acceso a GPU
+  paga — se preguntó directamente al equipo antes de escribir
+  `presupuesto_tiempo_computo.md`, siguiendo la misma política de no
+  inventar datos que rige el resto del proyecto.
+- El alcance dialectal se declara "cerrado" de aquí en adelante
+  (`docs/alcance_banco_semillas.md`): ampliarlo requiere una decisión
+  explícita documentada en `BITACORA.md`, no debe volver a crecer de
+  forma incidental dentro de otra sesión.
+- Se prioriza, con acuerdo del equipo, enfocar los próximos 15 días en
+  lo que exige la entrega (API mínima, containerización, seguridad,
+  observabilidad, evaluación automática/humana, compilación del paper)
+  por encima de seguir al pie de la letra cada prompt del calendario
+  original si el tiempo aprieta — ver hoja de ruta en
+  `docs/fase2_arquitectura_borrador.md` §8.5.
+
+Pendiente: integrar estos 4 documentos nuevos al `.tex` real en
+Overleaf (pendiente de acceso — el link compartido pedía login y la
+extensión de navegador del equipo no estaba disponible en esta
+máquina; se le pidió al equipo exportar el `.zip` del proyecto como
+alternativa). Seguir con las Sesiones 21 en adelante (evaluación
+automática) priorizando lo que exige la entrega, según la hoja de ruta
+de arriba.

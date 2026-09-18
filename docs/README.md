@@ -20,6 +20,11 @@ Según el calendario de 10 semanas, aquí van a vivir (entre otros):
   `fase3_limitaciones_borrador.md`, `fase3_costos_y_futuro_borrador.md` —
   borradores de las secciones de Fase 3 (PI1/PI2/PI3, limitaciones,
   costos y trabajo futuro).
+- `presupuesto_tiempo_computo.md`, `alcance_banco_semillas.md`,
+  `modelo_gobernanza.md` — no estaban en el calendario original de 60
+  sesiones; se agregaron en respuesta directa a la retroalimentación
+  del profesor sobre la Fase 1 y al requisito de "governance model"
+  del syllabus para el Project Advance 2.
 
 Estos borradores se integran después al `.tex` final del paper; no son
 el paper en sí.
