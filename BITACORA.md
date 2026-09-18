@@ -1504,3 +1504,33 @@ ejemplos restantes de `test.json` (inferencia en Colab) para tener
 BLEU/chrF representativos del test set completo antes de reportar
 estas cifras como definitivas en el paper. Seguir con la Sesión 22
 (reclutar hablantes nativos evaluadores).
+
+## Sesión 22 — 2026-09-17 — Paula Lozano
+
+Reclutar hablantes nativos evaluadores. Creados
+`evaluation/reclutamiento_evaluadores.md` (mensaje de reclutamiento +
+formulario de filtro que evita "¿de dónde eres?" ambiguo, preguntando
+específicamente dónde creció y qué variante habla a diario) y
+`evaluation/evaluadores.csv` (plantilla de seguimiento, objetivo 3 por
+cada uno de los 5 dialectos = 15 mínimo).
+
+**No se pobló el CSV con contactos reales ni de ejemplo** — contactar
+gente de verdad es una acción humana que el equipo tiene que hacer
+fuera del repositorio; inventar filas ahí rompería la trazabilidad real
+de quién evaluó qué en la Sesión 24. Pendiente: que el equipo contacte
+gente real y llene el CSV a medida que confirmen.
+
+## Sesión 23 — 2026-09-17 — Mariana Malagón
+
+Diseñar rúbrica de evaluación humana. Creado
+`evaluation/rubrica_humana.md`: escala 1-5 de retención de matices con
+definición explícita de cada punto, instrucciones para el evaluador, y
+3 ejemplos de calibración tomados de datos reales del proyecto
+(`evaluation/comparacion_base_vs_ajustado.md`), incluyendo el caso ya
+conocido de "tinto" (calificado 1, significado invertido).
+
+Pendiente: la calibración cruzada entre dos personas del equipo
+(criterio de aceptación del prompt original) todavía no se hizo —
+requiere que dos personas califiquen los mismos 5 ejemplos por
+separado, algo que no puedo simular yo solo sin inventar una segunda
+opinión falsa. Queda para el equipo antes de la Sesión 24.
