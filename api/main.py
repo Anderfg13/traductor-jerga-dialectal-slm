@@ -18,12 +18,20 @@ transformers, peft) y el adaptador entrenado. Para poder probar la
 CAPA DE API (validación de entrada, códigos de estado, forma de la
 respuesta) sin esa pila instalada ni descargar el modelo de 3B, la
 carga real se salta si la variable de entorno `SKIP_MODEL_LOAD=1` está
-presente — así es como corre `api/test_main.py`. En un entorno real
-(Colab, o el despliegue de la Sesión 26) esa variable NO se define, así
-que el modelo sí se carga de verdad. Esto sigue la política de cómputo
-pesado del proyecto (`CONTEXTO_PROYECTO.md`): la máquina local no tiene
-GPU utilizable, así que levantar el servicio con el modelo real
-cargado de verdad se prueba en Colab/despliegue, no aquí.
+presente — así es como corre `api/test_main.py`.
+
+**El servicio SÍ se levantó localmente con el modelo real** (Sesión
+27) — a diferencia del entrenamiento (inviable en CPU, ver
+`CONTEXTO_PROYECTO.md`), una sola solicitud de inferencia sí termina
+en un tiempo razonable de probar, aunque no rápido: **~50-80 segundos
+por traducción en CPU local**, muy por encima del objetivo de "unos
+pocos segundos". La traducción en sí es correcta y coherente — el
+problema es solo de latencia, no de funcionalidad. Cumplir la latencia
+objetivo sí necesita GPU (Colab o el entorno de despliegue de la
+Sesión 26), consistente con la política de cómputo pesado del proyecto
+— para UNA sola solicitud (no cientos) la máquina local alcanza para
+probar que el endpoint funciona de principio a fin, pero no para medir
+la latencia real de producción.
 
 Uso (requiere `pip install -r requirements.txt` completo, con GPU o
 paciencia en CPU para la carga inicial):

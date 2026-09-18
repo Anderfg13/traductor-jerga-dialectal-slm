@@ -1589,3 +1589,71 @@ Pendiente: Sesión 26 (despliegue en la nube — requiere que alguien del
 equipo cree una cuenta en la plataforma elegida, no es algo que se
 pueda hacer sin esa decisión/acceso humano) y completar la Sesión 28
 (rate limiting, garantía de no persistencia).
+
+## Sesión 25 — 2026-09-17 (2) — Anderson García
+
+Cierre de la prueba de aceptación pendiente: sí se pudo levantar el
+servicio localmente con el modelo real.
+
+Contexto: la Sesión 25 (arriba) asumió que esta máquina "no tiene
+`torch`/`peft` instalados ni GPU" y difirió la prueba completa a
+Colab/despliegue. Al retomar la tarea, confirmado que `torch`,
+`transformers`, `peft`, `fastapi` y `uvicorn` **sí están instalados**
+en el entorno local (mismo `.venv` usado en las Sesiones 13-20 para
+probar el baseline y el LoRA) — la premisa de la Sesión 25 era
+incorrecta, o el entorno cambió desde entonces. Con eso, sí se pudo
+correr la prueba real pendiente.
+
+Qué se hizo:
+- Levantado `uvicorn api.main:app` localmente con el modelo real (sin
+  `SKIP_MODEL_LOAD`) — el adaptador de `finetuning/checkpoints/generador1/`
+  cargó sin errores.
+- `GET /salud` → `200 {"estado":"ok"}` en ~7ms.
+- `POST /traducir` con `"Que chimba, parcero!"` (dialecto "Andina") →
+  `200 {"traduccion":"That's awesome, buddy!","dialecto":"Andina"}`
+  en **79.4s**. Traducción correcta y coherente.
+- Segunda solicitud (`"No manches, esta bien bacano."`) → `200
+  {"traduccion":"No way, this is really cool."}` en **49.8s** — más
+  rápida que la primera (sin costo de arranque en frío) pero
+  igualmente lejos del objetivo.
+- Corridas también las 7 pruebas de la capa de API
+  (`SKIP_MODEL_LOAD=1 python -m pytest api/test_main.py -v`): siguen
+  pasando las 7, sin cambios de comportamiento.
+- Actualizados `api/main.py` (docstring) y `api/README.md` con los
+  números reales medidos, reemplazando la afirmación de que la prueba
+  "no se pudo hacer en esta máquina".
+
+**Resultado honesto — funciona pero NO cumple el criterio de
+latencia**: las traducciones son correctas y coherentes en las dos
+solicitudes probadas, y `/salud` responde 200 casi instantáneo. Pero
+`/traducir` tardó 50-80 segundos por solicitud en CPU local, muy por
+encima de "unos pocos segundos" que pedía el criterio de aceptación
+original. No se maquilla este resultado como un éxito completo: es un
+**éxito funcional, no de latencia**. Cumplir la latencia objetivo
+necesita GPU — consistente con la política de cómputo pesado del
+proyecto y con todo lo ya documentado sobre esta misma máquina
+(Sesiones 13/14/19).
+
+Decisiones tomadas:
+- No declarar cumplido el criterio de "unos pocos segundos" solo
+  porque la solicitud sí terminó — el criterio es explícito sobre el
+  tiempo, y 50-80s no lo cumple bajo ningún criterio razonable. Se deja
+  registrado como hallazgo real, no como un pendiente sin evidencia.
+- No repetir esta misma prueba en Colab en esta sesión — el objetivo
+  era cerrar la prueba LOCAL que había quedado pendiente (eso ya se
+  hizo, con resultado real). Medir la latencia real en GPU queda para
+  cuando se levante el servicio de verdad en el entorno de despliegue
+  (Sesión 26), que es además el número donde ya se documentó este
+  pendiente.
+
+Pruebas de aceptación (revisadas): el checkpoint carga sin errores
+✅; `/salud` responde 200 ✅; `/traducir` devuelve una traducción
+coherente ✅; "en menos de unos pocos segundos" ❌ en CPU local (50-80s)
+— cumplido functionalmente, no en latencia.
+
+Pendiente: medir la latencia real de `/traducir` con GPU (Colab o el
+entorno de despliegue de la Sesión 26) para confirmar si ahí sí se
+cumple el objetivo de "unos pocos segundos" — probablemente sí, dado
+que las generaciones individuales en Colab durante las Sesiones 14/19
+fueron notablemente más rápidas que en CPU, pero no se midió un
+número exacto todavía.
