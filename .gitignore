@@ -24,9 +24,13 @@ wandb/
 
 # Excepción: adaptadores LoRA (pocos MB, no pesan como un modelo
 # completo — sí queremos versionarlos, a diferencia de checkpoints/
-# de entrenamiento o los pesos del modelo base)
-!finetuning/**/adapter/*.safetensors
-!finetuning/**/adapter/*.bin
+# de entrenamiento o los pesos del modelo base). Sin acotar a
+# finetuning/ -- api/space/adapter/ (Sesión 26) también los necesita,
+# y hasta ahora esto solo cubría finetuning/, dejando
+# api/space/adapter/adapter_model.safetensors sin subir en su primer
+# commit (bug real encontrado y corregido en la misma sesión).
+!**/adapter/*.safetensors
+!**/adapter/*.bin
 
 # Excepción: finetuning/checkpoints/<generadorN>/ guarda el adaptador
 # LoRA FINAL del entrenamiento completo (Sesión 19+) — choca de nombre

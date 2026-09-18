@@ -1753,3 +1753,21 @@ integrante del equipo, confirmar que ZeroGPU está activo, correr la
 prueba de aceptación real desde otra máquina, y completar
 `docs/despliegue.md` con la URL pública y el resultado medido
 (traducción + tiempo de respuesta real en GPU).
+
+## Sesión 26 — 2026-09-17 (2) — Anderson García
+
+Qué se hizo: bug encontrado inmediatamente después del commit
+anterior: la
+excepción de `.gitignore` para adaptadores LoRA
+(`!finetuning/**/adapter/*.safetensors`) estaba acotada a la carpeta
+`finetuning/` — `api/space/adapter/adapter_model.safetensors` (los
+pesos reales del adaptador que se sube al Space) quedó **fuera del
+commit** sin que `git commit` avisara nada raro (el archivo
+simplemente nunca se agregó a `git add`, sin error visible).
+Descubierto al revisar el resumen del commit y notar que
+`adapter_model.safetensors` no aparecía en la lista de archivos
+creados. Corregido generalizando el patrón a `!**/adapter/*.safetensors`
+/ `!**/adapter/*.bin` (sin acotar a una carpeta), y confirmado con
+`git status` que el archivo ahora sí queda staged.
+
+Pendiente (sin cambios): el mismo de la entrada anterior.
