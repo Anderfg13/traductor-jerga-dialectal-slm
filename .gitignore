@@ -41,3 +41,13 @@ wandb/
 .DS_Store
 .vscode/
 .idea/
+
+# LaTeX: artefactos de compilación (no el .tex ni el .pdf final, esos
+# sí se versionan como fuente y como evidencia de compilación limpia)
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.toc
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.synctex.gz

@@ -1365,3 +1365,72 @@ máquina; se le pidió al equipo exportar el `.zip` del proyecto como
 alternativa). Seguir con las Sesiones 21 en adelante (evaluación
 automática) priorizando lo que exige la entrega, según la hoja de ruta
 de arriba.
+
+## Sesión 1 (por fin) — 2026-09-17 — Paula Lozano
+
+El equipo compartió el `.tex` real del paper de Fase 1 (vivía solo en
+Overleaf, nunca en este repositorio) para poder avanzar en la entrega
+de Fase 2. Al revisarlo, los 5 problemas que la Sesión 1 original
+(Anderson, Semana 1) debía corregir **seguían ahí, intactos** — esa
+sesión nunca se ejecutó de verdad. Se corrige ahora, con los datos
+reales que faltaban.
+
+Qué se hizo:
+- Traído el `.tex` al repositorio (`paper/main.tex` +
+  `paper/README.md`) — antes era el único artefacto del proyecto sin
+  control de versiones ni trazabilidad en `BITACORA.md`.
+- **Presupuesto de tiempo/cómputo**: reemplazado el placeholder
+  `[completar: ...]` con las cifras reales confirmadas con el equipo
+  (5-8h/semana por integrante, ninguna máquina con GPU utilizable,
+  todo el cómputo pesado en Colab gratuito) — mismos datos que
+  `docs/presupuesto_tiempo_computo.md`.
+- **Las 4 oraciones que perdieron los guiones largos**: corregidas,
+  restaurando los incisos con `—` donde se habían vuelto oraciones
+  corridas (Sección 1.2 "Tampoco faltan herramientas de nicho...",
+  Sección 1.2 "Ninguno de los dos extremos...", Sección 1.3 "Es un
+  problema de otra naturaleza...", Sección 3.1 "...ninguno de estos
+  trabajos propone una solución de fine-tuning...").
+- **Etiqueta "(Path A)"/"(Path B)"**: revisado el documento completo —
+  esa etiqueta no existe en ninguna parte del `.tex` real, la sección
+  de preguntas de investigación nunca la tuvo. No se inventó ni se
+  forzó su inserción donde no encaja con el contenido real; se deja
+  constancia aquí de que este punto específico de la Sesión 1 original
+  no aplica a este documento tal como existe.
+- **Resumen (abstract)**: agregada una oración que anticipa la
+  distinción entre pregunta de investigación y propuesta de producto,
+  antes de que el cuerpo del documento la desarrolle en la Sección 4.2.
+- **Sección de Contribuciones**: no reflejaba ni la extensión a
+  lenguas indígenas (sí mencionada en el cuerpo, Sección 2.3) ni la
+  propuesta de producto (Tabla 2, Sección 4.2) — agregados dos puntos
+  nuevos a la lista de contribuciones cubriendo ambos.
+- Verificado que ninguna cita nueva se agregó sin existir ya en la
+  bibliografía (no se tocaron citas, solo prosa).
+
+Decisiones tomadas:
+- El `.tex` pasa a vivir en `paper/main.tex` dentro del repositorio,
+  no solo en Overleaf — la sincronización entre ambos por ahora es
+  manual (copiar/pegar); se deja anotado en `paper/README.md` que
+  integrar Overleaf con Git eliminaría esta fricción, sin hacerlo
+  todavía por no ser parte de esta entrega.
+- Se versiona `main.pdf` (no solo `main.tex`) como evidencia de
+  compilación limpia en el momento del commit; los artefactos
+  intermedios (`.aux`, `.log`, `.out`) se ignoran vía `.gitignore`.
+
+Pendiente: sincronizar estos cambios de vuelta a Overleaf (pegar el
+contenido corregido de `paper/main.tex`) para que el resto del equipo
+seguir editando ahí no sobrescriba estas correcciones sin darse cuenta.
+Falta también integrar al `.tex` los documentos nuevos de Fase 2
+(`docs/fase2_arquitectura_borrador.md`, `docs/alcance_banco_semillas.md`,
+`docs/modelo_gobernanza.md`, `docs/presupuesto_tiempo_computo.md` ya
+integrado en el cuerpo) como nuevas secciones, planeado para más
+adelante en esta misma fase, no en esta sesión puntual.
+
+Pruebas de aceptación verificadas:
+- `pdflatex -interaction=nonstopmode main.tex` corrido dos veces
+  seguidas, exit code 0 ambas veces, 0 "Overfull hbox" (`grep -ic
+  overfull` = 0), 13 páginas.
+- Búsqueda de `[completar` en el archivo: sin resultados.
+- Búsqueda de "Path A"/"Path B": sin resultados en el documento real
+  (ver nota arriba, no aplica a este `.tex`).
+- Lectura del resumen: menciona explícitamente la distinción
+  investigación/producto.
