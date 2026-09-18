@@ -18,8 +18,15 @@ generation/   Generación sintética con los 3 LLMs generadores
 finetuning/   Ajuste fino (LoRA) de los SLMs candidatos
 merging/      Fusión de modelos (mergekit: TIES/DARE, destilación multi-maestro)
 evaluation/   Métricas de calidad (BLEU, chrF, evaluación humana, kappa)
-api/          Servicio de traducción expuesto como API REST
+api/          Servicio de traducción expuesto como API REST (ver
+              api/README.md para levantarlo local, en contenedor, o
+              api/space/ para la variante desplegada en HF Spaces)
 ```
+
+`Dockerfile`, `docker-compose.yml` y `.dockerignore` viven en la raíz
+del repo (no dentro de `api/`) — ver `api/README.md`, sección
+"Contenedor (Docker / Podman)", para el porqué y el paso a paso de
+build/run.
 
 Cada commit relevante debe acompañarse de una entrada en
 [`BITACORA.md`](./BITACORA.md).

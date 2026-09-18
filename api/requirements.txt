@@ -1,0 +1,20 @@
+# Dependencias del contenedor de api/ -- NO usar el requirements.txt
+# completo del proyecto raíz: mergekit/bitsandbytes/sacrebleu/etc. no
+# hacen falta para servir el modelo y solo agrandan la imagen (mismo
+# criterio ya usado en generation/entrenar_lora_colab.ipynb y
+# api/space/requirements.txt).
+fastapi>=0.112.0
+uvicorn[standard]>=0.30.0
+pydantic>=2.8.0
+# torch FIJADO (no ">=") a 2.13.0 a propósito: la versión más nueva
+# disponible al construir esta imagen (2.14.0+cpu) crashea con un
+# error de glibc ("malloc.c: assertion failed") en el simple
+# `import torch`, sin tocar nuestro código -- confirmado aislando el
+# problema con un contenedor que solo hace `import torch` (ver
+# BITACORA.md Sesión 27 para el detalle completo). 2.13.0 es la misma
+# versión ya usada con éxito en la máquina local en todo este
+# proyecto (probar_baseline.py, entrenar_lora.py, etc.), así que no es
+# una versión al azar, es la que ya está probada y funciona.
+torch==2.13.0
+transformers>=4.44.0
+peft>=0.12.0

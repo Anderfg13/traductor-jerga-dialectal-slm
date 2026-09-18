@@ -1829,3 +1829,126 @@ subir `api/space/`, y correr la prueba de aceptación real desde otra
 máquina. Si para entonces sigue bloqueado pese a los 30 días,
 contactar soporte de HF o usar la cuenta de otro integrante del equipo
 como plan B.
+
+## Sesión 27 — 2026-09-18 — Anderson García
+
+Contenerizar el servicio de la API (Docker/Podman) — cerrada con
+evidencia real, tras un diagnóstico largo de un crash reproducible.
+
+Contexto: Docker Desktop no se pudo instalar en esta máquina (error de
+instalación); se usó **Podman** como alternativa, con `podman machine`
+corriendo una VM Linux sobre WSL2 en Windows.
+
+Qué se hizo:
+- Escrito `Dockerfile` (imagen `python:3.11-slim`, sin dependencias
+  del sistema operativo — todo instala desde wheels precompilados),
+  `docker-compose.yml`, `.dockerignore`, y `api/requirements.txt`
+  (dependencias puntuales del servicio, no el `requirements.txt`
+  completo del proyecto — mismo criterio ya usado en
+  `entrenar_lora_colab.ipynb` y `api/space/requirements.txt`).
+  `COPY` explícito y puntual (no `COPY . .`) de solo lo que el
+  servicio necesita: `api/main.py`, `finetuning/probar_baseline.py`,
+  y el adaptador de `finetuning/checkpoints/generador1/adapter/`.
+- **Bug real #1 — `podman-compose` en Windows ignora el campo
+  `dockerfile:`**: con `Dockerfile`/`docker-compose.yml` dentro de
+  `api/` y `context: ..` + `dockerfile: api/Dockerfile`, `podman-compose
+  --verbose` mostró que el comando de build generado ni siquiera
+  incluía el flag `-f` — construía buscando un Dockerfile en la raíz
+  del contexto (donde no está) y fallaba. Confirmado que es un bug de
+  la herramienta (no de la config: `podman-compose config` sí
+  mostraba la ruta resuelta correctamente, solo el build real la
+  ignoraba). Resuelto moviendo `Dockerfile` y `docker-compose.yml` a
+  la **raíz del repo** (contexto = mismo directorio, sin necesitar ese
+  campo).
+- **Bug real #2 — reenvío de puertos de Podman/gvproxy en Windows**:
+  con el contenedor corriendo y `podman port` mostrando
+  `0.0.0.0:8000->8000/tcp` correctamente, `curl http://127.0.0.1:8000/...`
+  y `curl http://localhost:8000/...` fallaban con conexión rechazada.
+  Diagnosticado con `netstat`: Windows solo tenía el puerto escuchando
+  en `[::1]:8000` (IPv6 loopback), no en IPv4; probar directo por
+  `[::1]` tampoco respondió de forma confiable. **Workaround real que
+  sí funcionó siempre**: pegarle a la IP propia de la VM de Podman
+  (`podman machine ssh podman-machine-default "ip -4 addr show eth0"`),
+  no a `localhost`.
+- **Bug real #3 (el más largo de diagnosticar) — crash de glibc**:
+  el primer `build` + `run` funcionó perfecto (confirmado con `curl`
+  real: `/salud` 200, `/traducir` con traducción correcta). Los
+  intentos siguientes (probar `docker-compose`, y luego varios
+  reintentos) empezaron a fallar con
+  `Fatal glibc error: malloc.c:2601 (sysmalloc): assertion failed`,
+  el proceso terminando con código 139 (SIGSEGV). Descartadas, en
+  orden, con evidencia real antes de encontrar la causa real:
+  - Corrupción del volumen de caché por haberlo copiado entre
+    volúmenes con un contenedor `alpine` intermedio — descartado: un
+    volumen **nunca antes usado**, con una descarga 100% limpia,
+    también crasheó.
+  - Memoria insuficiente en la VM de Podman/Windows — descartado:
+    cerrar aplicaciones para liberar RAM (de ~8GB a ~9.5GB libres) no
+    cambió nada; la VM siempre reportó suficiente memoria disponible
+    (`free -h`) al momento del crash.
+  - Inestabilidad acumulada de la VM tras varias horas de uso —
+    parcialmente cierto (se encontró un error real de `binfmt_misc` en
+    el filesystem de la VM), pero un `podman machine stop`+`start` no
+    lo resolvió por sí solo.
+  - Espacio en disco — descartado: 948GB libres de 1TB en la VM en
+    todo momento.
+  - **Causa real, aislada con un contenedor mínimo** (`python -c
+    "import torch"`, sin nuestro código ni el modelo): el crash
+    ocurre en el simple `import torch`. `api/requirements.txt` tenía
+    `torch>=2.3.0` (sin techo), que resolvía a la versión más nueva
+    disponible al momento de esta sesión, **2.14.0+cpu** — esa versión
+    específica crashea con este error de glibc en esta imagen base
+    (`python:3.11-slim`) sobre Podman/WSL2/Windows. **Fijado
+    `torch==2.13.0`** en `api/requirements.txt` (la misma versión ya
+    usada con éxito en toda la máquina local durante el resto del
+    proyecto, no una versión elegida al azar) — el `import torch`
+    mínimo pasó a funcionar de inmediato.
+  - Para descartar cualquier duda de inestabilidad remanente de la VM,
+    se recreó por completo (`podman machine rm` + `init` + `start`,
+    decisión tomada con el usuario tras explicarle que esto borra
+    todas las imágenes/volúmenes de Podman, no los archivos del
+    proyecto) antes de la corrida final.
+- **Prueba de aceptación real, con el fix aplicado y la VM recreada**:
+  `podman build` sin errores; contenedor levantado con `podman run`
+  → `GET /salud` → `200 {"estado":"ok"}` en ~36ms; `POST /traducir`
+  con `"Que nota, marica, quedo bacano!"` → `200 {"traduccion":"What a
+  note, dude, it turned out cool!",...}` en 33.8s, coherente, sin
+  texto corrupto ni repetido. Repetido con `docker-compose up` (vía
+  `python -m podman_compose`, ya que `podman compose` nativo no
+  encontró proveedor instalado en esta máquina) → mismo resultado,
+  `/salud` 200.
+- Documentado todo en `api/README.md` (sección nueva "Contenedor
+  (Docker / Podman)": build, run, compose, y los 3 problemas reales
+  con sus soluciones) y corregida una referencia de sesión mal
+  etiquetada que había quedado de la Sesión 25 (decía "Sesión 27" por
+  error).
+
+Decisiones tomadas:
+- Mover `Dockerfile`/`docker-compose.yml` a la raíz del repo en vez de
+  dentro de `api/` — cambio de plan respecto al diseño inicial, pero
+  necesario para sortear el bug real de `podman-compose` (no una
+  preferencia estética).
+- No declarar terminada la tarea con el primer `build`+`run` exitoso
+  sin más — cuando `docker-compose` empezó a fallar de forma
+  reproducible, se investigó hasta encontrar la causa real (versión de
+  `torch`) en vez de descartarlo como "problema de la máquina" sin
+  evidencia. El diagnóstico documentado aquí (aislar con un contenedor
+  mínimo, descartar memoria/disco/volumen con evidencia real antes de
+  llegar a la causa) queda como referencia para el equipo si algo así
+  vuelve a pasar.
+- Recrear la VM de Podman entera (no solo reiniciarla) fue una
+  decisión consultada con el usuario antes de ejecutarla, por ser una
+  acción más invasiva (borra imágenes/volúmenes existentes de Podman).
+
+Pruebas de aceptación: `docker build`/`podman build` termina sin
+errores ✅; `docker run`/`podman run` (y `docker-compose up`/
+`podman-compose up`) levanta el servicio ✅; `/salud` responde 200
+desde dentro del contenedor corriendo ✅ — los 3 criterios cumplidos
+con evidencia real, no simulada.
+
+Pendiente: cuando el equipo tenga Docker Desktop funcionando en alguna
+máquina, confirmar si el bug #1 (`dockerfile:` ignorado por
+`podman-compose`) también ocurre con `docker compose` nativo, o es
+exclusivo de `podman-compose` en Windows — de ser exclusivo, se podría
+volver a separar `Dockerfile` dentro de `api/` para quien use Docker
+real.
