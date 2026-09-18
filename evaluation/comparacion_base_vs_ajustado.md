@@ -106,3 +106,49 @@ más útil no es seguir ajustando hiperparámetros de LoRA sobre este
 mismo dataset de 189 ejemplos, sino ampliarlo (más semillas, o
 incorporar los Generadores 2/3), tal como ya se anotó en
 `finetuning/curva_final_generador1.md`.
+
+## Métricas automáticas (BLEU / chrF) — Sesión 21
+
+Calculadas con `evaluation/metricas_automaticas.py` sobre estos mismos
+8 ejemplos (los únicos con predicción generada hasta ahora tanto sin
+ajustar como con el adaptador — los 15 ejemplos restantes de
+`test.json` todavía no tienen una traducción generada por ningún
+modelo, ver "Pendiente" más abajo).
+
+| | BLEU | chrF |
+|---|---|---|
+| Sin ajustar (`evaluation/reporte_metricas_baseline.md`) | 38.18 | 48.33 |
+| Ajustado con LoRA (`evaluation/reporte_metricas_generador1.md`) | **47.21** | **59.71** |
+| Diferencia | +9.03 | +11.38 |
+
+Mejora global clara en ambas métricas, consistente con la lectura
+cualitativa de arriba. Pero el desglose por dialecto **no es
+uniformemente positivo** — no lo ocultamos:
+
+| Dialecto | BLEU sin ajustar | BLEU ajustado | chrF sin ajustar | chrF ajustado |
+|---|---|---|---|---|
+| Andina | 5.74 | 17.16 | 13.57 | 29.44 |
+| Caribeña | 42.08 | 45.97 | 53.66 | 59.68 |
+| Mexicana | **63.66** | **55.12** | 66.46 | 67.70 |
+| Rioplatense | 25.24 | 52.43 | 39.41 | 61.09 |
+
+Rioplatense y Andina mejoran mucho (aunque Andina sigue siendo, por
+lejos, el dialecto más débil en términos absolutos — arrastrado por el
+caso de "tinto" ya documentado arriba). Pero **Mexicana empeora en
+BLEU** (63.66 → 55.12) pese a mejorar levemente en chrF, con solo 2
+ejemplos por dialecto en esta muestra — una diferencia así, con tan
+pocos datos, es más ruido estadístico que una señal real de que el
+ajuste perjudica ese dialecto en particular, pero no lo vamos a
+minimizar ni a explicar como "solo ruido" sin evidencia de que
+efectivamente lo sea.
+
+**Pendiente**: esto son 8 de los 23 ejemplos de `test.json` (35%) —
+los únicos para los que ya existe una traducción generada por ambos
+modelos. Para tener BLEU/chrF representativos de verdad (no solo de
+la muestra usada para la comparación cualitativa) hace falta generar
+predicciones del modelo ajustado sobre los 15 ejemplos restantes de
+`test.json` — es un cómputo de solo inferencia (no entrenamiento),
+mucho más liviano, pero de todas formas requiere cargar el modelo de
+3B con el adaptador, así que sigue la misma política de Colab, no
+máquina local (`CONTEXTO_PROYECTO.md`). Queda como siguiente paso
+antes de reportar estas cifras como definitivas en el paper.

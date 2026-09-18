@@ -1434,3 +1434,73 @@ Pruebas de aceptación verificadas:
   (ver nota arriba, no aplica a este `.tex`).
 - Lectura del resumen: menciona explícitamente la distinción
   investigación/producto.
+
+## Sesión 21 — 2026-09-17 — Paula Lozano
+
+Implementar métricas automáticas (BLEU, chrF).
+
+Qué se hizo:
+- Escrito `evaluation/metricas_automaticas.py`: recibe un archivo de
+  predicciones y uno de referencias (mismo formato que `test.json`)
+  por parámetro de línea de comandos (`--predicciones`,
+  `--referencias`, `--campo-prediccion` configurable, `--salida`
+  opcional) — nada hardcodeado, reutilizable con cualquier generador o
+  checkpoint futuro sin tocar el código. Empareja predicción con
+  referencia por `texto_dialectal` exacto (no por `seed_id`, que no es
+  único porque cada semilla tiene varias variantes), reportando
+  cuántas predicciones quedaron sin referencia en vez de fallar en
+  silencio. Calcula BLEU y chrF (`sacrebleu`) global y desglosado por
+  dialecto.
+- Instalado `sacrebleu` de forma aislada (ya estaba en
+  `requirements.txt`) — es cómputo de texto puro, sin GPU, así que no
+  aplica la política de Colab-únicamente (esa es para entrenamiento/
+  inferencia con el modelo, no para calcular una métrica de texto).
+- Corrido sobre las predicciones reales del modelo ajustado con LoRA
+  (`finetuning/checkpoints/generador1/salidas_con_adapter.json`,
+  Sesión 19-20) contra `generation/splits/dataset_generador1/test.json`:
+  reporte generado sin errores, BLEU 47.21 / chrF 59.71 global, con
+  desglose por dialecto (`evaluation/reporte_metricas_generador1.md`).
+- Aprovechando que el script es genérico, corrido también sobre las
+  predicciones de la línea base sin ajustar
+  (`finetuning/baseline_sin_ajustar_salidas.json`, campo distinto vía
+  `--campo-prediccion traduccion_modelo_sin_ajustar`): BLEU 38.18 /
+  chrF 48.33 global (`evaluation/reporte_metricas_baseline.md`) — la
+  primera comparación **cuantitativa** entre ambos modelos del
+  proyecto (antes solo había comparación cualitativa, Sesión 20).
+- Agregada esta comparación a `evaluation/comparacion_base_vs_ajustado.md`
+  (que ya tenía la comparación cualitativa) en vez de crear un
+  documento aparte, para que quede una sola fuente de verdad sobre
+  "cómo le fue al modelo ajustado frente al base".
+
+Hallazgo que no se maquilla: la mejora global es clara (+9.03 BLEU,
++11.38 chrF), pero el desglose por dialecto no es parejo — Andina y
+Rioplatense mejoran mucho, pero **Mexicana empeora en BLEU** (63.66 →
+55.12) pese a mejorar levemente en chrF. Con solo 2 ejemplos por
+dialecto en esta muestra, es más probable que sea ruido estadístico
+que una señal real de que el ajuste perjudica ese dialecto, pero se
+documenta la cifra tal cual, sin la conclusión de "es solo ruido" sin
+evidencia que la respalde.
+
+Decisiones tomadas:
+- El emparejamiento es por `texto_dialectal`, no por `seed_id` —
+  decisión de diseño necesaria porque el prompt original solo mencionó
+  "mismo formato que test.json" sin especificar la llave, y `seed_id`
+  no identifica una variante única.
+- No se generaron predicciones nuevas para cerrar la cobertura del
+  `test.json` completo (23 ejemplos) — estas métricas corren solo
+  sobre los 8 ejemplos que ya tenían predicción de antes (35% del
+  test set). Generar las 15 restantes es solo inferencia (mucho más
+  barato que entrenar), pero de todas formas requiere cargar el modelo
+  de 3B con el adaptador, así que sigue la política de Colab del
+  proyecto — no se hizo en esta sesión para no bloquear el resto del
+  flujo, queda documentado como pendiente explícito, no oculto.
+
+Pruebas de aceptación verificadas: el script corrió sobre el `test.json`
+del Generador 1 usando las predicciones del modelo ajustado, produjo
+un reporte con BLEU y chrF global y por dialecto, sin errores.
+
+Pendiente: generar predicciones del modelo ajustado sobre los 15
+ejemplos restantes de `test.json` (inferencia en Colab) para tener
+BLEU/chrF representativos del test set completo antes de reportar
+estas cifras como definitivas en el paper. Seguir con la Sesión 22
+(reclutar hablantes nativos evaluadores).
