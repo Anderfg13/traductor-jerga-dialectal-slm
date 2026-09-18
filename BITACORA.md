@@ -1534,3 +1534,58 @@ Pendiente: la calibración cruzada entre dos personas del equipo
 requiere que dos personas califiquen los mismos 5 ejemplos por
 separado, algo que no puedo simular yo solo sin inventar una segunda
 opinión falsa. Queda para el equipo antes de la Sesión 24.
+
+## Sesión 25 — 2026-09-17 — Anderson García
+
+Construir wrapper de API REST (FastAPI).
+
+Qué se hizo:
+- Escrito `api/main.py`: `POST /traducir` (texto + dialecto opcional
+  → traducción) y `GET /salud`. El modelo se carga una sola vez al
+  iniciar el servicio (`lifespan` de FastAPI), no por solicitud.
+  Reutiliza `cargar_modelo`/`traducir` de `finetuning/probar_baseline.py`
+  (ya validadas en las Sesiones 13/19-20) más el adaptador LoRA del
+  Generador 1 (`finetuning/checkpoints/generador1/adapter/`) vía
+  `PeftModel.from_pretrained`.
+- Los imports pesados (`torch`, `transformers`, `peft`) quedan
+  DENTRO de la función de carga, no al inicio del módulo — así el
+  archivo se puede importar y probar sin esas dependencias instaladas.
+  Con `SKIP_MODEL_LOAD=1` el servicio arranca sin cargar el modelo
+  real, exclusivamente para pruebas de la capa de API.
+- Escrito `api/test_main.py` (7 pruebas, con `TestClient` y el modelo
+  mockeado): `/salud` responde 200; `/traducir` sin modelo cargado
+  responde 503; con el modelo mockeado responde 200 con la forma
+  correcta; texto vacío o solo espacios se rechaza (400); texto de más
+  de 500 caracteres o sin el campo `texto` se rechaza (422). **Las 7
+  pasan.**
+- `api/README.md` con ambos flujos (levantar con modelo real vs.
+  correr las pruebas sin él). Agregados `pytest` y `httpx` a
+  `requirements.txt` (no estaban).
+
+Decisiones tomadas:
+- **No se pudo cumplir el criterio de aceptación completo del prompt
+  original** ("hacer una solicitud real con curl... confirmar que
+  devuelve una traducción coherente en pocos segundos") — esta máquina
+  no tiene `torch`/`peft` instalados ni GPU, y descargar+cargar el
+  modelo de 3B contradice la política de cómputo del proyecto
+  (Colab/despliegue, no local). Se optó por probar exhaustivamente la
+  CAPA de API con el modelo mockeado (que sí es 100% real y pasa), y
+  dejar la prueba con el modelo real explícitamente pendiente para
+  Colab o el entorno de despliegue (Sesión 26) — no se fingió una
+  traducción de ejemplo para simular que sí se probó.
+- Se agregó validación básica de longitud (500 caracteres) y de texto
+  vacío ya en esta sesión, adelantando una porción pequeña de la
+  Sesión 28 (seguridad), porque era prácticamente gratis con Pydantic
+  y evita que la Sesión 28 tenga que tocar el modelo de datos desde
+  cero. El resto de la Sesión 28 (rate limiting, garantías de no
+  persistencia) sigue sin hacer.
+
+Pruebas de aceptación: `SKIP_MODEL_LOAD=1 python -m pytest api/test_main.py -v`
+→ 7 passed. Pendiente (no cumplido en esta sesión): levantar el
+servicio con el modelo real y confirmar con `curl` una traducción
+coherente — requiere Colab o el entorno de despliegue.
+
+Pendiente: Sesión 26 (despliegue en la nube — requiere que alguien del
+equipo cree una cuenta en la plataforma elegida, no es algo que se
+pueda hacer sin esa decisión/acceso humano) y completar la Sesión 28
+(rate limiting, garantía de no persistencia).
