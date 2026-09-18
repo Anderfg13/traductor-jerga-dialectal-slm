@@ -1,0 +1,8 @@
+# Dependencias del Space (api/space/app.py) -- NO usar el
+# requirements.txt completo del proyecto raíz: mergekit/bitsandbytes
+# no hacen falta aquí y complican el build en HF Spaces.
+gradio>=5.0
+spaces
+torch>=2.8.0
+transformers>=4.44.0
+peft>=0.12.0

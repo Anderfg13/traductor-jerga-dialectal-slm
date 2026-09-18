@@ -1657,3 +1657,99 @@ cumple el objetivo de "unos pocos segundos" — probablemente sí, dado
 que las generaciones individuales en Colab durante las Sesiones 14/19
 fueron notablemente más rápidas que en CPU, pero no se midió un
 número exacto todavía.
+
+## Sesión 26 — 2026-09-17 — Anderson García
+
+Elegir plataforma de despliegue y preparar el servicio (EN CURSO —
+falta que alguien del equipo cree el Space de verdad y se corra la
+prueba de aceptación desde otra máquina).
+
+Qué se hizo:
+- **Investigadas las 3 plataformas sugeridas contra el tamaño real
+  del modelo (~6.5GB en memoria)**, con búsquedas web para confirmar
+  límites vigentes en 2026 (no de memoria):
+  - **Render**: free tier de 512MB RAM — descartado, ni de cerca
+    alcanza.
+  - **Railway**: ya no tiene free tier permanente — trial único de $5
+    (30 días, 1GB RAM), después baja a 0.5GB RAM — descartado, no
+    alcanza y no es sostenible.
+  - **Hugging Face Spaces con SDK Docker** (lo que habría hospedado
+    `api/main.py`/FastAPI tal cual): el hardware "CPU Basic" (16GB
+    RAM) sigue siendo gratis, pero **crear un Space con SDK Docker
+    pasó a requerir plan PRO de pago en 2026** (cambio de política de
+    HF, confirmado en la documentación oficial) — descartado para
+    mantenerse gratis.
+  - **Hugging Face Spaces con SDK Gradio + hardware ZeroGPU**: cuentas
+    personales gratuitas (correo verificado, +30 días de antigüedad)
+    pueden alojar hasta 2 Spaces gratis, con GPU real asignada solo
+    durante cada generación. Cuota diaria: 5 min/día autenticado, 2
+    min/día sin autenticar — de sobra para pruebas puntuales, sin
+    ningún cobro si se agota (solo cola hasta el otro día). **Elegida**
+    — de paso resuelve la latencia de 50-80s en CPU (Sesión 25).
+  - **También evaluado, a pedido del usuario: AWS Academy Learner
+    Lab** (ya tiene acceso). Descartado tras confirmar dos datos
+    reales con el usuario: la sesión del lab se apaga sola a los **40
+    minutos** (necesitaría reactivación manual constante, incompatible
+    con "servicio disponible para probar en cualquier momento desde
+    otra máquina"), y los **$48 de crédito restantes se comparten con
+    el resto de la materia** (no conviene arriesgarlos en esto).
+- Escrito `api/space/app.py`: reescritura del mismo servicio como app
+  de Gradio (no FastAPI) — reutiliza el mismo `SYSTEM_PROMPT` y formato
+  de prompt que `probar_baseline.py`/`api/main.py`, sin reinventar
+  nada. Requisito técnico de ZeroGPU cumplido: el modelo se carga a
+  nivel de módulo (no dentro de una función), y solo la función de
+  generación lleva `@spaces.GPU`. Expone `traducir(texto, dialecto)` y
+  `salud()` como funciones de la API de Gradio (`api_name`).
+- Copiado el adaptador (`finetuning/checkpoints/generador1/adapter/`)
+  a `api/space/adapter/` para que la carpeta del Space sea
+  autocontenida (lo que se sube a HF es exactamente `api/space/`, sin
+  arrastrar el resto del proyecto).
+- **Verificado localmente antes de desplegar** (sin GPU real — el
+  decorador `@spaces.GPU` es un no-op fuera de un Space, documentado
+  así oficialmente): levantada la app con `python api/space/app.py`,
+  probados ambos endpoints con `gradio_client` Y con `curl` puro
+  (confirmado el patrón de dos pasos que usa la API HTTP de Gradio:
+  `POST /gradio_api/call/<nombre>` devuelve un `event_id`, y
+  `GET /gradio_api/call/<nombre>/<event_id>` da el resultado). `salud`
+  → `"ok"` en ~1.6s; `traducir("Que chimba, parcero!")` →
+  `"That's awesome, buddy!"` en 68s (consistente con los 50-80s ya
+  medidos para el FastAPI en CPU local — confirma que corre en CPU
+  sin GPU real, como se esperaba fuera de un Space de verdad).
+- No se encontró ninguna clave/credencial escrita en el código de
+  `api/space/` — el modelo base es público, no hace falta `HF_TOKEN`
+  para que funcione. Documentado en `docs/despliegue.md` cómo se
+  configuraría un secreto vía la UI de Settings de HF si hiciera falta
+  en el futuro (ej. al cambiar a Llama 3.2, que sí lo necesita).
+- Escrito `docs/despliegue.md`: paso a paso completo (crear el Space,
+  subir el código por UI o por git, activar ZeroGPU, variables de
+  entorno, esperar el build, comandos exactos de `curl` para probar
+  ambos endpoints, cómo redesplegar si algo falla).
+
+Decisiones tomadas:
+- Reescribir como Gradio en vez de pagar HF PRO para mantener FastAPI
+  — el objetivo explícito era una plataforma accesible con capa
+  gratuita para un equipo de estudiantes; pagar contradice eso.
+  `api/main.py` (FastAPI) se deja intacto en el repo como el servicio
+  de referencia/desarrollo local; `api/space/app.py` es la variante de
+  despliegue.
+- Duplicar el adaptador (~15MB) en vez de referenciarlo por ruta
+  relativa cruzada — simplicidad: lo que se sube al Space es
+  exactamente esa carpeta autocontenida, sin depender de la estructura
+  del resto del repo.
+- No crear el Space real en esta sesión — requiere la cuenta de HF de
+  un integrante del equipo (con correo verificado y +30 días de
+  antigüedad) y es una acción que le corresponde a una persona, no
+  algo que se deba automatizar sin su decisión explícita.
+
+Pruebas de aceptación (parcial): el código funciona de punta a punta
+localmente (probado con `curl` real, no solo unitarios) ✅; sin claves
+en el código ✅; documentación paso a paso completa ✅. **Falta la
+prueba real** (crear el Space con una cuenta del equipo, y correr
+`curl` contra la URL pública desde una máquina distinta a la que
+despliega) — no se puede simular sin ese acceso humano.
+
+Pendiente: crear el Space en Hugging Face con la cuenta de un
+integrante del equipo, confirmar que ZeroGPU está activo, correr la
+prueba de aceptación real desde otra máquina, y completar
+`docs/despliegue.md` con la URL pública y el resultado medido
+(traducción + tiempo de respuesta real en GPU).
