@@ -1771,3 +1771,61 @@ creados. Corregido generalizando el patrón a `!**/adapter/*.safetensors`
 `git status` que el archivo ahora sí queda staged.
 
 Pendiente (sin cambios): el mismo de la entrada anterior.
+
+## Sesión 26 — 2026-09-18 — Anderson García
+
+Bloqueo real encontrado al intentar crear el Space de verdad: la
+elegibilidad de la excepción gratuita de ZeroGPU es más estricta en la
+práctica que lo que sugería la documentación de HF (que hablaba de
+"cuentas personales gratuitas en buen estado" sin más detalle
+visible). En la pantalla real de creación de Space
+(`huggingface.co/new-space`), tanto Gradio como Docker aparecen
+bloqueados de una con un badge "Paid" — no hay ninguna opción de
+elegir ZeroGPU específicamente en ese paso para evitar el bloqueo,
+contrario a lo que se esperaba tras leer la documentación.
+
+Qué se hizo:
+- Verificado en la práctica (captura de pantalla real del usuario en
+  `huggingface.co/new-space`): SDK Gradio y Docker muestran "Paid" de
+  entrada; el mensaje exacto es *"Gradio and Docker Spaces require a
+  paid plan / Static Spaces stay free for everyone. To create a Space
+  that runs on compute, subscribe to PRO."* — sin mención de la
+  excepción de ZeroGPU en esa pantalla.
+- Investigado un hilo de la comunidad de HF
+  (discuss.huggingface.co) que confirma que el mensaje real dice
+  específicamente *"hosting Gradio and Docker Spaces on free
+  **cpu-basic** requires a PRO subscription"* — no hay confirmación
+  pública de un flujo alternativo para activar la excepción de
+  ZeroGPU directamente desde el asistente de creación.
+- Descartada la hipótesis de que el bloqueo fuera por el SDK en sí:
+  confirmado con el usuario que su cuenta de HF **sí tiene el correo
+  verificado** (`huggingface.co/settings/account`) — un requisito
+  cumplido.
+- **Causa real confirmada**: la cuenta se creó el **2026-09-02**
+  (Sesión 13, para el intento de acceso a Llama 3.2) — a fecha de hoy
+  (2026-09-18) tiene **16 días**, por debajo del requisito de **+30
+  días** que pide Hugging Face para la excepción gratuita de ZeroGPU
+  en cuentas personales. Es la causa más probable del bloqueo (aunque
+  no se pudo confirmar 100% que desaparezca automáticamente al cumplir
+  los 30 días, dado que la pantalla de creación tampoco mostró la
+  excepción explícitamente en ningún punto).
+
+Decisiones tomadas (con el usuario):
+- **No usar la cuenta de otro integrante del equipo** para saltarse la
+  espera — se prefirió esperar con la cuenta propia.
+- **No bloquear el resto del proyecto por esto**: seguir avanzando en
+  otras sesiones mientras se cumple la antigüedad de cuenta, y retomar
+  el despliegue real cuando la cuenta cumpla 30 días
+  (**~2026-10-02**).
+- Todo el código y la documentación de despliegue (`api/space/`,
+  `docs/despliegue.md`) ya están listos y no necesitan ningún cambio
+  para cuando se retome — el único bloqueo es la elegibilidad de la
+  cuenta, no el trabajo técnico.
+
+Pendiente: retomar el despliegue real a partir de **2026-10-02**
+(cuando la cuenta de HF cumpla 30 días) — crear el Space, confirmar
+que ya no aparece el bloqueo de "Paid" con ZeroGPU seleccionado,
+subir `api/space/`, y correr la prueba de aceptación real desde otra
+máquina. Si para entonces sigue bloqueado pese a los 30 días,
+contactar soporte de HF o usar la cuenta de otro integrante del equipo
+como plan B.

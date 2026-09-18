@@ -12,13 +12,25 @@ plan PRO de pago en 2026).
 **URL pública**: _pendiente de completar una vez creado el Space —
 ver "Pendiente" al final de este documento._
 
+> **Bloqueo real encontrado (2026-09-18, ver BITACORA.md Sesión 26)**:
+> en la pantalla de creación real (`huggingface.co/new-space`), Gradio
+> y Docker aparecen con un badge **"Paid"** desde el primer paso — no
+> hay forma de elegir ZeroGPU ahí para evitarlo. Confirmado que la
+> causa es la antigüedad de la cuenta usada (creada 2026-09-02, menos
+> de 30 días a la fecha), no el correo (ya estaba verificado). **No
+> reintentar antes del 2026-10-02** con esa misma cuenta — o usar la
+> cuenta de otro integrante del equipo que ya tenga +30 días.
+
 ## Prerrequisitos
 
 - Cuenta de Hugging Face **verificada por correo** y **con más de 30
   días de antigüedad** — es requisito de Hugging Face para poder
   alojar Spaces con hardware ZeroGPU en una cuenta personal gratuita.
   Si la cuenta es más nueva, hay que esperar a que cumpla los 30 días
-  o usar la cuenta de otro miembro del equipo que sí los tenga.
+  o usar la cuenta de otro miembro del equipo que sí los tenga. **En
+  la práctica, la pantalla de creación bloquea Gradio/Docker con un
+  muro de pago sin más explicación si no se cumple esto** — no asumas
+  que hay un botón o selector alternativo para evitarlo.
 - Git instalado (para subir el código por `git push`) — alternativa:
   subir los archivos a mano desde la interfaz web, sin necesitar git.
 
@@ -164,9 +176,16 @@ máquina") — ver el resultado real en "Pendiente" abajo.
 
 ## Pendiente
 
-- Crear el Space de verdad con la cuenta del equipo (requiere acceso
-  humano — no se puede automatizar sin las credenciales de alguien
-  del equipo) y completar la URL pública al inicio de este documento.
+- **Bloqueado hasta ~2026-10-02**: la cuenta de HF que se iba a usar
+  (creada 2026-09-02) no cumple todavía el requisito de +30 días para
+  la excepción gratuita de ZeroGPU — confirmado en la pantalla real de
+  creación del Space (ver aviso arriba). Decisión del equipo: esperar
+  con esa cuenta en vez de usar la de otro integrante (Sesión 26,
+  2026-09-18) — el resto del proyecto sigue avanzando mientras tanto.
+- Cuando se cumpla la fecha (o si se decide usar otra cuenta antes):
+  crear el Space de verdad, subir `api/space/` (todo ya está listo, no
+  necesita cambios), y completar la URL pública al inicio de este
+  documento.
 - Correr la prueba de aceptación real (`curl` desde una máquina
   distinta a la que despliega) y documentar aquí el resultado
   (traducción obtenida, tiempo de respuesta) una vez el Space esté
