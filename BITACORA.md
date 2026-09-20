@@ -2295,3 +2295,63 @@ páginas; todas las tablas y figuras con `\caption`/`\label`.
 Pendiente: nada bloqueante para esta sesión. Sigue pendiente
 sincronizar `paper/main.tex` de vuelta a Overleaf (fricción manual ya
 documentada en la Sesión "1 (por fin)").
+
+## Sesión 34 — 2026-09-20 — Paula Lozano
+
+Guion/demo para la sustentación de Fase 2.
+
+Qué se hizo: escrito `docs/guion_demo_fase2.md` — guion de ~2:30,
+diseñado alrededor de la restricción real de latencia (50-80s sin
+GPU): la solicitud se lanza ANTES de empezar a hablar, y el tiempo de
+espera se llena narrando la arquitectura, no quedándose en silencio.
+Dos escenarios contemplados según si el despliegue con GPU (Sesión 26)
+ya esté activo para la fecha de la sustentación o no. Plan B con 3
+niveles (video pre-grabado → tabla ya generada en pantalla → nunca
+improvisar una cifra que no esté en el repositorio).
+
+Decisiones tomadas: el guion asume el peor caso (sin GPU) como
+default, y trata el caso con GPU como una mejora, no al revés — más
+seguro para la sustentación real.
+
+Pendiente (acción del equipo, no simulable): practicar con cronómetro
+real, correr la demo en vivo al menos 2 veces antes del día, y grabar
+el video del Plan B con antelación — nada de esto se puede simular sin
+un presentador humano real.
+
+## Sesión 36 — 2026-09-20 — Mariana Malagón
+
+Ensayo de sustentación + banco de preguntas actualizado.
+
+Qué se hizo: escrito `docs/banco_preguntas_fase2.md` — preguntas
+esperables del profesor basadas en (1) el patrón ya visto en su
+retroalimentación de la Fase 1 (presupuesto, alcance, validación,
+independencia del conjunto de prueba) y (2) los huecos reales que este
+mismo equipo documentó sin esconder (Mexicana empeorando en BLEU,
+despliegue bloqueado, evaluación humana pendiente, cobertura parcial
+de BLEU/chrF, mezcla de dialecto encontrada). Cada respuesta cita el
+archivo donde está la evidencia, para no depender de memorizar cifras.
+
+Decisiones tomadas: no se inventó un "banco de preguntas de la Fase 1"
+que reciclar — no existe ninguno en el repositorio de antes, así que
+este se construyó desde cero, anclado en la retroalimentación real ya
+recibida y en las propias limitaciones documentadas del proyecto, no
+en preguntas genéricas de relleno.
+
+Pendiente (acción del equipo, no simulable): el ensayo en sí (cada
+integrante repasando en voz alta las preguntas de su área, y un
+ensayo completo cronometrado junto con el guion de demo de la Sesión
+34) requiere personas reales practicando — no es algo que se pueda
+completar dentro de esta sesión.
+
+---
+
+**Cierre de Fase 2**: con las Sesiones 21-36 completas (evaluación
+automática, seguridad, observabilidad, contenerización, pruebas de
+carga, integración e2e, y el paper actualizado con arquitectura,
+gobernanza, prototipo y resultados), el alcance comprometido para esta
+fase queda cerrado salvo dos pendientes explícitos y ya documentados
+en sus respectivas sesiones: la evaluación humana real (Sesión 22-24,
+bloqueada por reclutamiento) y el despliegue público (Sesión 26,
+bloqueado hasta ~2026-10-02 por antigüedad de cuenta). La Fase 3
+(Generadores 2-3, fusión de modelos, comparación completa de PI1-PI3)
+queda como el siguiente bloque de trabajo del proyecto.
