@@ -14,25 +14,33 @@ import os
 
 os.environ["SKIP_MODEL_LOAD"] = "1"
 
+import time  # noqa: E402
+from unittest.mock import patch  # noqa: E402
+
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 
 import api.main as api_main  # noqa: E402
 
 
+def _limpiar_estado_compartido():
+    api_main._rate_limit_historial.clear()
+    for clave in api_main.METRICAS:
+        api_main.METRICAS[clave] = 0
+    api_main.METRICAS_POR_DIALECTO.clear()
+    api_main._solicitudes_pendientes_feedback.clear()
+
+
 @pytest.fixture(autouse=True)
-def _rate_limit_y_metricas_aisladas():
+def _estado_compartido_aislado():
     """Cada prueba parte de cero -- sin esto, pruebas que llaman a
     /traducir varias veces se contaminarían entre sí (todas comparten
     la misma IP de TestClient) y una prueba podría fallar por el
-    límite de tasa que dejó otra prueba anterior."""
-    api_main._rate_limit_historial.clear()
-    for clave in api_main.METRICAS:
-        api_main.METRICAS[clave] = 0
+    límite de tasa, las métricas o el feedback pendiente que dejó otra
+    prueba anterior."""
+    _limpiar_estado_compartido()
     yield
-    api_main._rate_limit_historial.clear()
-    for clave in api_main.METRICAS:
-        api_main.METRICAS[clave] = 0
+    _limpiar_estado_compartido()
 
 
 def test_salud_responde_ok():
@@ -56,7 +64,10 @@ def test_traducir_con_modelo_mockeado(monkeypatch):
         with TestClient(api_main.app) as client:
             r = client.post("/traducir", json={"texto": "Que chimba", "dialecto": "Andina"})
         assert r.status_code == 200
-        assert r.json() == {"traduccion": "MOCK TRANSLATION", "dialecto": "Andina"}
+        cuerpo = r.json()
+        assert cuerpo["traduccion"] == "MOCK TRANSLATION"
+        assert cuerpo["dialecto"] == "Andina"
+        assert isinstance(cuerpo["solicitud_id"], str) and len(cuerpo["solicitud_id"]) > 0
     finally:
         api_main.MODELO_ESTADO["tokenizer"] = None
         api_main.MODELO_ESTADO["modelo"] = None
@@ -141,15 +152,15 @@ def test_rate_limit_no_aplica_a_salud_ni_metricas():
 
 def test_metricas_solo_expone_contadores_agregados(monkeypatch):
     """Confirma en la práctica (no solo en un comentario) que /metricas
-    nunca devuelve el texto de ninguna solicitud -- solo los 4
-    contadores agregados documentados."""
+    nunca devuelve el texto de ninguna solicitud -- solo contadores
+    agregados (globales y por dialecto)."""
     api_main.MODELO_ESTADO["tokenizer"] = object()
     api_main.MODELO_ESTADO["modelo"] = object()
     monkeypatch.setattr(api_main, "_generar_traduccion", lambda tok, mod, texto: "traduccion secreta de prueba")
     texto_enviado = "este texto nunca debe aparecer en /metricas"
     try:
         with TestClient(api_main.app) as client:
-            client.post("/traducir", json={"texto": texto_enviado})
+            client.post("/traducir", json={"texto": texto_enviado, "dialecto": "Andina"})
             r = client.get("/metricas")
 
         assert r.status_code == 200
@@ -159,11 +170,93 @@ def test_metricas_solo_expone_contadores_agregados(monkeypatch):
             "traducciones_exitosas",
             "rechazadas_validacion",
             "rechazadas_rate_limit",
+            "por_dialecto",
         }
         assert cuerpo["total_solicitudes"] == 1
         assert cuerpo["traducciones_exitosas"] == 1
+        assert set(cuerpo["por_dialecto"].keys()) == {"Andina"}
+        assert set(cuerpo["por_dialecto"]["Andina"].keys()) == {
+            "solicitudes",
+            "latencia_promedio_seg",
+            "retroalimentacion_total",
+            "tasa_retroalimentacion_positiva",
+        }
         assert texto_enviado not in r.text
         assert "traduccion secreta de prueba" not in r.text
+    finally:
+        api_main.MODELO_ESTADO["tokenizer"] = None
+        api_main.MODELO_ESTADO["modelo"] = None
+
+
+def test_metricas_reporta_latencia_promedio_por_dialecto():
+    """No mockea time.monotonic (esa función también la usa el rate
+    limiter -- parcharla globalmente descuadra su ventana deslizante).
+    En su lugar, hace que la "traducción" tarde un poco de verdad
+    (sleep real, corto) para tener una latencia medible sin tocar el
+    reloj compartido."""
+    api_main.MODELO_ESTADO["tokenizer"] = object()
+    api_main.MODELO_ESTADO["modelo"] = object()
+
+    def _traduccion_lenta(tok, mod, texto):
+        time.sleep(0.05)
+        return "MOCK"
+
+    try:
+        with TestClient(api_main.app) as client:
+            with patch.object(api_main, "_generar_traduccion", _traduccion_lenta):
+                client.post("/traducir", json={"texto": "hola", "dialecto": "Chilena"})
+                client.post("/traducir", json={"texto": "chao", "dialecto": "Chilena"})
+            r = client.get("/metricas")
+
+        m = r.json()["por_dialecto"]["Chilena"]
+        assert m["solicitudes"] == 2
+        assert m["latencia_promedio_seg"] >= 0.04  # >= el sleep real, con margen
+    finally:
+        api_main.MODELO_ESTADO["tokenizer"] = None
+        api_main.MODELO_ESTADO["modelo"] = None
+
+
+def test_retroalimentacion_positiva_se_refleja_en_metricas(monkeypatch):
+    api_main.MODELO_ESTADO["tokenizer"] = object()
+    api_main.MODELO_ESTADO["modelo"] = object()
+    monkeypatch.setattr(api_main, "_generar_traduccion", lambda tok, mod, texto: "MOCK")
+    try:
+        with TestClient(api_main.app) as client:
+            r1 = client.post("/traducir", json={"texto": "hola", "dialecto": "Mexicana"})
+            solicitud_id = r1.json()["solicitud_id"]
+
+            r2 = client.post("/retroalimentacion", json={"solicitud_id": solicitud_id, "es_correcta": True})
+            assert r2.status_code == 200
+            assert r2.json() == {"registrada": True}
+
+            m = client.get("/metricas").json()["por_dialecto"]["Mexicana"]
+            assert m["retroalimentacion_total"] == 1
+            assert m["tasa_retroalimentacion_positiva"] == 1.0
+    finally:
+        api_main.MODELO_ESTADO["tokenizer"] = None
+        api_main.MODELO_ESTADO["modelo"] = None
+
+
+def test_retroalimentacion_con_solicitud_id_invalido_es_rechazada():
+    with TestClient(api_main.app) as client:
+        r = client.post("/retroalimentacion", json={"solicitud_id": "no-existe", "es_correcta": True})
+    assert r.status_code == 404
+
+
+def test_retroalimentacion_no_se_puede_usar_dos_veces(monkeypatch):
+    """Un solicitud_id ya usado no debe poder volver a votar -- evita
+    inflar artificialmente la tasa de retroalimentación de un dialecto."""
+    api_main.MODELO_ESTADO["tokenizer"] = object()
+    api_main.MODELO_ESTADO["modelo"] = object()
+    monkeypatch.setattr(api_main, "_generar_traduccion", lambda tok, mod, texto: "MOCK")
+    try:
+        with TestClient(api_main.app) as client:
+            r1 = client.post("/traducir", json={"texto": "hola", "dialecto": "Rioplatense"})
+            solicitud_id = r1.json()["solicitud_id"]
+            primera = client.post("/retroalimentacion", json={"solicitud_id": solicitud_id, "es_correcta": True})
+            segunda = client.post("/retroalimentacion", json={"solicitud_id": solicitud_id, "es_correcta": False})
+        assert primera.status_code == 200
+        assert segunda.status_code == 404
     finally:
         api_main.MODELO_ESTADO["tokenizer"] = None
         api_main.MODELO_ESTADO["modelo"] = None

@@ -9,8 +9,14 @@ Servicio de traducción vía API REST. Expone:
   - GET /salud: healthcheck simple para confirmar que el proceso está
     vivo, sin depender de que el modelo ya haya terminado de cargar.
   - GET /metricas: contadores AGREGADOS de uso (cuántas solicitudes,
-    cuántas exitosas/rechazadas) — nunca el texto de ninguna
-    solicitud. Ver "Privacidad y auditabilidad" más abajo.
+    cuántas exitosas/rechazadas), MÁS latencia promedio y tasa de
+    retroalimentación positiva desglosadas por dialecto (Sesión 29) —
+    nunca el texto de ninguna solicitud. Ver "Privacidad y
+    auditabilidad" más abajo.
+  - POST /retroalimentacion: el cliente marca si una traducción
+    anterior (identificada por `solicitud_id`, no por su texto) le
+    pareció correcta o no. Alimenta la tasa de retroalimentación
+    positiva por dialecto de `GET /metricas` (Sesión 29).
 
 El modelo se carga UNA SOLA VEZ al iniciar el servicio (evento
 `lifespan` de FastAPI), no en cada solicitud — cargar un modelo de 3B
@@ -47,11 +53,18 @@ nube de terceros... es auditable"):
   - Lo único que el servicio mantiene en memoria son **contadores
     agregados** (`GET /metricas`): cuántas solicitudes en total,
     cuántas exitosas, cuántas rechazadas por validación, cuántas
-    rechazadas por límite de tasa. Ningún contador guarda texto, y
-    todos se reinician a cero al reiniciar el proceso (no hay
-    persistencia a disco de ningún tipo) — eso demuestra en la
+    rechazadas por límite de tasa, y (Sesión 29) latencia promedio y
+    tasa de retroalimentación positiva por dialecto. Ningún contador
+    guarda texto, y todos se reinician a cero al reiniciar el proceso
+    (no hay persistencia a disco de ningún tipo) — eso demuestra en la
     práctica, no solo en un comentario, que "solo métricas agregadas,
     no el texto en sí" es literalmente cierto.
+  - `POST /retroalimentacion` identifica la traducción por un
+    `solicitud_id` aleatorio (no reversible al texto) que `/traducir`
+    devuelve junto con la respuesta. El servicio guarda en memoria
+    solo `solicitud_id -> dialecto` (nunca el texto ni la traducción)
+    y lo borra en cuanto se usa esa retroalimentación — ver
+    `_solicitudes_pendientes_feedback` más abajo.
 
 Límite de tasa (rate limiting) — contra abuso, por IP de cliente:
   - `POST /traducir` está limitado a `RATE_LIMIT_MAX_SOLICITUDES`
@@ -99,6 +112,7 @@ import os
 import sys
 import threading
 import time
+import uuid
 from collections import defaultdict
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -138,10 +152,63 @@ METRICAS = {
 }
 _metricas_lock = threading.Lock()
 
+# --- Observabilidad por dialecto (Sesión 29): latencia y retroalimentación.
+# Nunca guarda texto -- solo el nombre del dialecto (una categoría, no un
+# dato sensible) y números. ---
+METRICAS_POR_DIALECTO: dict[str, dict] = defaultdict(
+    lambda: {
+        "solicitudes": 0,
+        "latencia_total_seg": 0.0,
+        "retroalimentacion_positiva": 0,
+        "retroalimentacion_total": 0,
+    }
+)
+_observabilidad_lock = threading.Lock()
+
+# solicitud_id (aleatorio, no reversible al texto) -> dialecto. Existe
+# SOLO para poder enrutar POST /retroalimentacion al dialecto correcto
+# sin tener que volver a mandar el texto original. Se borra en cuanto se
+# usa; si nunca se usa, queda ahí (igual que el historial de rate
+# limiting: no hay una limpieza por TTL todavía -- aceptable al tamaño
+# de tráfico de este proyecto, sería lo primero a revisar si eso
+# cambiara).
+_solicitudes_pendientes_feedback: dict[str, str] = {}
+_feedback_lock = threading.Lock()
+
 
 def _incrementar_metrica(nombre: str) -> None:
     with _metricas_lock:
         METRICAS[nombre] += 1
+
+
+def _registrar_latencia(dialecto: str | None, segundos: float) -> None:
+    clave = dialecto or "desconocido"
+    with _observabilidad_lock:
+        m = METRICAS_POR_DIALECTO[clave]
+        m["solicitudes"] += 1
+        m["latencia_total_seg"] += segundos
+
+
+def _registrar_solicitud_para_feedback(dialecto: str | None) -> str:
+    solicitud_id = uuid.uuid4().hex
+    with _feedback_lock:
+        _solicitudes_pendientes_feedback[solicitud_id] = dialecto or "desconocido"
+    return solicitud_id
+
+
+def _registrar_retroalimentacion(solicitud_id: str, es_correcta: bool) -> bool:
+    """Devuelve False si `solicitud_id` no existe (ya se usó, o nunca
+    existió) -- el llamador decide qué código HTTP corresponde."""
+    with _feedback_lock:
+        dialecto = _solicitudes_pendientes_feedback.pop(solicitud_id, None)
+    if dialecto is None:
+        return False
+    with _observabilidad_lock:
+        m = METRICAS_POR_DIALECTO[dialecto]
+        m["retroalimentacion_total"] += 1
+        if es_correcta:
+            m["retroalimentacion_positiva"] += 1
+    return True
 
 
 def _verificar_rate_limit(cliente_id: str) -> None:
@@ -255,6 +322,18 @@ class SolicitudTraduccion(BaseModel):
 class RespuestaTraduccion(BaseModel):
     traduccion: str
     dialecto: str | None = None
+    solicitud_id: str = Field(
+        description="Identificador aleatorio de esta traducción (no reversible al texto) para usar en POST /retroalimentacion."
+    )
+
+
+class SolicitudRetroalimentacion(BaseModel):
+    solicitud_id: str = Field(..., description="El solicitud_id devuelto por una llamada previa a /traducir")
+    es_correcta: bool = Field(..., description="Si la traducción recibida le pareció correcta al usuario")
+
+
+class RespuestaRetroalimentacion(BaseModel):
+    registrada: bool
 
 
 @app.get("/salud")
@@ -265,9 +344,24 @@ def salud():
 @app.get("/metricas")
 def metricas():
     # Copia superficial: nunca se expone (ni existe) el diccionario
-    # interno con datos de ninguna solicitud individual, solo estos
-    # 4 contadores agregados.
-    return dict(METRICAS)
+    # interno con datos de ninguna solicitud individual, solo
+    # contadores agregados (globales y por dialecto).
+    resultado = dict(METRICAS)
+    with _observabilidad_lock:
+        por_dialecto = {}
+        for dialecto, m in METRICAS_POR_DIALECTO.items():
+            latencia_promedio = (m["latencia_total_seg"] / m["solicitudes"]) if m["solicitudes"] else None
+            tasa_positiva = (
+                (m["retroalimentacion_positiva"] / m["retroalimentacion_total"]) if m["retroalimentacion_total"] else None
+            )
+            por_dialecto[dialecto] = {
+                "solicitudes": m["solicitudes"],
+                "latencia_promedio_seg": round(latencia_promedio, 2) if latencia_promedio is not None else None,
+                "retroalimentacion_total": m["retroalimentacion_total"],
+                "tasa_retroalimentacion_positiva": round(tasa_positiva, 3) if tasa_positiva is not None else None,
+            }
+    resultado["por_dialecto"] = por_dialecto
+    return resultado
 
 
 @app.post("/traducir", response_model=RespuestaTraduccion)
@@ -287,6 +381,23 @@ def traducir(solicitud: SolicitudTraduccion, request: Request):
     if tokenizer is None or modelo is None:
         raise HTTPException(status_code=503, detail="El modelo todavía no está cargado. Intenta de nuevo en unos segundos.")
 
+    inicio = time.monotonic()
     traduccion = _generar_traduccion(tokenizer, modelo, texto)
+    latencia_seg = time.monotonic() - inicio
+
     _incrementar_metrica("traducciones_exitosas")
-    return RespuestaTraduccion(traduccion=traduccion, dialecto=solicitud.dialecto)
+    _registrar_latencia(solicitud.dialecto, latencia_seg)
+    solicitud_id = _registrar_solicitud_para_feedback(solicitud.dialecto)
+
+    return RespuestaTraduccion(traduccion=traduccion, dialecto=solicitud.dialecto, solicitud_id=solicitud_id)
+
+
+@app.post("/retroalimentacion", response_model=RespuestaRetroalimentacion)
+def retroalimentacion(solicitud: SolicitudRetroalimentacion):
+    ok = _registrar_retroalimentacion(solicitud.solicitud_id, solicitud.es_correcta)
+    if not ok:
+        raise HTTPException(
+            status_code=404,
+            detail="solicitud_id no encontrado -- ya se usó, o no corresponde a una traducción reciente.",
+        )
+    return RespuestaRetroalimentacion(registrada=True)

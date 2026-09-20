@@ -9,11 +9,52 @@ Servicio de traducción vía API REST (FastAPI). Ver el docstring de
   de tasa.
 - `GET /metricas` — contadores agregados de uso (`total_solicitudes`,
   `traducciones_exitosas`, `rechazadas_validacion`,
-  `rechazadas_rate_limit`) — nunca el texto de ninguna solicitud. Sin
-  límite de tasa. Ver "Seguridad y privacidad" abajo.
+  `rechazadas_rate_limit`), MÁS un desglose `por_dialecto` con latencia
+  promedio y tasa de retroalimentación positiva por dialecto (Sesión
+  29) — nunca el texto de ninguna solicitud. Sin límite de tasa. Ver
+  "Seguridad y privacidad" y "Observabilidad" abajo.
 - `POST /traducir` — body `{"texto": "...", "dialecto": "opcional"}`,
-  responde `{"traduccion": "...", "dialecto": "..."}`. Limitado a 10
-  solicitudes/minuto por IP (configurable, ver abajo).
+  responde `{"traduccion": "...", "dialecto": "...", "solicitud_id":
+  "..."}`. Limitado a 10 solicitudes/minuto por IP (configurable, ver
+  abajo).
+- `POST /retroalimentacion` — body `{"solicitud_id": "...",
+  "es_correcta": true|false}`, responde `{"registrada": true}` o `404`
+  si el `solicitud_id` no existe o ya se usó. Sin límite de tasa.
+
+## Observabilidad (Sesión 29)
+
+`GET /metricas` desglosa, por cada dialecto que se haya pedido en
+`POST /traducir`, cuántas solicitudes tuvo, su **latencia promedio**
+(segundos), y su **tasa de retroalimentación positiva** (fracción de
+`POST /retroalimentacion` con `es_correcta: true` sobre el total de
+retroalimentación recibida para ese dialecto):
+
+```json
+{
+  "total_solicitudes": 12,
+  "traducciones_exitosas": 10,
+  "rechazadas_validacion": 1,
+  "rechazadas_rate_limit": 1,
+  "por_dialecto": {
+    "Andina": {
+      "solicitudes": 6,
+      "latencia_promedio_seg": 52.3,
+      "retroalimentacion_total": 4,
+      "tasa_retroalimentacion_positiva": 0.75
+    }
+  }
+}
+```
+
+**Cómo se enlaza la retroalimentación al dialecto correcto sin guardar
+texto**: `POST /traducir` devuelve un `solicitud_id` aleatorio (no
+reversible al texto de entrada ni de salida). El servicio guarda en
+memoria solo `solicitud_id -> dialecto` — nunca el texto — y lo borra
+en cuanto se usa esa retroalimentación (un mismo `solicitud_id` no se
+puede usar dos veces, para no inflar la tasa de un dialecto votando
+repetido). Si el proceso se reinicia, todo esto se pierde junto con el
+resto de las métricas — no hay persistencia a disco de ningún tipo,
+igual que el resto del servicio (ver "Seguridad y privacidad").
 
 ## Seguridad y privacidad (Sesión 28)
 
@@ -55,8 +96,9 @@ Esto es lo que el servicio SÍ hace y lo que explícitamente NO hace:
   por default de `uvicorn` registra únicamente método HTTP, ruta,
   código de estado y latencia — nunca el cuerpo de la solicitud ni de
   la respuesta.
-- **`GET /metricas` solo expone 4 contadores agregados**, nunca datos
-  de ninguna solicitud individual. Probado explícitamente en
+- **`GET /metricas` solo expone contadores agregados** (globales y por
+  dialecto), nunca datos de ninguna solicitud individual. Probado
+  explícitamente en
   `api/test_main.py::test_metricas_solo_expone_contadores_agregados`:
   se manda un texto de prueba, se confirma que NO aparece en la
   respuesta de `/metricas`.
@@ -119,11 +161,11 @@ la latencia real, no.
 
 ## Correr las pruebas SIN el modelo real
 
-`api/test_main.py` (11 pruebas) prueba la capa de API — validación de
-entrada, rate limiting, métricas agregadas, códigos de estado, forma
-de la respuesta — con el modelo mockeado, para poder correrlas en
-cualquier máquina sin `torch`/`peft` instalados ni descargar el modelo
-de 3B:
+`api/test_main.py` (15 pruebas) prueba la capa de API — validación de
+entrada, rate limiting, métricas agregadas y por dialecto,
+retroalimentación, códigos de estado, forma de la respuesta — con el
+modelo mockeado, para poder correrlas en cualquier máquina sin
+`torch`/`peft` instalados ni descargar el modelo de 3B:
 
 ```
 pip install pytest httpx  # si no están instalados ya

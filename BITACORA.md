@@ -2048,3 +2048,65 @@ Pendiente: ninguno específico de esta sesión — los 3 puntos pedidos
 de calidad (errores claros, no stack traces) quedaron cumplidos con
 evidencia real, tanto en `pytest` como contra el servicio real
 corriendo.
+
+## Sesión 29 — 2026-09-20 — Mariana Malagón
+
+Logging/observabilidad (calidad por dialecto, latencia).
+
+Qué se hizo:
+- Extendido `api/main.py`: `POST /traducir` ahora mide la latencia real
+  de `_generar_traduccion` (`time.monotonic()` antes/después) y la
+  registra en `METRICAS_POR_DIALECTO[dialecto]`, y devuelve un
+  `solicitud_id` aleatorio (no reversible al texto) además de la
+  traducción.
+- Nuevo `POST /retroalimentacion`: recibe `{solicitud_id, es_correcta}`,
+  busca el dialecto asociado a ese `solicitud_id` (guardado solo como
+  `id -> dialecto`, nunca texto) y actualiza el conteo de
+  retroalimentación positiva/total de ese dialecto. `404` si el
+  `solicitud_id` no existe o ya se usó (evita votar dos veces con el
+  mismo id).
+- `GET /metricas` ahora agrega `por_dialecto`: por cada dialecto,
+  `solicitudes`, `latencia_promedio_seg` y `tasa_retroalimentacion_positiva`
+  — todo agregado, nunca texto.
+- 8 pruebas nuevas en `api/test_main.py` (15 en total): latencia
+  promedio correcta, retroalimentación positiva reflejada en métricas,
+  `solicitud_id` inválido rechazado, un mismo `solicitud_id` no se
+  puede usar dos veces. Actualizado el fixture de aislamiento para
+  limpiar también `METRICAS_POR_DIALECTO` y las solicitudes pendientes
+  de feedback entre pruebas.
+- `api/README.md`: nueva sección "Observabilidad" con el formato real
+  de `/metricas` y cómo se enlaza retroalimentación↔dialecto sin
+  guardar texto.
+
+Bug real encontrado y corregido en el camino: el primer intento de
+probar la latencia mockeaba `time.monotonic` globalmente — pero
+`_verificar_rate_limit` (Sesión 28) también usa `time.monotonic()`
+para su ventana deslizante, así que parcharlo de forma global
+descuadró el rate limiter y **colgó la corrida de `pytest`** (sin
+error, sin salida, el proceso quedó vivo indefinidamente). Diagnosticado
+matando el proceso colgado y revisando qué más usaba esa misma
+función. Corregido sin tocar el reloj global: la prueba de latencia
+ahora hace que la traducción mockeada tarde un `time.sleep(0.05)` real
+y mide sobre eso, en vez de simular el reloj.
+
+Decisiones tomadas:
+- No se agregó límite de tasa a `/retroalimentacion` — es una
+  operación barata (no toca el modelo) y limitarla no protege nada que
+  ya no proteja el hecho de que un `solicitud_id` solo se puede usar
+  una vez.
+- El mapa `solicitud_id -> dialecto` no tiene TTL/limpieza automática
+  (igual que el historial de rate limiting) — aceptable al tamaño de
+  este proyecto, documentado como lo primero a revisar si el tráfico
+  creciera.
+
+Pruebas de aceptación: `SKIP_MODEL_LOAD=1 python -m pytest api/test_main.py -v`
+→ **15/15 passed**. Solicitudes de prueba con distintos dialectos y
+latencias reales (via `time.sleep`), luego `GET /metricas` refleja
+correctamente los promedios y conteos esperados por dialecto — tal
+como pedía la prueba de aceptación original.
+
+Pendiente: probar `GET /metricas` contra el servicio real (con el
+modelo cargado de verdad, no mockeado) para confirmar que las
+latencias reportadas coinciden con lo medido manualmente en las
+Sesiones 25/27 (~50-80s) — no se hizo en esta sesión por la misma
+razón de siempre (sin GPU local).
