@@ -129,6 +129,15 @@ ADAPTER_DIR = Path(__file__).resolve().parent.parent / "finetuning" / "checkpoin
 # lugar del módulo que guarda el modelo entre solicitudes.
 MODELO_ESTADO: dict = {"tokenizer": None, "modelo": None}
 
+# Traducción simulada para pruebas de carga (Sesión 30) SOLO cuando
+# SKIP_MODEL_LOAD=1 -- permite levantar el servicio REAL (uvicorn, con
+# rate limiting/métricas/threading reales, no TestClient) y mandarle
+# concurrencia real sin cargar el modelo de 3B ni esperar 50-80s por
+# solicitud. Ambas variables sin definir (default) => comportamiento
+# normal, sin ningún efecto. Nunca se usa si SKIP_MODEL_LOAD != "1".
+MOCK_TRANSLATION_TEXT = os.environ.get("MOCK_TRANSLATION_TEXT")
+MOCK_TRANSLATION_DELAY_SEG = float(os.environ.get("MOCK_TRANSLATION_DELAY_SEG", "0"))
+
 # --- Rate limiting: ventana deslizante en memoria, por IP de cliente ---
 RATE_LIMIT_MAX_SOLICITUDES = int(os.environ.get("RATE_LIMIT_MAX_SOLICITUDES", "10"))
 RATE_LIMIT_VENTANA_SEGUNDOS = int(os.environ.get("RATE_LIMIT_VENTANA_SEGUNDOS", "60"))
@@ -269,7 +278,14 @@ def _generar_traduccion(tokenizer, modelo, texto: str) -> str:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     if os.environ.get("SKIP_MODEL_LOAD") == "1":
-        # Usado solo por api/test_main.py -- nunca en un despliegue real.
+        # Usado por api/test_main.py y por api/prueba_carga.py -- nunca
+        # en un despliegue real. Si además hay MOCK_TRANSLATION_TEXT,
+        # se llenan sentinelas no-None para que /traducir no responda
+        # 503 (el chequeo de "modelo cargado" solo mira que no sea
+        # None, no qué objeto es).
+        if MOCK_TRANSLATION_TEXT is not None:
+            MODELO_ESTADO["tokenizer"] = "mock"
+            MODELO_ESTADO["modelo"] = "mock"
         yield
         return
     tokenizer, modelo = _cargar_modelo_real()
@@ -382,7 +398,14 @@ def traducir(solicitud: SolicitudTraduccion, request: Request):
         raise HTTPException(status_code=503, detail="El modelo todavía no está cargado. Intenta de nuevo en unos segundos.")
 
     inicio = time.monotonic()
-    traduccion = _generar_traduccion(tokenizer, modelo, texto)
+    if MOCK_TRANSLATION_TEXT is not None:
+        # Solo para pruebas de carga (Sesión 30) -- ver comentario junto
+        # a la definición de MOCK_TRANSLATION_TEXT más arriba.
+        if MOCK_TRANSLATION_DELAY_SEG > 0:
+            time.sleep(MOCK_TRANSLATION_DELAY_SEG)
+        traduccion = MOCK_TRANSLATION_TEXT
+    else:
+        traduccion = _generar_traduccion(tokenizer, modelo, texto)
     latencia_seg = time.monotonic() - inicio
 
     _incrementar_metrica("traducciones_exitosas")

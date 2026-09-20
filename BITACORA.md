@@ -2110,3 +2110,56 @@ modelo cargado de verdad, no mockeado) para confirmar que las
 latencias reportadas coinciden con lo medido manualmente en las
 Sesiones 25/27 (~50-80s) — no se hizo en esta sesión por la misma
 razón de siempre (sin GPU local).
+
+## Sesión 30 — 2026-09-20 — Mariana Malagón
+
+Pruebas de carga/latencia.
+
+Qué se hizo:
+- Agregado a `api/main.py` un modo de traducción simulada activable
+  solo con `SKIP_MODEL_LOAD=1` (`MOCK_TRANSLATION_TEXT` +
+  `MOCK_TRANSLATION_DELAY_SEG`) — permite levantar el servicio REAL
+  (`uvicorn`, no `TestClient`) y mandarle concurrencia real sin cargar
+  el modelo de 3B ni esperar 50-80s por solicitud. Nunca tiene efecto
+  si esas variables no están definidas (default = comportamiento
+  normal).
+- Escrito `api/prueba_carga.py`: `ThreadPoolExecutor` mandando N
+  solicitudes concurrentes a `/traducir` contra el servicio real
+  corriendo, midiendo código de respuesta y latencia.
+- **Corrida real, 2 veces, niveles 5/20/50 concurrentes**:
+  1. Con el rate limit por default (10/60s, Sesión 28): confirmado que
+     rechaza con `429` cualquier ráfaga sobre 10/min por IP — 10
+     pasan en total entre los niveles 5+20, el resto (incluyendo las
+     50 del último nivel) recibe `429`. Consistente entre niveles
+     porque la ventana de 60s es acumulativa por IP.
+  2. Con el rate limit desactivado (`RATE_LIMIT_MAX_SOLICITUDES=100000`),
+     para aislar la capacidad de concurrencia pura: **0% de errores en
+     los 3 niveles**, latencia promedio sube de forma moderada con la
+     concurrencia (0.71s → 0.94s → 1.30s a 5/20/50 concurrentes).
+- Documentado todo en `docs/pruebas_carga.md`: metodología, las 2
+  tablas de resultados, y cómo reproducir.
+
+Decisiones tomadas:
+- No probar con el modelo real — habría tardado varios minutos por
+  nivel sin medir nada nuevo (el cuello de botella, falta de GPU, ya
+  está documentado desde la Sesión 13). Se optó por aislar la pregunta
+  que sí depende del código del servicio (concurrencia, rate limiting)
+  de la que depende del hardware (latencia de inferencia).
+- **Limitación declarada explícitamente, no oculta**: esta prueba mide
+  la capa de API, no el sistema completo. Con el modelo real cargado,
+  múltiples generaciones concurrentes sobre el mismo objeto de modelo
+  probablemente se serializan (a diferencia del `sleep` simulado, que
+  sí libera el GIL) — el número de "solicitudes concurrentes que el
+  sistema completo aguanta" con el modelo real NO se reporta aquí
+  porque no se pudo medir honestamente sin GPU.
+
+Pruebas de aceptación: reporte con cifras reales de latencia y tasa de
+error para 5/20/50 concurrentes ✅; documentado que el límite de
+solicitudes concurrentes está gobernado por el rate limiting de la
+Sesión 28 (10/60s por IP) a nivel de API, con la salvedad explícita de
+qué falta medir con el modelo real ✅.
+
+Pendiente: repetir esta misma prueba contra el modelo real (o el
+despliegue de la Sesión 26) cuando haya GPU disponible, para tener el
+número real de throughput del sistema completo, no solo de la capa de
+API.
