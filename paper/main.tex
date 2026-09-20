@@ -280,7 +280,18 @@ En términos generales, este proyecto espera dejar cuatro cosas concretas:
 \section{Arquitectura (Fase 2)}
 \label{sec:arquitectura}
 
-La Fase 1 dejó la arquitectura como una visión de cuatro etapas sin desarrollar (Figura \ref{fig:pipeline}). Esta sección describe qué tanto de esa visión ya es real a la fecha de esta entrega, separada en tres frentes —datos, aplicación y tecnología—, más la gobernanza del proyecto y la hoja de ruta hacia el cierre de esta fase. Un punto se repite en los tres frentes: por decisión de alcance tomada desde el principio, \textbf{esta fase cubre un solo generador sintético (de los tres considerados) y deja la fusión de modelos para la fase final} —no por falta de tiempo, sino para poder construir y probar el \textit{pipeline} completo de punta a punta con una sola fuente de datos antes de triplicar el trabajo.
+La Fase 1 dejó la arquitectura como una visión de cuatro etapas sin desarrollar (Figura \ref{fig:pipeline}). Esta sección describe qué tanto de esa visión ya es real a la fecha de esta entrega, empezando por el nivel de negocio y bajando hasta datos, aplicación y tecnología, más la gobernanza del proyecto y la hoja de ruta hacia el cierre de esta fase. Un punto se repite en los tres frentes técnicos: por decisión de alcance tomada desde el principio, \textbf{esta fase cubre un solo generador sintético (de los tres considerados) y deja la fusión de modelos para la fase final} —no por falta de tiempo, sino para poder construir y probar el \textit{pipeline} completo de punta a punta con una sola fuente de datos antes de triplicar el trabajo.
+
+\subsection{Arquitectura empresarial}
+\label{sec:arquitectura-empresarial}
+
+Antes de bajar a datos, aplicación y tecnología, vale la pena dejar explícito el nivel de negocio del que se derivan esas tres capas —la Fase 1 ya lo desarrolló (Sección \ref{sec:problema}), pero no estaba etiquetado ahí como una capa de arquitectura en sí misma.
+
+\textbf{Interesados (\textit{stakeholders}).} Tres grupos, ya identificados en la Sección \ref{sec:problema}: hablantes de español con dominio limitado del inglés (o viceversa) que dependen de traducción automática en contextos críticos de salud, justicia o servicios esenciales; profesionales que actúan a partir de esa traducción sin poder verificarla; e intérpretes informales (con frecuencia familiares o menores de edad) que terminan asumiendo un riesgo que no les corresponde. A estos se suma un cuarto grupo, propio de esta fase: la \textbf{organización cliente} que adoptaría el servicio (por ejemplo, una empresa de atención al cliente o un proveedor de salud que atiende población hispanohablante diversa), que es quien efectivamente opera la API y asume su gobernanza de datos (Sección \ref{sec:gobernanza}).
+
+\textbf{Capacidad de negocio habilitada.} Ninguna de las alternativas existentes (Sección \ref{sec:propuesta}) le permite a una organización así incorporar traducción especializada en jerga/dialecto sin exponer datos sensibles a un tercero o depender de conexión a internet constante. El servicio de esta fase habilita exactamente esa capacidad —traducción dialectal auditable y desplegable dentro de la propia infraestructura del cliente— resumida en la Tabla \ref{tab:producto} de la Sección \ref{sec:propuesta}, que no se repite aquí para no duplicar contenido.
+
+\textbf{Alineación con el modelo de negocio.} El diferenciador (portabilidad, no exposición de datos a la nube de un tercero, personalización por cliente, auditabilidad) es una consecuencia directa de una decisión ya tomada en la Fase 1 —usar un SLM en vez de envolver la API de un LLM grande—, no algo añadido en esta fase; lo que esta fase agrega es la evidencia de que esa decisión de negocio efectivamente se sostiene en un sistema real (Sección \ref{sec:prototipo}).
 
 \subsection{Arquitectura de datos}
 
@@ -323,6 +334,34 @@ El prototipo (Sección \ref{sec:prototipo}) es un servicio de \textbf{API REST} 
 \end{table}
 
 Cada ejemplo de entrenamiento usa el mismo formato de instrucción (sistema/usuario/asistente vía la plantilla de chat nativa del tokenizador) tanto en entrenamiento como en inferencia, con la pérdida enmascarada sobre los tokens del \textit{prompt} para entrenar solo sobre la respuesta esperada —verificado decodificando tokens de un ejemplo real y confirmando que coincide carácter por carácter con el texto original.
+
+\subsection{Escenarios de atributos de calidad}
+\label{sec:escenarios-calidad}
+
+Los atributos de calidad declarados en la Fase 1 (Sección \ref{sec:propuesta}) se formalizan aquí como escenarios concretos (estímulo/entorno/respuesta/medida), cada uno ya verificado con evidencia real, no solo declarado (Tabla \ref{tab:escenarios}).
+
+\begin{table}[h]
+\centering
+\scriptsize
+\begingroup
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{p{2.0cm}p{2.5cm}p{2.5cm}p{3.5cm}p{3.5cm}}
+\toprule
+\textbf{Atributo} & \textbf{Estímulo} & \textbf{Entorno} & \textbf{Respuesta esperada} & \textbf{Medida (verificada)} \\
+\midrule
+Latencia & Un cliente envía una solicitud de traducción & Operación normal, modelo ya cargado & El servicio genera y devuelve la traducción & 50-80s por solicitud sin GPU (79.4s/49.8s medidos); objetivo con GPU real: segundos, pendiente de confirmar con el despliegue. \\
+\addlinespace
+Seguridad & Más de 10 solicitudes en 60s desde el mismo cliente & Operación normal o ráfaga de abuso & El servicio rechaza el exceso, no lo procesa & Confirmado con carga concurrente real: exactamente 10 pasan por ventana de 60s, el resto responde \texttt{429} con \texttt{Retry-After}, 0 excepciones no controladas. \\
+\addlinespace
+Privacidad / auditabilidad & Cualquier solicitud de traducción, exitosa o rechazada & Operación normal & El servicio nunca persiste ni expone el texto de la solicitud ni de la traducción & Verificado con prueba automatizada: se envía un texto marcador y se confirma su ausencia en \texttt{/metricas} y en cualquier log. \\
+\addlinespace
+Disponibilidad & Ocurre una excepción no prevista durante la generación & Fallo interno (ej.\ del modelo) & El servicio responde con un error genérico, sigue operando & Verificado simulando el fallo: responde \texttt{500} con mensaje entendible, nunca expone el traceback interno. \\
+\bottomrule
+\end{tabular}
+\endgroup
+\caption{Escenarios de atributos de calidad del prototipo, con la medida de respuesta verificada en esta fase.}
+\label{tab:escenarios}
+\end{table}
 
 \subsection{Gobernanza del proyecto}
 \label{sec:gobernanza}

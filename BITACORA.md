@@ -2355,3 +2355,49 @@ bloqueada por reclutamiento) y el despliegue público (Sesión 26,
 bloqueado hasta ~2026-10-02 por antigüedad de cuenta). La Fase 3
 (Generadores 2-3, fusión de modelos, comparación completa de PI1-PI3)
 queda como el siguiente bloque de trabajo del proyecto.
+
+## Sesión extra (2) — 2026-09-20 — Paula Lozano
+
+Cierre de dos puntos específicos del syllabus del curso para la
+entrega de "Project Advance 2" que no tenían sesión asignada en el
+calendario de 60 sesiones: **arquitectura empresarial** y
+**escenarios de atributos de calidad** en formato formal.
+
+Qué se hizo:
+- Agregada la subsección "Arquitectura empresarial" al inicio de la
+  Sección de Arquitectura del paper: interesados (los 3 ya
+  identificados en la Fase 1, más la organización cliente que
+  adoptaría el servicio), capacidad de negocio habilitada, y
+  alineación con el modelo de negocio — todo por referencia cruzada a
+  contenido que ya existía en la Fase 1 (Sección de caracterización
+  del problema, tabla de diferenciación de producto), no contenido
+  inventado de cero.
+- Agregada la subsección "Escenarios de atributos de calidad": tabla
+  formal (estímulo/entorno/respuesta esperada/medida verificada) para
+  4 atributos —latencia, seguridad, privacidad/auditabilidad,
+  disponibilidad— cada uno con su medida tomada de evidencia ya
+  verificada en sesiones anteriores (Sesiones 25, 27, 28, 30), no de
+  cifras nuevas ni estimadas.
+- Recompilado: la tabla nueva produjo 2 "Overfull hbox" en el primer
+  intento (columnas muy angostas para "Disponibilidad"/"Privacidad /
+  auditabilidad", y el ancho total de la tabla excedía el
+  `\textwidth` por el `\tabcolsep` por defecto). Corregido ajustando
+  anchos de columna y reduciendo `\tabcolsep` a 3pt **acotado dentro
+  de un `\begingroup`/`\endgroup`** — sin el `\begingroup`, ese cambio
+  de espaciado se habría filtrado a la tabla de la hoja de ruta que
+  viene después, angostándola sin querer.
+
+Decisiones tomadas:
+- No se creó contenido nuevo de negocio para "arquitectura
+  empresarial" — se sintetizó y etiquetó explícitamente contenido que
+  la Fase 1 ya tenía, evitando duplicar texto innecesariamente vía
+  referencias cruzadas (`\ref{}`) a las secciones y tablas ya
+  existentes.
+- Las 4 medidas de los escenarios de calidad citan evidencia real ya
+  documentada (curl real, prueba de carga, pruebas automatizadas de
+  privacidad y manejo de errores) — ninguna es una cifra objetivo
+  aspiracional sin verificar.
+
+Pruebas de aceptación: `pdflatex -interaction=nonstopmode main.tex`
+2 pasadas, exit code 0, `grep -ic overfull` = 0, sin referencias/citas
+indefinidas, 18 páginas.
