@@ -2163,3 +2163,43 @@ Pendiente: repetir esta misma prueba contra el modelo real (o el
 despliegue de la Sesión 26) cuando haya GPU disponible, para tener el
 número real de throughput del sistema completo, no solo de la capa de
 API.
+
+## Sesión 31 — 2026-09-20 — Anderson García
+
+Pruebas de integración end-to-end.
+
+Qué se hizo:
+- Creada la carpeta `tests/` (Mariana había decidido explícitamente en
+  la Sesión 5 no crearla antes de tiempo — esta es la primera prueba
+  automatizada del calendario que la necesita).
+- Escrito `tests/test_integracion_e2e.py`: un solo flujo que confirma
+  las 6 etapas pedidas en un solo `TestClient`: solicitud →
+  validación/rate limiting → generación (mockeada) → métrica
+  registrada → respuesta con `solicitud_id` → retroalimentación
+  reflejada en `/metricas`. Cada etapa tiene su propia aserción con
+  mensaje descriptivo ("Etapa N rota: ...") en vez de una aserción
+  genérica al final, tal como pedía el criterio de calidad ("debe
+  fallar de forma clara y específica").
+- Agregada una aserción extra de privacidad (no pedida explícitamente,
+  pero gratis dado el resto de la prueba): confirma que ni el texto
+  original ni la traducción aparecen en ningún punto de `/metricas`.
+- Igual que el resto de `api/test_main.py`, usa `SKIP_MODEL_LOAD=1`
+  con la traducción mockeada — no contra el modelo real (sin GPU
+  local, cargar el modelo tardaría 50-80s solo para esta prueba).
+
+Decisiones tomadas:
+- Una sola función de prueba (no una por etapa) porque las 6 etapas
+  son secuenciales y dependientes entre sí (la etapa 6 necesita el
+  `solicitud_id` de la etapa 5) — dividirla en pruebas separadas
+  obligaría a repetir la solicitud inicial en cada una, o a compartir
+  estado entre pruebas de forma frágil.
+
+Pruebas de aceptación: `SKIP_MODEL_LOAD=1 python -m pytest
+tests/test_integracion_e2e.py -v` → 1 passed, con evidencia (mensajes
+de aserción) de que las 6 etapas de la cadena pasaron.
+
+Pendiente: correr esta misma prueba contra el servicio real desplegado
+(no solo mockeado) una vez exista la URL pública de la Sesión 26 —
+criterio de aceptación original que pedía correrla "contra el servicio
+desplegado", todavía bloqueado por la elegibilidad de la cuenta de HF
+(~2026-10-02).
