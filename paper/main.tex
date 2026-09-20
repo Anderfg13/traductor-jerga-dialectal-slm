@@ -44,7 +44,7 @@
 
 \begin{abstract}
 \noindent
-Los sistemas de traducción automática contemporáneos alcanzan un desempeño alto en el registro estándar de un idioma, pero tienden a fallar cuando el texto de entrada contiene jerga o expresiones dialectales, produciendo traducciones literales que distorsionan o invierten el significado original. Esta limitación no es meramente incómoda: existen casos documentados en contextos de salud y de justicia donde un error de esta naturaleza tuvo consecuencias severas para las personas afectadas. Este documento presenta la propuesta inicial de un proyecto que investiga la viabilidad de construir un traductor especializado en jerga y dialectos del español y el inglés mediante el ajuste fino (\textit{fine-tuning}) de un modelo de lenguaje pequeño (\textit{Small Language Model}, SLM) sobre datos sintéticos generados por múltiples modelos de lenguaje de gran escala (LLMs). Se propone, además, investigar si la fusión de pesos (\textit{model merging}) de modelos entrenados con datos provenientes de distintos generadores sintéticos permite consolidar el conocimiento de varias fuentes en un único modelo eficiente, sin incurrir en los costos de un \textit{ensemble}. Estas son, ante todo, preguntas de investigación; que el resultado además sirva como propuesta de producto frente a alternativas como Google Translate o DeepL es una pregunta distinta, que este documento aborda por separado. Esta primera entrega delimita el problema, revisa el estado del arte en traducción dialectal, generación de datos sintéticos y fusión de modelos, identifica los vacíos que motivan el proyecto, y describe la propuesta general de solución. La arquitectura detallada, el prototipo y los resultados experimentales se desarrollarán en las siguientes fases del proyecto.
+Los sistemas de traducción automática contemporáneos alcanzan un desempeño alto en el registro estándar de un idioma, pero tienden a fallar cuando el texto de entrada contiene jerga o expresiones dialectales, produciendo traducciones literales que distorsionan o invierten el significado original. Esta limitación no es meramente incómoda: existen casos documentados en contextos de salud y de justicia donde un error de esta naturaleza tuvo consecuencias severas para las personas afectadas. Este documento presenta la propuesta inicial de un proyecto que investiga la viabilidad de construir un traductor especializado en jerga y dialectos del español y el inglés mediante el ajuste fino (\textit{fine-tuning}) de un modelo de lenguaje pequeño (\textit{Small Language Model}, SLM) sobre datos sintéticos generados por múltiples modelos de lenguaje de gran escala (LLMs). Se propone, además, investigar si la fusión de pesos (\textit{model merging}) de modelos entrenados con datos provenientes de distintos generadores sintéticos permite consolidar el conocimiento de varias fuentes en un único modelo eficiente, sin incurrir en los costos de un \textit{ensemble}. Estas son, ante todo, preguntas de investigación; que el resultado además sirva como propuesta de producto frente a alternativas como Google Translate o DeepL es una pregunta distinta, que este documento aborda por separado. Este documento delimita el problema, revisa el estado del arte en traducción dialectal, generación de datos sintéticos y fusión de modelos, identifica los vacíos que motivan el proyecto, describe la propuesta general de solución, y presenta la arquitectura detallada, un prototipo funcional (servicio de traducción vía API, con observabilidad y seguridad básica) y resultados preliminares de calidad y latencia para un solo generador sintético. La comparación completa entre los tres generadores considerados y la fusión de modelos se desarrollarán en la fase final del proyecto.
 
 \vspace{2mm}
 \noindent\textbf{Palabras clave:} traducción automática, dialectos, jerga, modelos de lenguaje pequeños, datos sintéticos, fusión de modelos, destilación de conocimiento.
@@ -92,7 +92,7 @@ Este proyecto espera aportar:
 
 \subsection{Organización del documento}
 
-El resto de este documento se organiza así: la Sección \ref{sec:problema} caracteriza el problema y formula las preguntas de investigación. La Sección \ref{sec:estado-arte} presenta el estado del arte en traducción dialectal, generación de datos sintéticos y fusión de modelos. La Sección \ref{sec:propuesta} describe la propuesta general de solución. La Sección \ref{sec:contribuciones} enumera las contribuciones esperadas. La Sección \ref{sec:trabajo-futuro} describe el trabajo planeado para las siguientes fases del proyecto, y la Sección \ref{sec:conclusiones} concluye el documento.
+El resto de este documento se organiza así: la Sección \ref{sec:problema} caracteriza el problema y formula las preguntas de investigación. La Sección \ref{sec:estado-arte} presenta el estado del arte en traducción dialectal, generación de datos sintéticos y fusión de modelos. La Sección \ref{sec:propuesta} describe la propuesta general de solución. La Sección \ref{sec:contribuciones} enumera las contribuciones esperadas. Las Secciones \ref{sec:arquitectura}-\ref{sec:resultados} corresponden a la entrega de la fase siguiente del proyecto (arquitectura detallada, evidencia de prototipo y resultados preliminares, respectivamente). La Sección \ref{sec:trabajo-futuro} describe el trabajo que queda para la fase final del proyecto, y la Sección \ref{sec:conclusiones} concluye el documento.
 
 
 
@@ -277,22 +277,144 @@ En términos generales, este proyecto espera dejar cuatro cosas concretas:
 
 
 
+\section{Arquitectura (Fase 2)}
+\label{sec:arquitectura}
+
+La Fase 1 dejó la arquitectura como una visión de cuatro etapas sin desarrollar (Figura \ref{fig:pipeline}). Esta sección describe qué tanto de esa visión ya es real a la fecha de esta entrega, separada en tres frentes —datos, aplicación y tecnología—, más la gobernanza del proyecto y la hoja de ruta hacia el cierre de esta fase. Un punto se repite en los tres frentes: por decisión de alcance tomada desde el principio, \textbf{esta fase cubre un solo generador sintético (de los tres considerados) y deja la fusión de modelos para la fase final} —no por falta de tiempo, sino para poder construir y probar el \textit{pipeline} completo de punta a punta con una sola fuente de datos antes de triplicar el trabajo.
+
+\subsection{Arquitectura de datos}
+
+El \textit{pipeline} de datos tiene cinco pasos, cada uno con su propio script y su propia salida versionada: (1) un \textbf{banco de semillas} de expresiones dialectales y de jerga, cada una con dialecto, registro (formal/informal/jerga) y traducción de referencia como campos separados a propósito —dialecto es una dimensión geográfica y registro una de formalidad, y mezclarlas habría sesgado el análisis posterior—; (2) una plantilla de \textbf{derivación} que le pide a un LLM generador expandir cada semilla en 5-8 variantes de contexto/registro/tono, sin inventar ni mezclar el dialecto original con otro, y en formato JSON estructurado igual sin importar cuál LLM la reciba; (3) \textbf{generación sintética} automatizada, con reintentos ante límites de tasa y guardado de la salida cruda antes de cualquier procesamiento; (4) \textbf{validación automática} mediante reglas de filtrado (longitud, casi-duplicados de la semilla original, idioma inesperado, duplicados exactos); y (5) \textbf{splits y \textit{data card}}, divididos 80/10/10 \emph{por semilla completa} (no por variante) y estratificados por dialecto, con verificación automática de que ninguna semilla queda repartida entre splits.
+
+El banco de semillas cubre hoy 100 semillas en 5 macro-variantes del español (caribeña, andina, rioplatense, mexicana y chilena), aunque solo las 40 semillas del primer lote (4 dialectos) han pasado por el resto del \textit{pipeline} hasta ahora, produciendo 238 variantes sintéticas del primer generador (Groq, modelo \texttt{openai/gpt-oss-20b}), de las cuales 236 (99.2\%) pasaron el filtro automático —muy por debajo del límite de 20\% de descarte fijado como criterio de calidad. Somos explícitos sobre un hueco encontrado: las reglas de filtrado actuales no detectan mezcla de dialectos dentro de una misma variante, y de hecho un muestreo de validación manual encontró un caso real —un marcador rioplatense (``che'') colado en una variante etiquetada como andina— que sigue presente en el conjunto ``limpio'' porque ninguna regla actual lo busca; queda documentado como limitación conocida, no oculto.
+
+\subsection{Arquitectura de aplicación}
+
+El prototipo (Sección \ref{sec:prototipo}) es un servicio de \textbf{API REST} (FastAPI), no un script de entrenamiento local: expone traducción, salud, métricas y retroalimentación, con el modelo cargado una sola vez al iniciar el proceso. Sobre esa base se construyeron, en orden: contenerización (Docker/Podman), seguridad básica (límite de tasa por IP, validación de entrada, garantía verificable de que el servicio nunca persiste el texto de ninguna solicitud ni traducción), observabilidad (latencia y tasa de retroalimentación positiva desglosadas por dialecto, sin exponer nunca datos de una solicitud individual) y pruebas de carga.
+
+\subsection{Arquitectura de tecnología}
+
+\textbf{Modelo de lenguaje pequeño.} De los tres candidatos declarados en la Fase 1 (Llama 3.2 3B, Qwen2.5 3B, Gemma 2 2B), se usó \textbf{Qwen2.5-3B-Instruct} en vez de Llama 3.2 3B, nuestro candidato principal original, porque el repositorio de Llama en HuggingFace requiere aprobación manual de Meta y esa solicitud no se había resuelto al momento de necesitar el modelo —no es un cambio de rumbo respecto a lo planteado en la Fase 1, es que el orden de preferencia original quedó bloqueado por un trámite externo, no por un criterio técnico nuestro.
+
+\textbf{Precisión y cómputo.} El modelo se carga en \texttt{bfloat16} sin cuantizar (6-6.5GB en memoria) porque el cuello de botella real nunca fue la memoria disponible, sino la ausencia de una GPU utilizable en las máquinas del equipo —un solo paso de entrenamiento LoRA llegó a tardar 80-95 minutos en CPU, completando apenas el 5\% de una prueba de 150 pasos en 10 horas—. Por eso todo el cómputo de ajuste fino, fusión futura y evaluación masiva corre en Google Colab (GPU T4/L4 gratuita), nunca en máquina local, política que dejamos por escrito para el resto del proyecto.
+
+\textbf{Técnica de ajuste fino: LoRA.} Elegida sobre ajuste fino completo por la misma razón que motivó elegir un SLM: mantener bajos el costo de entrenamiento y el tamaño del artefacto resultante, alineado con el objetivo de portabilidad. La Tabla \ref{tab:lora} resume la configuración usada, con la justificación de cada valor.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{p{3.3cm}p{1.8cm}p{7.9cm}}
+\toprule
+\textbf{Hiperparámetro} & \textbf{Valor} & \textbf{Por qué} \\
+\midrule
+\texttt{r} (rango) & 8 & Capacidad modesta apropiada para un modelo $\sim$3B con un dataset chico; mantiene el adaptador liviano. \\
+\addlinespace
+\texttt{lora\_alpha} & 16 & Heurística estándar $\alpha = 2r$, válida si $r$ cambia al escalar el entrenamiento. \\
+\addlinespace
+\texttt{lora\_dropout} & 0.05 & Regularización barata contra sobreajuste —relevante porque en efecto se observó sobreajuste con esta configuración (ver Sección \ref{sec:resultados}). \\
+\addlinespace
+\texttt{bias} & \texttt{"none"} & Valor por defecto estándar de LoRA para modelos de lenguaje causales. \\
+\addlinespace
+\texttt{target\_modules} & Q/K/V/O & Proyecciones de atención: mayor impacto al adaptar el modelo a una tarea nueva, sin tocar las capas MLP, para un adaptador más chico y un entrenamiento más rápido. \\
+\bottomrule
+\end{tabular}
+\caption{Configuración de LoRA usada para el ajuste fino del Generador 1, con la justificación de cada hiperparámetro.}
+\label{tab:lora}
+\end{table}
+
+Cada ejemplo de entrenamiento usa el mismo formato de instrucción (sistema/usuario/asistente vía la plantilla de chat nativa del tokenizador) tanto en entrenamiento como en inferencia, con la pérdida enmascarada sobre los tokens del \textit{prompt} para entrenar solo sobre la respuesta esperada —verificado decodificando tokens de un ejemplo real y confirmando que coincide carácter por carácter con el texto original.
+
+\subsection{Gobernanza del proyecto}
+\label{sec:gobernanza}
+
+El equipo no tiene una jerarquía formal, pero cada persona es dueña de una porción del \textit{pipeline} (datos y evaluación; infraestructura, generación y entrenamiento; estructura del repositorio, filtros y observabilidad) y documenta sus decisiones en un registro cronológico compartido —las decisiones que afectan el alcance de una fase completa, el modelo base, o la entrega ante el evaluador del curso, sí requieren acuerdo explícito de los tres.
+
+En cuanto a \textbf{gobernanza de datos}: todo el banco de semillas, los datasets sintéticos y los splits quedan versionados con procedencia rastreable hasta la semilla original; en cambio, el servicio en producción \emph{nunca} persiste el texto de ninguna solicitud ni traducción —solo métricas agregadas (Sección \ref{sec:prototipo})—, y los resultados de evaluación humana futura se guardarán con el evaluador identificado de forma anonimizada. En cuanto a \textbf{gobernanza de modelos}: cada adaptador LoRA vive en una carpeta con el nombre de su generador, y el criterio para promover un \textit{checkpoint} a ``final'' es la mejor pérdida de validación, no la última época —precisamente para no promover un modelo sobreajustado solo por haber terminado de entrenar último (ver Sección \ref{sec:resultados}). En cuanto a \textbf{gobernanza de proceso}: todo cambio relevante al repositorio requiere una entrada real en el registro de bitácora del proyecto (exigido técnicamente, no solo por convención), y el cómputo pesado sigue siempre la misma política de correr en Colab, nunca en máquina local.
+
+Sobre \textbf{riesgos éticos}: el banco de semillas excluye a propósito groserías fuertes explícitas —el foco es jerga cotidiana no ofensiva, coherente con un caso de uso de traducción para negocios o atención al cliente—, y se declaran explícitamente los dialectos \emph{no} cubiertos (español peninsular, variantes caribeñas insulares como Cuba o Puerto Rico) como limitación conocida en vez de dar a entender que el sistema cubre ``español'' en general: esos dialectos se excluyen porque el equipo no tiene forma de reclutar evaluadores humanos nativos de esas regiones, y cubrir un dialecto que después no se puede validar con hablantes reales sería peor que no cubrirlo.
+
+\subsection{Hoja de ruta}
+
+La Tabla \ref{tab:roadmap} resume lo ya cerrado en esta fase, lo que falta para cerrarla, y lo que corresponde a la fase final del proyecto.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{p{2.6cm}p{10.4cm}}
+\toprule
+\textbf{Estado} & \textbf{Qué} \\
+\midrule
+Ya cerrado & Banco de semillas, generación sintética, validación, splits, ajuste fino completo del Generador 1 con detección de sobreajuste, comparación cuantitativa contra la línea base, servicio de API con seguridad, observabilidad y pruebas de carga, prueba de integración de punta a punta. \\
+\addlinespace
+Cerrando esta fase & Evaluación humana con hablantes nativos reales (infraestructura lista, reclutamiento en curso); despliegue público en la nube (código listo, bloqueado por un requisito externo de antigüedad de cuenta, ver Sección \ref{sec:prototipo}). \\
+\addlinespace
+Fase final & Generadores 2 y 3; fusión de modelos, simple (TIES/DARE) y guiada por destilación multi-maestro; comparación cuantitativa y cualitativa completa entre generadores, modelos individuales y modelo fusionado (PI1, PI2); comparación contra sistemas de propósito general (PI3). \\
+\bottomrule
+\end{tabular}
+\caption{Hoja de ruta del proyecto a la fecha de esta entrega.}
+\label{tab:roadmap}
+\end{table}
+
+\section{Evidencia de prototipo}
+\label{sec:prototipo}
+
+El prototipo construido en esta fase es el servicio de API descrito en la Sección \ref{sec:arquitectura}, con los endpoints de traducción, salud, métricas y retroalimentación, más seguridad básica (límite de tasa de 10 solicitudes/60 segundos por cliente, validación de entrada) y observabilidad (latencia y tasa de retroalimentación positiva por dialecto) ya implementadas y probadas —no solo con pruebas unitarias con el modelo simulado, sino contra el modelo real cargado en la máquina de desarrollo.
+
+\textbf{Funciona de punta a punta con el modelo real.} Se levantó el servicio con Qwen2.5-3B-Instruct más el adaptador LoRA del Generador 1, sin GPU, y se confirmó con solicitudes reales: \texttt{GET /salud} responde en $\sim$7ms, y \texttt{POST /traducir} devuelve una traducción correcta y coherente en 50-80 segundos (79.4s en la primera solicitud, con arranque en frío; 49.8s en la siguiente). Contenerizado con Docker/Podman, el mismo servicio respondió \texttt{/salud} en $\sim$36ms y una traducción coherente en 33.8s. \textbf{Las traducciones son correctas: el problema medido es latencia, no funcionalidad}, y se reporta así explícitamente porque 50-80 segundos por solicitud no cumple el objetivo de latencia del proyecto sin GPU real.
+
+\textbf{Despliegue en la nube: en curso, bloqueado por un requisito externo.} Se eligió Hugging Face Spaces (SDK Gradio, hardware ZeroGPU —GPU real gratuita asignada solo durante cada generación—) tras descartar Render (free tier insuficiente en memoria) y Railway (sin free tier permanente en 2026); también se evaluó AWS Academy Learner Lab, descartado porque la sesión se apaga sola a los 40 minutos y sus créditos se comparten con el resto del curso. El código de despliegue ya está listo y verificado localmente (misma latencia sin GPU real, $\sim$68s, consistente con lo esperado fuera de un entorno con GPU asignada). Lo que falta no es código: la cuenta de Hugging Face usada tiene menos de los 30 días de antigüedad que la plataforma exige para la excepción gratuita de ZeroGPU en cuentas personales —confirmado en la pantalla real de creación del Space, que bloquea con un muro de pago sin alternativa visible antes de esa fecha—. El equipo decidió esperar con su propia cuenta en vez de usar la de otro integrante para saltarse el requisito, y retomar el despliegue real cuando se cumpla la antigüedad, sin que esto bloquee el resto del proyecto mientras tanto.
+
+\textbf{Pruebas de carga.} Con el límite de tasa por defecto, una ráfaga de 25 solicitudes concurrentes (en niveles de 5 y 20) confirma el comportamiento diseñado: las primeras 10 en total pasan, el resto recibe \texttt{429 Too Many Requests} —la protección contra abuso funciona bajo carga real, no solo en pruebas unitarias—. Con el límite desactivado, para aislar la capacidad de concurrencia de la capa de API: 0\% de errores en 5, 20 y 50 solicitudes concurrentes, con latencia promedio subiendo de forma moderada (0.71s $\to$ 0.94s $\to$ 1.30s). Esta prueba usó una traducción simulada, no el modelo real: con el modelo real cargado, múltiples generaciones concurrentes sobre el mismo objeto de modelo probablemente se serializan, y medir la concurrencia real del sistema completo requiere el entorno con GPU todavía pendiente —no se reporta un número inventado en su lugar.
+
+\textbf{Qué cubre este MVP.} Consistente con el alcance declarado desde la Fase 1: un solo generador sintético, ninguna técnica de fusión todavía. La evaluación humana formal también queda pendiente —existe la infraestructura para reclutarla y calificarla, pero no evaluadores reales confirmados— y por eso ningún resultado de evaluación humana se reporta en la Sección \ref{sec:resultados} que no venga de personas reales.
+
+\section{Resultados preliminares}
+\label{sec:resultados}
+
+Los resultados de esta sección son de \textbf{un solo generador sintético, un solo modelo candidato, y una muestra de prueba de 8 ejemplos} (de 23 totales en el conjunto de prueba) —se presentan con el lenguaje cauteloso que corresponde a resultados preliminares, no como conclusiones definitivas.
+
+\textbf{Calidad de traducción.} La Tabla \ref{tab:bleu-chrf} compara BLEU y chrF entre el modelo sin ajustar y el modelo ajustado con LoRA, global y por dialecto. Una primera señal sugiere que el ajuste con datos sintéticos del Generador 1 mejora la calidad de traducción medida automáticamente (+9.03 BLEU, +11.38 chrF global) sobre esta muestra pequeña, aunque el desglose por dialecto no es uniforme: andina y rioplatense mejoran de forma marcada, pero mexicana empeora en BLEU pese a mejorar levemente en chrF —con solo 2 ejemplos por dialecto, esa caída es más probablemente ruido estadístico que una señal real, pero no hay evidencia suficiente todavía para afirmarlo con confianza.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Dialecto} & \textbf{BLEU base} & \textbf{BLEU ajustado} & \textbf{chrF base} & \textbf{chrF ajustado} \\
+\midrule
+Andina & 5.74 & 17.16 & 13.57 & 29.44 \\
+Caribeña & 42.08 & 45.97 & 53.66 & 59.68 \\
+Mexicana & \textbf{63.66} & 55.12 & 66.46 & 67.70 \\
+Rioplatense & 25.24 & 52.43 & 39.41 & 61.09 \\
+\midrule
+\textbf{Global} & 38.18 & \textbf{47.21} & 48.33 & \textbf{59.71} \\
+\bottomrule
+\end{tabular}
+\caption{BLEU y chrF, modelo sin ajustar vs. ajustado con LoRA (Generador 1), sobre 8 de 23 ejemplos del conjunto de prueba.}
+\label{tab:bleu-chrf}
+\end{table}
+
+Esta cobertura parcial (35\% del conjunto de prueba) es una limitación explícita: generar predicciones sobre los 15 ejemplos restantes requiere GPU, y queda pendiente antes de tratar estas cifras como representativas del conjunto completo.
+
+\textbf{Evaluación humana: todavía no disponible.} A la fecha de esta entrega no existe ninguna ronda de evaluación humana real que reportar. Se preparó la infraestructura completa (rúbrica de retención de matices en escala 1-5 con ejemplos de calibración, mensaje y formulario de reclutamiento para un mínimo de 3 hablantes nativos por cada uno de los 5 dialectos del banco de semillas), pero el reclutamiento real de evaluadores es una acción humana que no se puede simular ni adelantar sin datos falsos. Se hizo, por separado, un muestreo piloto calificado por el propio equipo para probar el formato de la hoja de evaluación —encontrando, entre otras cosas, el caso de mezcla de dialecto mencionado en la Sección \ref{sec:arquitectura}—, pero deliberadamente \emph{no} se reporta aquí como resultado de evaluación humana, porque no lo es: reportarlo como tal sería engañoso.
+
+\textbf{Latencia.} Medida en la Sección \ref{sec:prototipo}: 50-80 segundos por solicitud con el modelo real sin GPU, muy por encima de cualquier objetivo razonable para un servicio interactivo. No se presenta como un resultado aceptable, sino como la evidencia central de por qué el despliegue con GPU real es necesario, no opcional.
+
+\textbf{Qué significan estos resultados, y qué no.} Son consistentes con la hipótesis de que el ajuste fino con datos sintéticos ayuda a la tarea, pero no permiten responder todavía ninguna de las tres preguntas de investigación: PI1 requiere comparar contra los Generadores 2 y 3, que no existen aún; PI2 no aplica porque solo hay un modelo entrenado; PI3 requeriría comparar contra sistemas de propósito general sobre el mismo conjunto de prueba, algo tampoco hecho todavía. Son la base de referencia técnica propia sobre la que se construye la comparación completa de la fase final, no una respuesta anticipada a esas preguntas.
+
 \section{Trabajo futuro}
 \label{sec:trabajo-futuro}
 
-Esta primera fase del proyecto se queda en la propuesta general, sin incluir arquitectura detallada, selección tecnológica definitiva, prototipo ni resultados experimentales.
+Lo que queda, dentro del alcance ya comprometido para el cierre de esta fase: completar la evaluación humana con hablantes nativos reales, y confirmar el despliegue público una vez la cuenta de Hugging Face cumpla el requisito de antigüedad (Sección \ref{sec:prototipo}).
 
-En la siguiente fase vamos a desarrollar la arquitectura completa del sistema (negocio, datos, aplicaciones, tecnología, integración, seguridad y observabilidad) e implementar un prototipo: un servicio de traducción desplegado en la nube, expuesto mediante API, capaz de atender varias solicitudes al mismo tiempo y con instrumentación para observar la calidad de traducción por dialecto. Queremos evitar a propósito que el prototipo se quede en un simple script de entrenamiento corriendo en una máquina; la idea es que el sistema demuestre decisiones de arquitectura de nivel empresarial (escalabilidad, seguridad, costos y despliegue reproducible).
-
-En esa fase, el incremento mínimo viable va a cubrir un solo generador sintético de los tres LLMs que estamos considerando y una sola técnica de fusión (fusión simple vía \texttt{mergekit}).
-
-La comparación completa entre los tres generadores y entre las dos técnicas de fusión (simple y guiada por destilación multi-maestro) queda para la fase final del proyecto, sujeta a cuánto tiempo y cómputo tengamos disponible como equipo para ese momento. En esa última fase presentaremos los resultados cuantitativos (métricas automáticas y comparación entre generadores, modelos individuales y modelo fusionado) y cualitativos (evaluación humana de qué tanto se conservan los matices dialectales), obtenidos con el diseño experimental descrito en la Sección \ref{sec:propuesta}, junto con el análisis de costos, riesgos, gobernanza y las limitaciones del enfoque.
-
+Para la fase final del proyecto: repetir la generación sintética y el ajuste fino con los Generadores 2 y 3; implementar y comparar las dos técnicas de fusión de modelos (simple vía \texttt{mergekit}, y guiada por destilación de conocimiento multi-maestro) entre sí, contra el mejor modelo individual, y contra un modelo entrenado sobre la mezcla completa de las tres fuentes sintéticas; completar BLEU/chrF sobre el conjunto de prueba completo (no solo el 35\% cubierto hasta ahora); y presentar los resultados cuantitativos y cualitativos completos —incluyendo la evaluación humana real y la comparación contra sistemas de propósito general (PI3)— junto con el análisis de costos, riesgos y limitaciones del enfoque.
 
 \section{Conclusiones}
 \label{sec:conclusiones}
 
-Este documento presentó la propuesta inicial de un proyecto que busca traducir jerga y dialectos del español y el inglés mediante un modelo de lenguaje pequeño ajustado sobre datos sintéticos generados por varios LLMs, y explorar si esa información se puede consolidar fusionando modelos. La revisión de literatura que hicimos (fuentes científicas en inglés, literatura técnica y reportes de industria) nos permitió sustentar el problema con evidencia cuantitativa y cualitativa, y también identificar un vacío específico en la intersección de tres líneas de trabajo que ya existen por separado: traducción dialectal mediante \textit{fine-tuning}, comparación de generadores de datos sintéticos, y fusión de modelos entrenados con datos heterogéneos. Hasta donde pudimos establecer, ninguna de las tres se ha aplicado todavía a la traducción de jerga y dialecto del español. La propuesta implica decisiones de datos, modelado, diseño experimental y arquitectura de sistema que iremos desarrollando en las siguientes fases, empezando por una arquitectura de nivel empresarial y un prototipo funcional en la etapa siguiente.
+Este documento presentó un proyecto que busca traducir jerga y dialectos del español y el inglés mediante un modelo de lenguaje pequeño ajustado sobre datos sintéticos generados por varios LLMs, y explorar si esa información se puede consolidar fusionando modelos. La revisión de literatura sustentó el problema con evidencia cuantitativa y cualitativa, e identificó un vacío específico —traducción dialectal mediante \textit{fine-tuning}, comparación de generadores de datos sintéticos, y fusión de modelos entrenados con datos heterogéneos, combinados para el español— que hasta donde pudimos establecer nadie ha cubierto todavía.
+
+En esta fase, esa propuesta general se convirtió en arquitectura concreta, gobernanza documentada, y un prototipo funcional: un servicio de traducción con seguridad, observabilidad y pruebas de carga reales, probado de punta a punta con el modelo ajustado, con resultados preliminares que sugieren una mejora de calidad medible sobre la línea base. También fuimos explícitos sobre lo que todavía no funciona o no existe —la latencia sin GPU, la mezcla de dialecto sin detectar en los datos, la evaluación humana pendiente, el despliegue público bloqueado por un requisito externo— porque documentar honestamente las limitaciones nos parece tan parte del método científico como reportar lo que sí salió bien. La fase final del proyecto retoma exactamente esos pendientes, junto con la comparación completa entre generadores y técnicas de fusión que motivó el proyecto desde el principio.
 
 % Bibliografía
 \begin{thebibliography}{99}

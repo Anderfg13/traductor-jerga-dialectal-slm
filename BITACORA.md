@@ -2203,3 +2203,95 @@ Pendiente: correr esta misma prueba contra el servicio real desplegado
 criterio de aceptación original que pedía correrla "contra el servicio
 desplegado", todavía bloqueado por la elegibilidad de la cuenta de HF
 (~2026-10-02).
+
+## Sesión 33 — 2026-09-20 — Paula Lozano
+
+Actualizar paper: Prototipo (evidencia de despliegue).
+
+Qué se hizo: escrito `docs/fase2_prototipo_borrador.md` — describe el
+servicio construido (API, seguridad, observabilidad, contenerización),
+la evidencia real de que funciona de punta a punta con el modelo real
+(latencias de las Sesiones 25/27), el estado del despliegue en la nube
+(Sesión 26: código listo, bloqueado por antigüedad de cuenta de HF, no
+por falta de trabajo técnico), los resultados de las pruebas de carga
+(Sesión 30), y qué cubre este MVP vs. qué queda para la Fase 3.
+
+Decisiones tomadas: cada cifra citada se verificó contra su documento
+fuente antes de escribirla (ninguna se redondeó ni se estimó de
+memoria) — criterio de aceptación explícito del prompt original.
+
+Pruebas de aceptación: cada cifra del borrador se puede encontrar
+textualmente en `docs/pruebas_carga.md`, `api/README.md` o
+`BITACORA.md` (Sesiones 25-27, 30).
+
+## Sesión 35 — 2026-09-20 — Mariana Malagón
+
+Actualizar paper: resultados preliminares de calidad.
+
+Qué se hizo: escrito `docs/fase2_resultados_borrador.md` — BLEU/chrF
+del modelo ajustado vs. la línea base (Sesión 21), con lenguaje
+cauteloso ("una primera señal sugiere...", no "confirmamos que...") y
+el hallazgo honesto de que Mexicana empeora en BLEU. Latencia
+(Sesiones 25/27). Explícito que son resultados de un solo generador y
+que ninguna de las tres preguntas de investigación se puede responder
+todavía con esta evidencia.
+
+**Decisión importante, no pedida explícitamente pero necesaria**: la
+sección de evaluación humana dice **"todavía no disponible"**, en vez
+de reportar el muestreo piloto de la Sesión 10 como si fuera
+evaluación humana real. Ese piloto lo calificó el equipo (con apoyo de
+IA) para probar el formato del CSV, no hablantes nativos reales —
+presentarlo en el paper como "evaluación humana" habría sido engañoso,
+así que se documenta la diferencia explícitamente en vez de mezclar
+ambas cosas.
+
+Pruebas de aceptación: cada cifra rastreable a
+`evaluation/reporte_metricas_generador1.md`,
+`evaluation/reporte_metricas_baseline.md` o `docs/pruebas_carga.md`.
+
+## Sesión 32 — 2026-09-20 — Anderson García
+
+Compilación final del documento de Fase 2.
+
+Qué se hizo:
+- Integradas al `.tex` las secciones nuevas: "Arquitectura (Fase 2)"
+  (con subsecciones de datos, aplicación, tecnología —incluida la
+  tabla de hiperparámetros de LoRA—, **gobernanza del proyecto** y
+  **hoja de ruta**, cerrando el requisito del syllabus que no tenía
+  sesión asignada en el calendario original), "Evidencia de
+  prototipo" y "Resultados preliminares", basadas en
+  `docs/fase2_arquitectura_borrador.md` (Sesión 18, actualizada en la
+  Sesión "extra" del 17 de septiembre), `docs/fase2_prototipo_borrador.md`
+  (Sesión 33) y `docs/fase2_resultados_borrador.md` (Sesión 35).
+- Reescrita la sección "Trabajo futuro" (antes describía toda la Fase
+  2 como pendiente; ahora describe solo lo que de verdad falta:
+  evaluación humana real, despliegue público, Generadores 2-3, fusión)
+  y "Conclusiones" (ahora reconoce el trabajo de esta fase, no solo la
+  propuesta de la Fase 1).
+- Actualizado el resumen (abstract) y la subsección "Organización del
+  documento" para reflejar las secciones nuevas.
+- Todas las referencias cruzadas nuevas usan `\ref{}` a etiquetas
+  reales (`sec:arquitectura`, `sec:gobernanza`, `sec:prototipo`,
+  `sec:resultados`), no números escritos a mano.
+- Compilado 4 veces en total (2 pasadas iniciales + 2 de verificación
+  tras corregir 2 "Overfull hbox" encontrados: la columna de la tabla
+  de LoRA era muy angosta para `target_modules`, y una oración con
+  varios `\texttt{}` seguidos no cabía en el ancho de línea).
+
+Decisiones tomadas:
+- No se reportó ningún resultado de evaluación humana real (Sesión
+  35) ni un número inventado de concurrencia con el modelo real
+  (Sesión 33) — se mantiene la misma política de honestidad del resto
+  del proyecto también dentro del documento final.
+- El presupuesto de tiempo/cómputo y el alcance dialectal declarado
+  (Sesión extra del 17 de septiembre) ya estaban integrados al cuerpo
+  del documento desde antes; esta sesión no los tocó de nuevo.
+
+Pruebas de aceptación verificadas: `pdflatex -interaction=nonstopmode
+main.tex` corrido 2 veces consecutivas sin errores (exit code 0);
+`grep -ic overfull` = 0; sin referencias ni citas indefinidas; 17
+páginas; todas las tablas y figuras con `\caption`/`\label`.
+
+Pendiente: nada bloqueante para esta sesión. Sigue pendiente
+sincronizar `paper/main.tex` de vuelta a Overleaf (fricción manual ya
+documentada en la Sesión "1 (por fin)").
