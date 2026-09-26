@@ -2401,3 +2401,46 @@ Decisiones tomadas:
 Pruebas de aceptación: `pdflatex -interaction=nonstopmode main.tex`
 2 pasadas, exit code 0, `grep -ic overfull` = 0, sin referencias/citas
 indefinidas, 18 páginas.
+
+## Sesión extra (3) — 2026-09-26 — Mariana Malagón
+
+Diagramas de arquitectura para el Project Advance 2 del syllabus.
+
+Qué se hizo:
+- Comparados los 12 entregables de la fila "Project Advance 2" del
+  syllabus contra `paper/main.tex` y `docs/`. Cubiertos: arquitectura
+  empresarial, de datos, de aplicación y de tecnología, escenarios de
+  calidad, hoja de ruta, gobernanza y evidencia de prototipo. Parciales:
+  diseño del componente inteligente, diseño de la API, plan de
+  despliegue en la nube y diseño de seguridad (el contenido existe,
+  pero disperso o sin sección propia). El paper solo tiene una figura
+  (el pipeline de 4 cajas de la Fase 1).
+- Escrito `docs/diagramas_arquitectura.md` con 9 diagramas Mermaid:
+  empresarial, datos, aplicación, API (tabla de endpoints + secuencia),
+  tecnología y componente inteligente, despliegue en la nube,
+  seguridad, hoja de ruta y gobernanza. Cada elemento sale de
+  `api/main.py`, `api/README.md`, `Dockerfile`, `docker-compose.yml`,
+  `api/space/`, `docs/despliegue.md`, `docs/modelo_gobernanza.md` y los
+  scripts de `generation/` y `finetuning/`. Lo pendiente o no
+  implementado va en línea punteada con fondo amarillo.
+- Agregada la entrada del archivo a `docs/README.md`.
+
+Decisiones tomadas:
+- Formato Mermaid en Markdown (se renderiza en GitHub y en la vista
+  previa de VS Code) y notación libre, porque el syllabus no dice si se
+  esperan diagramas ni en qué notación (C4, UML). No se sabe todavía si
+  el profesor los pide; hay que confirmarlo.
+- El diagrama de seguridad declara como no implementado lo que no
+  existe en el código: autenticación de clientes y límite de tasa
+  compartido entre instancias. TLS se deja como dependiente de la
+  plataforma, sin afirmar nada que no se haya verificado.
+
+Corrección tras verlos renderizados en tema oscuro: los nodos amarillos
+(pendientes) mostraban texto blanco sobre fondo claro, ilegible, y la
+hoja de ruta salía diminuta en horizontal. Se fijó `color:#1a1a1a` en
+todos los `classDef` y la hoja de ruta pasó a disposición vertical.
+
+Pendiente: volver a revisar los 9 diagramas renderizados tras el
+arreglo (no se pudieron renderizar dentro de esta sesión). Falta también decidir si
+se redibujan en TikZ dentro de `paper/main.tex`, y confirmar con el
+profesor si pide diagramas y en qué notación.

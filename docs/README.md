@@ -26,5 +26,10 @@ Según el calendario de 10 semanas, aquí van a vivir (entre otros):
   del profesor sobre la Fase 1 y al requisito de "governance model"
   del syllabus para el Project Advance 2.
 
+- `diagramas_arquitectura.md` — diagramas (Mermaid) de arquitectura
+  empresarial, de datos, de aplicación y de tecnología, diseño de la
+  API, plan de despliegue, diseño de seguridad, hoja de ruta y modelo
+  de gobernanza, para el Project Advance 2.
+
 Estos borradores se integran después al `.tex` final del paper; no son
 el paper en sí.
