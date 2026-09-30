@@ -30,3 +30,7 @@ evaluate>=0.4.0
 # --- Utilidades generales ---
 pandas>=2.2.0
 tqdm>=4.66.0
+
+# --- Pruebas ---
+pytest>=8.0.0
+httpx>=0.27.0

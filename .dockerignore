@@ -1,0 +1,45 @@
+# Build context del Dockerfile de api/ (build context = raíz del
+# repo, ver "docker build -f api/Dockerfile ." en api/README.md).
+#
+# El Dockerfile copia explícitamente solo los archivos puntuales que
+# el servicio necesita (api/main.py, finetuning/probar_baseline.py,
+# el adaptador de finetuning/checkpoints/generador1/adapter/) — nada
+# de lo de aquí abajo llega nunca a la imagen aunque se dejara sin
+# excluir. Esto reduce lo que Docker tiene que leer y empaquetar para
+# mandarle al daemon en cada build, que si no sería varios cientos de
+# MB de datos/checkpoints que no tienen nada que ver con correr la API.
+
+.git/
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Etapas del pipeline que no hacen falta para correr el servicio
+seeds/
+generation/
+docs/
+paper/
+merging/
+evaluation/
+
+# Dentro de finetuning/, todo lo pesado que NO es el adaptador final
+# que usa la API (finetuning/checkpoints/generador1/adapter/ SÍ se
+# necesita y no está excluido aquí)
+finetuning/lora_prueba/
+finetuning/lora_prueba_*/
+
+# Variante de despliegue en Hugging Face Spaces (api/space/) -- tiene
+# su propia copia del adaptador y dependencias (Gradio), no hace
+# falta para este Dockerfile de FastAPI
+api/space/
+api/test_main.py
+api/__pycache__/
+
+# Credenciales -- nunca deben viajar dentro de una imagen
+.env
+.env.*
+!.env.example

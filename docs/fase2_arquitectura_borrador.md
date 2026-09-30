@@ -220,17 +220,87 @@ distintos de prueba produjeron exactamente la misma salida, posible
 indicio de sobreajuste con tan pocos ejemplos y épocas, que dejamos
 como algo a monitorear cuando entrenemos con el dataset completo.
 
+**Entrenamiento completo (Sesión 19-20), ya corrido — actualiza lo de
+arriba**. Con el mismo script (`entrenar_lora.py --todos`) y la misma
+configuración de LoRA, entrenamos sobre las 189 variantes completas de
+`train.json`, con validación sobre `val.json` en cada época y
+selección automática del mejor checkpoint
+(`load_best_model_at_end` + `EarlyStoppingCallback`), no del último —
+precisamente para no repetir a ciegas el indicio de sobreajuste que ya
+habíamos visto en la prueba de humo. **Y en efecto se detectó
+sobreajuste real**: la pérdida de validación subió a partir de la
+época 2 mientras la de entrenamiento seguía bajando, así que el
+entrenamiento se detuvo ahí y se quedó con el adaptador de la época 1
+(la de mejor validación) como checkpoint final — el mecanismo funcionó
+exactamente para lo que se diseñó.
+
+Comparamos ese checkpoint final contra la línea base sin ajustar sobre
+los mismos 8 ejemplos de prueba de siempre
+(`evaluation/comparacion_base_vs_ajustado.md`): mejoras reales y
+consistentes en el registro dialectal ("está brutal" → "brutal"
+literal en la base, "awesome"/"insane" en el ajustado; "estoy remando"
+→ "rowing" literal en la base, "barely getting by"/"struggling" en el
+ajustado), pero **el caso de "tinto" (café) traducido como "vino"
+sigue sin corregirse** incluso con el dataset completo, porque esa
+semilla específica cayó en el split de prueba y nunca estuvo en
+entrenamiento — no es un defecto del pipeline, es la consecuencia
+esperada y correcta de mantener un conjunto de prueba genuinamente
+independiente (ver más abajo). Seguimos sin maquillar resultados: un
+adaptador con solo una época efectiva de entrenamiento útil es un
+punto de partida razonable, no un modelo terminado, y así lo dejamos
+dicho en la propia comparación.
+
+**Sobre el conjunto de prueba independiente** (respuesta directa a un
+punto que el profesor pidió reforzar): el split de la Sesión 12 separa
+por **semilla completa**, no por variante individual — todas las
+variantes generadas a partir de una misma semilla quedan en el mismo
+split, verificado automáticamente. Esto significa que ninguna
+expresión del conjunto de prueba, ni ninguna de sus paráfrasis
+sintéticas, fue vista de ninguna forma durante el entrenamiento; el
+modelo tiene que generalizar el patrón de traducción dialectal a
+semillas genuinamente nuevas, no solo reconocer una variante de algo
+ya memorizado. El caso de "tinto" de arriba es evidencia empírica de
+que esta independencia es real: si hubiera fuga de datos entre splits,
+ese error probablemente ya se habría corregido.
+
 ## 8.4. Resumen de lo pendiente en esta fase
 
 Para que quede en un solo lugar, sin repetir lo ya dicho arriba: a la
-fecha de este borrador faltan, dentro del alcance ya comprometido para
-la Fase 2, el servicio de API, su despliegue en la nube, la
-containerización, la seguridad básica y la observabilidad (Semanas
-5-6). El entrenamiento completo sobre el dataset entero (no solo el
-subconjunto de la prueba de humo), la comparación contra la línea base
-sin ajustar, y la evaluación automática y humana a escala completa
-también quedan para las próximas sesiones dentro de esta misma fase
-(Semana 4). La comparación entre los tres generadores sintéticos y la
-fusión de modelos quedan fuera del alcance de esta fase por decisión
-explícita, no por limitación técnica, y se retoman más adelante en el
-proyecto.
+fecha de esta actualización (17 de septiembre de 2026) el entrenamiento
+completo, su comparación honesta contra la línea base, y el formato de
+instrucción ya están cerrados (Sesiones 17, 19, 20). Falta, dentro del
+alcance ya comprometido para la Fase 2: la evaluación automática
+(BLEU/chrF) y humana a escala completa (Sesiones 21-24), y el servicio
+de API, su despliegue en la nube, la containerización, la seguridad
+básica y la observabilidad (Sesiones 25-30) — nada de esto existe
+todavía en el repositorio. La comparación entre los tres generadores
+sintéticos y la fusión de modelos quedan fuera del alcance de esta
+fase por decisión explícita, no por limitación técnica, y se retoman
+en la Fase 3.
+
+## 8.5. Hoja de ruta (roadmap)
+
+| Cuándo | Qué | Sesiones |
+|---|---|---|
+| Ya cerrado | Banco de semillas, generación sintética, validación, splits, fine-tuning completo del Generador 1, comparación honesta vs. línea base | 3-20 |
+| Próximos ~7 días | Evaluación automática (BLEU/chrF) y humana a escala completa; servicio de API (FastAPI) | 21-26 |
+| Próximos ~15 días (cierre de Fase 2) | Containerización, seguridad básica, observabilidad, pruebas de carga, pruebas de integración e2e, compilación final del paper de Fase 2 y sustentación | 27-36 |
+| Fase 3 (semanas 7-10) | Generadores 2 y 3, fusión simple (TIES/DARE) y por destilación multi-maestro, comparación completa PI1/PI2/PI3 | 37-60 |
+
+Esta hoja de ruta asume el presupuesto de tiempo declarado en
+`docs/presupuesto_tiempo_computo.md` (5-8h/semana por integrante) y
+que el cómputo pesado sigue corriendo sobre Colab gratuito sin
+bloqueos de cuota.
+
+## 8.6. Alcance de datos y gobernanza
+
+Dos piezas que la Fase 1 dejó abiertas y que se cierran formalmente en
+esta entrega, con su propio documento porque son transversales a las
+tres arquitecturas de arriba, no solo a la de datos:
+
+- **Alcance declarado del banco de semillas** — qué dialectos y qué
+  tipos de expresión cubre el proyecto, y cuáles se excluyen a
+  propósito y por qué: `docs/alcance_banco_semillas.md`.
+- **Modelo de gobernanza** — roles y decisiones del equipo, gobernanza
+  de datos, de modelos, y de proceso/código, y riesgos éticos
+  identificados: `docs/modelo_gobernanza.md`.

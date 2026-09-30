@@ -1,0 +1,45 @@
+# docker-compose.yml (raíz del repo)
+#
+# Levantar el servicio completo con un solo comando, desde la raíz del
+# repo:
+#
+#     docker compose up --build
+#     # o con Podman:
+#     podman compose up --build
+#     # o, si "podman compose" no encuentra proveedor de compose en tu
+#     # instalación (pasó en Windows en esta sesión, ver BITACORA.md
+#     # Sesión 27):
+#     python -m pip install --user podman-compose
+#     python -m podman_compose up --build
+#
+# Sin "dockerfile:" a propósito -- usa el Dockerfile por default en la
+# raíz del contexto (context: .). Se probó con "dockerfile: api/Dockerfile"
+# + "context: .." y falló con podman-compose en Windows (el comando de
+# build generado ignoraba el flag -f por completo, un bug real de la
+# herramienta, no de este archivo) -- mover el Dockerfile a la raíz lo
+# evita del todo.
+
+services:
+  api:
+    build:
+      context: .
+    ports:
+      - "8000:8000"
+    volumes:
+      # Cachea el modelo base descargado de Hugging Face (~6GB) entre
+      # reinicios del contenedor -- sin esto, cada "docker compose up"
+      # nuevo tendría que volver a descargarlo desde cero.
+      - hf-cache:/root/.cache/huggingface
+    environment:
+      # Opcional -- el modelo base es público, no hace falta HF_TOKEN
+      # para que el servicio funcione. Se deja disponible por si se
+      # usa un modelo con licencia restringida más adelante (ver
+      # BITACORA.md Sesión 13). Nunca se escribe la clave aquí: se lee
+      # de la variable de entorno del host (export HF_TOKEN=... antes
+      # de correr, o un archivo .env junto a este docker-compose.yml,
+      # que docker/podman compose carga automáticamente y NO se
+      # commitea -- ver .gitignore).
+      - HF_TOKEN=${HF_TOKEN:-}
+
+volumes:
+  hf-cache:

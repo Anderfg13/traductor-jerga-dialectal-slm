@@ -1162,3 +1162,1285 @@ documentar en qué época se detuvo si sí pasó), escribir
 `finetuning/curva_final_generador1.md`, y completar esta entrada con
 cuánto tardó el entrenamiento real y en qué hardware (GPU de Colab
 asignada).
+
+## Sesión 19 — 2026-09-11 (2) — Anderson García
+
+Cierre: entrenamiento completo corrido en Colab, con sobreajuste real
+detectado y manejado automáticamente.
+
+Qué se hizo:
+- **Bug real encontrado al ejecutar**: la celda 2 del notebook clona
+  el repo desde GitHub sin especificar rama, así que Colab traía
+  `main` — y todo el trabajo de esta sesión (y de varias anteriores)
+  vive en `develop`, nunca fusionado a `main`. El primer intento de
+  correr `--todos` corrió en silencio la versión vieja del script (sin
+  ese flag reconocido de verdad, ejecutó el comportamiento por
+  default) porque además la celda 2 solo clona si la carpeta no existe
+  — un clon viejo de una corrida anterior en la misma VM de Colab
+  nunca se actualiza. Resuelto por el usuario actualizando `main` con
+  el contenido de `develop`; pendiente evaluar si conviene que la
+  celda de clonado especifique rama explícitamente para no depender de
+  que `main` esté al día (queda para una sesión de mejora del
+  notebook, no bloqueaba esta).
+- Corrido `finetuning/entrenar_lora.py --todos` en Colab (GPU **Tesla
+  T4**, 15360MiB VRAM): **189 ejemplos de entrenamiento, 24 de
+  validación, ~9 minutos en total**.
+- **Sobreajuste real, detectado y manejado automáticamente**: pérdida
+  de validación 1.0972 (época 1, mejor) → 1.5414 (época 2, sube) →
+  1.5243 (época 3, sigue peor que la época 1) — mientras la pérdida de
+  ENTRENAMIENTO siguió bajando sin parar (promedio 0.72 → 0.36 → 0.19
+  por época). `EarlyStoppingCallback(patience=2)` agotó la paciencia
+  después de la época 3 y detuvo el entrenamiento ahí (no llegó a las
+  10 épocas del límite superior); `load_best_model_at_end=True` dejó
+  guardado el adaptador de la **época 1** (el de mejor validación), no
+  el de la última época entrenada — exactamente el comportamiento
+  pedido por el criterio de calidad de esta sesión, sin intervención
+  manual.
+- **Checkpoint verificado en disco, dos veces**: (1) dentro del propio
+  Colab, recargado desde disco justo después de guardarlo, generando
+  las 8 traducciones de prueba de siempre; (2) de forma INDEPENDIENTE
+  en la máquina local, después de copiar el adaptador al repo —
+  `PeftModel.from_pretrained(...)` cargó sin errores, y se probaron 3
+  frases dialectales nuevas (fuera de cualquier split) además de las 8
+  de `test.json`, las 11 con salidas coherentes, sin texto corrupto ni
+  repetido.
+- Escrito `finetuning/curva_final_generador1.md`: hardware y tiempo
+  real, tabla de pérdida entrenamiento/validación por época, análisis
+  del sobreajuste, confirmación de selección del mejor checkpoint, y
+  las 11 traducciones de prueba (8 del test set + 3 nuevas) comparadas
+  contra la referencia.
+- Traídos al repo `finetuning/checkpoints/generador1/` (adaptador
+  ~15MB, `loss_log.json` con 567 pasos de entrenamiento + 3 de
+  validación, `salidas_con_adapter.json`).
+
+Decisiones tomadas:
+- No reentrenar con un `patience` más alto para "forzar" que llegue
+  más lejos — el objetivo de esta sesión era confirmar que el
+  mecanismo de detección de sobreajuste funciona, y funcionó
+  exactamente como se diseñó; forzarlo a entrenar más solo habría
+  empeorado la validación sin ganar nada.
+- El hallazgo de que el modelo sobreajusta ya desde la época 2 con
+  solo 189 ejemplos queda registrado como señal real para priorizar
+  ampliar el dataset (más semillas, o los Generadores 2/3) antes de
+  seguir ajustando hiperparámetros de LoRA sobre este mismo tamaño.
+
+Pendiente: ninguno específico de esta sesión — los 3 criterios de
+aceptación (checkpoint en disco, carga sin errores, traducciones
+coherentes en ≥5 ejemplos) y el criterio de calidad (detener en el
+mejor checkpoint ante sobreajuste) quedaron cumplidos con evidencia
+real. Aparte, queda como mejora futura del notebook de Colab: que la
+celda de clonado especifique rama explícitamente en vez de depender
+del branch por default del repo.
+
+## Sesión 20 — 2026-09-11 — Anderson García
+
+Comparación honesta: modelo sin ajustar vs. modelo ajustado con LoRA.
+
+Qué se hizo:
+- Confirmado que `finetuning/checkpoints/generador1/` existe (Sesión
+  19) y que `finetuning/baseline_sin_ajustar.md` (Sesión 13) documenta
+  8 ejemplos de línea base — no hizo falta correr nada de nuevo: el
+  checkpoint final ya genera sus traducciones de prueba sobre los
+  MISMOS 8 ejemplos de `test.json` (`INDICES_MUESTRA`, importado de
+  `probar_baseline.py` por ambos scripts), guardadas en
+  `finetuning/checkpoints/generador1/salidas_con_adapter.json` desde
+  la Sesión 19 — solo faltaba compararlas lado a lado con las del
+  baseline, no volver a generarlas.
+- Escrito `evaluation/comparacion_base_vs_ajustado.md`: tabla de los 8
+  ejemplos (español, referencia, sin ajustar, ajustado) + análisis
+  honesto categorizado en 3 grupos, sin maquillar nada:
+  - **4 de 8 mejoraron claramente**: los dos casos de "estar remando"
+    (modismo de apuro económico, antes traducido literal como
+    "rowing", ahora correcto), el caso de "brutal" con connotación
+    negativa en inglés (corregido a "awesome"), y una mejora de
+    fluidez menor.
+  - **2 de 8 NO mejoraron en nada**: el error de "tinto" (café en
+    habla andina, mal traducido como vino) persiste exactamente igual
+    — la semilla correspondiente está en el split de test, nunca la
+    vio el modelo durante el entrenamiento. Dicho explícitamente en el
+    documento, sin suavizarlo.
+  - **2 de 8 en mejora parcial/ambigua**, uno de ellos con un **error
+    NUEVO que el baseline no tenía**: la traducción de "¡Neta! Si eso
+    pasa, no lo creo" quedó envuelta en comillas literales en la
+    salida (`"Hey, really! ..."`), un artefacto de formato que no
+    aparece en ningún otro ejemplo ni en el baseline.
+- **Confirmación adicional del sobreajuste** (ya detectado por la
+  curva de pérdida en la Sesión 19): los ejemplos #3 y #4 de la tabla
+  son dos semillas DISTINTAS ("¿Un tinto, amigo?" vs. "¿Un tinto,
+  colega?") y el modelo ajustado dio la MISMA salida exacta para
+  ambas — visible aquí como comportamiento concreto, no solo como un
+  número de pérdida.
+
+Decisiones tomadas:
+- No presentar el resultado como "el modelo mejoró" de forma genérica
+  — el prompt pedía explícitamente honestidad si no mejoraba en
+  algunos casos, así que el documento cuenta los 8 casos uno por uno
+  (4 mejoran, 2 no, 2 ambiguos) en vez de un resumen optimista.
+  Reportado también el error nuevo de formato (comillas) sin
+  minimizarlo, aunque no afecta la inteligibilidad de esa traducción.
+- No se generaron traducciones nuevas ni se corrió el modelo de nuevo
+  — reutilizar las salidas ya generadas y guardadas en la Sesión 19
+  evita cómputo redundante y usa exactamente los mismos ejemplos que
+  pedía el prompt para la comparación directa.
+
+Pendiente: ninguno específico de esta sesión — los criterios de
+aceptación (tabla existe, cubre los mismos ejemplos del baseline,
+permite comparación directa antes/después) están cumplidos. El
+pendiente de fondo (ampliar el dataset antes de seguir ajustando
+hiperparámetros) sigue siendo el mismo de la Sesión 19, reforzado aquí
+con evidencia concreta de sobreajuste (dos semillas colapsando a la
+misma salida).
+
+## Sesión extra — 2026-09-17 — Paula Lozano
+
+Respuesta directa a la retroalimentación del profesor sobre la Fase 1
++ requisito de "governance model" del syllabus para el Project Advance
+2 (entrega en ~15 días, coincide con el cierre de nuestra Fase 2,
+Sesión 36). No corresponde a ningún número del calendario de 60
+sesiones — es trabajo nuevo motivado por una entrega externa, igual
+que la Sesión 14 (4) de Anderson.
+
+Qué se hizo:
+- Auditoría completa del repo contra los 4 puntos de la
+  retroalimentación del profesor: presupuesto de tiempo/cómputo
+  (pendiente desde la Sesión 1, que nunca se ejecutó — no existe
+  ningún `.tex` en este repositorio, el paper vive en Overleaf),
+  alcance dialectal declarado desde el inicio (creció de forma
+  incidental, nunca se declaró como decisión de alcance), validación
+  de datos sintéticos (ya bien cubierta, Sesiones 10-11) y conjunto de
+  prueba independiente (ya bien resuelto por diseño, Sesión 12).
+- Detectado que "governance model", que el syllabus pide
+  explícitamente para el Project Advance 2, no tenía ninguna sesión
+  asignada en el calendario interno de 60 sesiones — se trata como
+  trabajo nuevo, no como algo ya en curso que se retrasó.
+- Escrito `docs/presupuesto_tiempo_computo.md`: 5-8h/semana por
+  integrante (dato real dado por el equipo, no inventado), ninguna
+  máquina del equipo con GPU utilizable (ya confirmado en la práctica,
+  Sesión 13-14), todo el cómputo pesado en Colab gratuito, costo total
+  de cómputo del proyecto a la fecha: $0.
+- Escrito `docs/alcance_banco_semillas.md`: declara formalmente los 5
+  dialectos cubiertos (Caribeña, Andina, Rioplatense, Mexicana,
+  Chilena) y los tipos de expresión, con la justificación de por qué
+  esos 5 y no otros, y declarando explícitamente como limitación
+  conocida los dialectos NO cubiertos (español peninsular, Caribe
+  insular) — honesto sobre que la cobertura creció de forma
+  incremental (Sesiones 4 y 9) en vez de decidirse toda de una vez.
+- Escrito `docs/modelo_gobernanza.md`: roles y decisiones del equipo
+  (quién es dueño de qué área), gobernanza de datos (qué se versiona,
+  qué nunca se persiste en producción), gobernanza de modelos
+  (versionado de adaptadores, criterio de checkpoint final, cuándo
+  re-entrenar), gobernanza de proceso/código (git hook, Conventional
+  Commits, política de Colab, `CLAUDE.md`) y riesgos éticos.
+- Actualizado `docs/fase2_arquitectura_borrador.md` (que se había
+  quedado en la Sesión 18, antes del entrenamiento completo): agregada
+  la sección de resultados del entrenamiento completo con validación
+  (Sesión 19), el sobreajuste real detectado y manejado, la
+  comparación honesta contra la línea base (Sesión 20), una
+  explicación explícita de por qué el split de prueba es
+  genuinamente independiente (con el caso de "tinto" como evidencia
+  empírica de que no hay fuga de datos), una hoja de ruta a 15 días, y
+  referencias cruzadas a los 3 documentos nuevos de arriba.
+- Actualizado `docs/README.md` para listar los 3 documentos nuevos.
+
+Decisiones tomadas:
+- No se inventó el número de horas/semana ni se asumió acceso a GPU
+  paga — se preguntó directamente al equipo antes de escribir
+  `presupuesto_tiempo_computo.md`, siguiendo la misma política de no
+  inventar datos que rige el resto del proyecto.
+- El alcance dialectal se declara "cerrado" de aquí en adelante
+  (`docs/alcance_banco_semillas.md`): ampliarlo requiere una decisión
+  explícita documentada en `BITACORA.md`, no debe volver a crecer de
+  forma incidental dentro de otra sesión.
+- Se prioriza, con acuerdo del equipo, enfocar los próximos 15 días en
+  lo que exige la entrega (API mínima, containerización, seguridad,
+  observabilidad, evaluación automática/humana, compilación del paper)
+  por encima de seguir al pie de la letra cada prompt del calendario
+  original si el tiempo aprieta — ver hoja de ruta en
+  `docs/fase2_arquitectura_borrador.md` §8.5.
+
+Pendiente: integrar estos 4 documentos nuevos al `.tex` real en
+Overleaf (pendiente de acceso — el link compartido pedía login y la
+extensión de navegador del equipo no estaba disponible en esta
+máquina; se le pidió al equipo exportar el `.zip` del proyecto como
+alternativa). Seguir con las Sesiones 21 en adelante (evaluación
+automática) priorizando lo que exige la entrega, según la hoja de ruta
+de arriba.
+
+## Sesión 1 (por fin) — 2026-09-17 — Paula Lozano
+
+El equipo compartió el `.tex` real del paper de Fase 1 (vivía solo en
+Overleaf, nunca en este repositorio) para poder avanzar en la entrega
+de Fase 2. Al revisarlo, los 5 problemas que la Sesión 1 original
+(Anderson, Semana 1) debía corregir **seguían ahí, intactos** — esa
+sesión nunca se ejecutó de verdad. Se corrige ahora, con los datos
+reales que faltaban.
+
+Qué se hizo:
+- Traído el `.tex` al repositorio (`paper/main.tex` +
+  `paper/README.md`) — antes era el único artefacto del proyecto sin
+  control de versiones ni trazabilidad en `BITACORA.md`.
+- **Presupuesto de tiempo/cómputo**: reemplazado el placeholder
+  `[completar: ...]` con las cifras reales confirmadas con el equipo
+  (5-8h/semana por integrante, ninguna máquina con GPU utilizable,
+  todo el cómputo pesado en Colab gratuito) — mismos datos que
+  `docs/presupuesto_tiempo_computo.md`.
+- **Las 4 oraciones que perdieron los guiones largos**: corregidas,
+  restaurando los incisos con `—` donde se habían vuelto oraciones
+  corridas (Sección 1.2 "Tampoco faltan herramientas de nicho...",
+  Sección 1.2 "Ninguno de los dos extremos...", Sección 1.3 "Es un
+  problema de otra naturaleza...", Sección 3.1 "...ninguno de estos
+  trabajos propone una solución de fine-tuning...").
+- **Etiqueta "(Path A)"/"(Path B)"**: revisado el documento completo —
+  esa etiqueta no existe en ninguna parte del `.tex` real, la sección
+  de preguntas de investigación nunca la tuvo. No se inventó ni se
+  forzó su inserción donde no encaja con el contenido real; se deja
+  constancia aquí de que este punto específico de la Sesión 1 original
+  no aplica a este documento tal como existe.
+- **Resumen (abstract)**: agregada una oración que anticipa la
+  distinción entre pregunta de investigación y propuesta de producto,
+  antes de que el cuerpo del documento la desarrolle en la Sección 4.2.
+- **Sección de Contribuciones**: no reflejaba ni la extensión a
+  lenguas indígenas (sí mencionada en el cuerpo, Sección 2.3) ni la
+  propuesta de producto (Tabla 2, Sección 4.2) — agregados dos puntos
+  nuevos a la lista de contribuciones cubriendo ambos.
+- Verificado que ninguna cita nueva se agregó sin existir ya en la
+  bibliografía (no se tocaron citas, solo prosa).
+
+Decisiones tomadas:
+- El `.tex` pasa a vivir en `paper/main.tex` dentro del repositorio,
+  no solo en Overleaf — la sincronización entre ambos por ahora es
+  manual (copiar/pegar); se deja anotado en `paper/README.md` que
+  integrar Overleaf con Git eliminaría esta fricción, sin hacerlo
+  todavía por no ser parte de esta entrega.
+- Se versiona `main.pdf` (no solo `main.tex`) como evidencia de
+  compilación limpia en el momento del commit; los artefactos
+  intermedios (`.aux`, `.log`, `.out`) se ignoran vía `.gitignore`.
+
+Pendiente: sincronizar estos cambios de vuelta a Overleaf (pegar el
+contenido corregido de `paper/main.tex`) para que el resto del equipo
+seguir editando ahí no sobrescriba estas correcciones sin darse cuenta.
+Falta también integrar al `.tex` los documentos nuevos de Fase 2
+(`docs/fase2_arquitectura_borrador.md`, `docs/alcance_banco_semillas.md`,
+`docs/modelo_gobernanza.md`, `docs/presupuesto_tiempo_computo.md` ya
+integrado en el cuerpo) como nuevas secciones, planeado para más
+adelante en esta misma fase, no en esta sesión puntual.
+
+Pruebas de aceptación verificadas:
+- `pdflatex -interaction=nonstopmode main.tex` corrido dos veces
+  seguidas, exit code 0 ambas veces, 0 "Overfull hbox" (`grep -ic
+  overfull` = 0), 13 páginas.
+- Búsqueda de `[completar` en el archivo: sin resultados.
+- Búsqueda de "Path A"/"Path B": sin resultados en el documento real
+  (ver nota arriba, no aplica a este `.tex`).
+- Lectura del resumen: menciona explícitamente la distinción
+  investigación/producto.
+
+## Sesión 21 — 2026-09-17 — Paula Lozano
+
+Implementar métricas automáticas (BLEU, chrF).
+
+Qué se hizo:
+- Escrito `evaluation/metricas_automaticas.py`: recibe un archivo de
+  predicciones y uno de referencias (mismo formato que `test.json`)
+  por parámetro de línea de comandos (`--predicciones`,
+  `--referencias`, `--campo-prediccion` configurable, `--salida`
+  opcional) — nada hardcodeado, reutilizable con cualquier generador o
+  checkpoint futuro sin tocar el código. Empareja predicción con
+  referencia por `texto_dialectal` exacto (no por `seed_id`, que no es
+  único porque cada semilla tiene varias variantes), reportando
+  cuántas predicciones quedaron sin referencia en vez de fallar en
+  silencio. Calcula BLEU y chrF (`sacrebleu`) global y desglosado por
+  dialecto.
+- Instalado `sacrebleu` de forma aislada (ya estaba en
+  `requirements.txt`) — es cómputo de texto puro, sin GPU, así que no
+  aplica la política de Colab-únicamente (esa es para entrenamiento/
+  inferencia con el modelo, no para calcular una métrica de texto).
+- Corrido sobre las predicciones reales del modelo ajustado con LoRA
+  (`finetuning/checkpoints/generador1/salidas_con_adapter.json`,
+  Sesión 19-20) contra `generation/splits/dataset_generador1/test.json`:
+  reporte generado sin errores, BLEU 47.21 / chrF 59.71 global, con
+  desglose por dialecto (`evaluation/reporte_metricas_generador1.md`).
+- Aprovechando que el script es genérico, corrido también sobre las
+  predicciones de la línea base sin ajustar
+  (`finetuning/baseline_sin_ajustar_salidas.json`, campo distinto vía
+  `--campo-prediccion traduccion_modelo_sin_ajustar`): BLEU 38.18 /
+  chrF 48.33 global (`evaluation/reporte_metricas_baseline.md`) — la
+  primera comparación **cuantitativa** entre ambos modelos del
+  proyecto (antes solo había comparación cualitativa, Sesión 20).
+- Agregada esta comparación a `evaluation/comparacion_base_vs_ajustado.md`
+  (que ya tenía la comparación cualitativa) en vez de crear un
+  documento aparte, para que quede una sola fuente de verdad sobre
+  "cómo le fue al modelo ajustado frente al base".
+
+Hallazgo que no se maquilla: la mejora global es clara (+9.03 BLEU,
++11.38 chrF), pero el desglose por dialecto no es parejo — Andina y
+Rioplatense mejoran mucho, pero **Mexicana empeora en BLEU** (63.66 →
+55.12) pese a mejorar levemente en chrF. Con solo 2 ejemplos por
+dialecto en esta muestra, es más probable que sea ruido estadístico
+que una señal real de que el ajuste perjudica ese dialecto, pero se
+documenta la cifra tal cual, sin la conclusión de "es solo ruido" sin
+evidencia que la respalde.
+
+Decisiones tomadas:
+- El emparejamiento es por `texto_dialectal`, no por `seed_id` —
+  decisión de diseño necesaria porque el prompt original solo mencionó
+  "mismo formato que test.json" sin especificar la llave, y `seed_id`
+  no identifica una variante única.
+- No se generaron predicciones nuevas para cerrar la cobertura del
+  `test.json` completo (23 ejemplos) — estas métricas corren solo
+  sobre los 8 ejemplos que ya tenían predicción de antes (35% del
+  test set). Generar las 15 restantes es solo inferencia (mucho más
+  barato que entrenar), pero de todas formas requiere cargar el modelo
+  de 3B con el adaptador, así que sigue la política de Colab del
+  proyecto — no se hizo en esta sesión para no bloquear el resto del
+  flujo, queda documentado como pendiente explícito, no oculto.
+
+Pruebas de aceptación verificadas: el script corrió sobre el `test.json`
+del Generador 1 usando las predicciones del modelo ajustado, produjo
+un reporte con BLEU y chrF global y por dialecto, sin errores.
+
+Pendiente: generar predicciones del modelo ajustado sobre los 15
+ejemplos restantes de `test.json` (inferencia en Colab) para tener
+BLEU/chrF representativos del test set completo antes de reportar
+estas cifras como definitivas en el paper. Seguir con la Sesión 22
+(reclutar hablantes nativos evaluadores).
+
+## Sesión 22 — 2026-09-17 — Paula Lozano
+
+Reclutar hablantes nativos evaluadores. Creados
+`evaluation/reclutamiento_evaluadores.md` (mensaje de reclutamiento +
+formulario de filtro que evita "¿de dónde eres?" ambiguo, preguntando
+específicamente dónde creció y qué variante habla a diario) y
+`evaluation/evaluadores.csv` (plantilla de seguimiento, objetivo 3 por
+cada uno de los 5 dialectos = 15 mínimo).
+
+**No se pobló el CSV con contactos reales ni de ejemplo** — contactar
+gente de verdad es una acción humana que el equipo tiene que hacer
+fuera del repositorio; inventar filas ahí rompería la trazabilidad real
+de quién evaluó qué en la Sesión 24. Pendiente: que el equipo contacte
+gente real y llene el CSV a medida que confirmen.
+
+## Sesión 23 — 2026-09-17 — Mariana Malagón
+
+Diseñar rúbrica de evaluación humana. Creado
+`evaluation/rubrica_humana.md`: escala 1-5 de retención de matices con
+definición explícita de cada punto, instrucciones para el evaluador, y
+3 ejemplos de calibración tomados de datos reales del proyecto
+(`evaluation/comparacion_base_vs_ajustado.md`), incluyendo el caso ya
+conocido de "tinto" (calificado 1, significado invertido).
+
+Pendiente: la calibración cruzada entre dos personas del equipo
+(criterio de aceptación del prompt original) todavía no se hizo —
+requiere que dos personas califiquen los mismos 5 ejemplos por
+separado, algo que no puedo simular yo solo sin inventar una segunda
+opinión falsa. Queda para el equipo antes de la Sesión 24.
+
+## Sesión 25 — 2026-09-17 — Anderson García
+
+Construir wrapper de API REST (FastAPI).
+
+Qué se hizo:
+- Escrito `api/main.py`: `POST /traducir` (texto + dialecto opcional
+  → traducción) y `GET /salud`. El modelo se carga una sola vez al
+  iniciar el servicio (`lifespan` de FastAPI), no por solicitud.
+  Reutiliza `cargar_modelo`/`traducir` de `finetuning/probar_baseline.py`
+  (ya validadas en las Sesiones 13/19-20) más el adaptador LoRA del
+  Generador 1 (`finetuning/checkpoints/generador1/adapter/`) vía
+  `PeftModel.from_pretrained`.
+- Los imports pesados (`torch`, `transformers`, `peft`) quedan
+  DENTRO de la función de carga, no al inicio del módulo — así el
+  archivo se puede importar y probar sin esas dependencias instaladas.
+  Con `SKIP_MODEL_LOAD=1` el servicio arranca sin cargar el modelo
+  real, exclusivamente para pruebas de la capa de API.
+- Escrito `api/test_main.py` (7 pruebas, con `TestClient` y el modelo
+  mockeado): `/salud` responde 200; `/traducir` sin modelo cargado
+  responde 503; con el modelo mockeado responde 200 con la forma
+  correcta; texto vacío o solo espacios se rechaza (400); texto de más
+  de 500 caracteres o sin el campo `texto` se rechaza (422). **Las 7
+  pasan.**
+- `api/README.md` con ambos flujos (levantar con modelo real vs.
+  correr las pruebas sin él). Agregados `pytest` y `httpx` a
+  `requirements.txt` (no estaban).
+
+Decisiones tomadas:
+- **No se pudo cumplir el criterio de aceptación completo del prompt
+  original** ("hacer una solicitud real con curl... confirmar que
+  devuelve una traducción coherente en pocos segundos") — esta máquina
+  no tiene `torch`/`peft` instalados ni GPU, y descargar+cargar el
+  modelo de 3B contradice la política de cómputo del proyecto
+  (Colab/despliegue, no local). Se optó por probar exhaustivamente la
+  CAPA de API con el modelo mockeado (que sí es 100% real y pasa), y
+  dejar la prueba con el modelo real explícitamente pendiente para
+  Colab o el entorno de despliegue (Sesión 26) — no se fingió una
+  traducción de ejemplo para simular que sí se probó.
+- Se agregó validación básica de longitud (500 caracteres) y de texto
+  vacío ya en esta sesión, adelantando una porción pequeña de la
+  Sesión 28 (seguridad), porque era prácticamente gratis con Pydantic
+  y evita que la Sesión 28 tenga que tocar el modelo de datos desde
+  cero. El resto de la Sesión 28 (rate limiting, garantías de no
+  persistencia) sigue sin hacer.
+
+Pruebas de aceptación: `SKIP_MODEL_LOAD=1 python -m pytest api/test_main.py -v`
+→ 7 passed. Pendiente (no cumplido en esta sesión): levantar el
+servicio con el modelo real y confirmar con `curl` una traducción
+coherente — requiere Colab o el entorno de despliegue.
+
+Pendiente: Sesión 26 (despliegue en la nube — requiere que alguien del
+equipo cree una cuenta en la plataforma elegida, no es algo que se
+pueda hacer sin esa decisión/acceso humano) y completar la Sesión 28
+(rate limiting, garantía de no persistencia).
+
+## Sesión 25 — 2026-09-17 (2) — Anderson García
+
+Cierre de la prueba de aceptación pendiente: sí se pudo levantar el
+servicio localmente con el modelo real.
+
+Contexto: la Sesión 25 (arriba) asumió que esta máquina "no tiene
+`torch`/`peft` instalados ni GPU" y difirió la prueba completa a
+Colab/despliegue. Al retomar la tarea, confirmado que `torch`,
+`transformers`, `peft`, `fastapi` y `uvicorn` **sí están instalados**
+en el entorno local (mismo `.venv` usado en las Sesiones 13-20 para
+probar el baseline y el LoRA) — la premisa de la Sesión 25 era
+incorrecta, o el entorno cambió desde entonces. Con eso, sí se pudo
+correr la prueba real pendiente.
+
+Qué se hizo:
+- Levantado `uvicorn api.main:app` localmente con el modelo real (sin
+  `SKIP_MODEL_LOAD`) — el adaptador de `finetuning/checkpoints/generador1/`
+  cargó sin errores.
+- `GET /salud` → `200 {"estado":"ok"}` en ~7ms.
+- `POST /traducir` con `"Que chimba, parcero!"` (dialecto "Andina") →
+  `200 {"traduccion":"That's awesome, buddy!","dialecto":"Andina"}`
+  en **79.4s**. Traducción correcta y coherente.
+- Segunda solicitud (`"No manches, esta bien bacano."`) → `200
+  {"traduccion":"No way, this is really cool."}` en **49.8s** — más
+  rápida que la primera (sin costo de arranque en frío) pero
+  igualmente lejos del objetivo.
+- Corridas también las 7 pruebas de la capa de API
+  (`SKIP_MODEL_LOAD=1 python -m pytest api/test_main.py -v`): siguen
+  pasando las 7, sin cambios de comportamiento.
+- Actualizados `api/main.py` (docstring) y `api/README.md` con los
+  números reales medidos, reemplazando la afirmación de que la prueba
+  "no se pudo hacer en esta máquina".
+
+**Resultado honesto — funciona pero NO cumple el criterio de
+latencia**: las traducciones son correctas y coherentes en las dos
+solicitudes probadas, y `/salud` responde 200 casi instantáneo. Pero
+`/traducir` tardó 50-80 segundos por solicitud en CPU local, muy por
+encima de "unos pocos segundos" que pedía el criterio de aceptación
+original. No se maquilla este resultado como un éxito completo: es un
+**éxito funcional, no de latencia**. Cumplir la latencia objetivo
+necesita GPU — consistente con la política de cómputo pesado del
+proyecto y con todo lo ya documentado sobre esta misma máquina
+(Sesiones 13/14/19).
+
+Decisiones tomadas:
+- No declarar cumplido el criterio de "unos pocos segundos" solo
+  porque la solicitud sí terminó — el criterio es explícito sobre el
+  tiempo, y 50-80s no lo cumple bajo ningún criterio razonable. Se deja
+  registrado como hallazgo real, no como un pendiente sin evidencia.
+- No repetir esta misma prueba en Colab en esta sesión — el objetivo
+  era cerrar la prueba LOCAL que había quedado pendiente (eso ya se
+  hizo, con resultado real). Medir la latencia real en GPU queda para
+  cuando se levante el servicio de verdad en el entorno de despliegue
+  (Sesión 26), que es además el número donde ya se documentó este
+  pendiente.
+
+Pruebas de aceptación (revisadas): el checkpoint carga sin errores
+✅; `/salud` responde 200 ✅; `/traducir` devuelve una traducción
+coherente ✅; "en menos de unos pocos segundos" ❌ en CPU local (50-80s)
+— cumplido functionalmente, no en latencia.
+
+Pendiente: medir la latencia real de `/traducir` con GPU (Colab o el
+entorno de despliegue de la Sesión 26) para confirmar si ahí sí se
+cumple el objetivo de "unos pocos segundos" — probablemente sí, dado
+que las generaciones individuales en Colab durante las Sesiones 14/19
+fueron notablemente más rápidas que en CPU, pero no se midió un
+número exacto todavía.
+
+## Sesión 26 — 2026-09-17 — Anderson García
+
+Elegir plataforma de despliegue y preparar el servicio (EN CURSO —
+falta que alguien del equipo cree el Space de verdad y se corra la
+prueba de aceptación desde otra máquina).
+
+Qué se hizo:
+- **Investigadas las 3 plataformas sugeridas contra el tamaño real
+  del modelo (~6.5GB en memoria)**, con búsquedas web para confirmar
+  límites vigentes en 2026 (no de memoria):
+  - **Render**: free tier de 512MB RAM — descartado, ni de cerca
+    alcanza.
+  - **Railway**: ya no tiene free tier permanente — trial único de $5
+    (30 días, 1GB RAM), después baja a 0.5GB RAM — descartado, no
+    alcanza y no es sostenible.
+  - **Hugging Face Spaces con SDK Docker** (lo que habría hospedado
+    `api/main.py`/FastAPI tal cual): el hardware "CPU Basic" (16GB
+    RAM) sigue siendo gratis, pero **crear un Space con SDK Docker
+    pasó a requerir plan PRO de pago en 2026** (cambio de política de
+    HF, confirmado en la documentación oficial) — descartado para
+    mantenerse gratis.
+  - **Hugging Face Spaces con SDK Gradio + hardware ZeroGPU**: cuentas
+    personales gratuitas (correo verificado, +30 días de antigüedad)
+    pueden alojar hasta 2 Spaces gratis, con GPU real asignada solo
+    durante cada generación. Cuota diaria: 5 min/día autenticado, 2
+    min/día sin autenticar — de sobra para pruebas puntuales, sin
+    ningún cobro si se agota (solo cola hasta el otro día). **Elegida**
+    — de paso resuelve la latencia de 50-80s en CPU (Sesión 25).
+  - **También evaluado, a pedido del usuario: AWS Academy Learner
+    Lab** (ya tiene acceso). Descartado tras confirmar dos datos
+    reales con el usuario: la sesión del lab se apaga sola a los **40
+    minutos** (necesitaría reactivación manual constante, incompatible
+    con "servicio disponible para probar en cualquier momento desde
+    otra máquina"), y los **$48 de crédito restantes se comparten con
+    el resto de la materia** (no conviene arriesgarlos en esto).
+- Escrito `api/space/app.py`: reescritura del mismo servicio como app
+  de Gradio (no FastAPI) — reutiliza el mismo `SYSTEM_PROMPT` y formato
+  de prompt que `probar_baseline.py`/`api/main.py`, sin reinventar
+  nada. Requisito técnico de ZeroGPU cumplido: el modelo se carga a
+  nivel de módulo (no dentro de una función), y solo la función de
+  generación lleva `@spaces.GPU`. Expone `traducir(texto, dialecto)` y
+  `salud()` como funciones de la API de Gradio (`api_name`).
+- Copiado el adaptador (`finetuning/checkpoints/generador1/adapter/`)
+  a `api/space/adapter/` para que la carpeta del Space sea
+  autocontenida (lo que se sube a HF es exactamente `api/space/`, sin
+  arrastrar el resto del proyecto).
+- **Verificado localmente antes de desplegar** (sin GPU real — el
+  decorador `@spaces.GPU` es un no-op fuera de un Space, documentado
+  así oficialmente): levantada la app con `python api/space/app.py`,
+  probados ambos endpoints con `gradio_client` Y con `curl` puro
+  (confirmado el patrón de dos pasos que usa la API HTTP de Gradio:
+  `POST /gradio_api/call/<nombre>` devuelve un `event_id`, y
+  `GET /gradio_api/call/<nombre>/<event_id>` da el resultado). `salud`
+  → `"ok"` en ~1.6s; `traducir("Que chimba, parcero!")` →
+  `"That's awesome, buddy!"` en 68s (consistente con los 50-80s ya
+  medidos para el FastAPI en CPU local — confirma que corre en CPU
+  sin GPU real, como se esperaba fuera de un Space de verdad).
+- No se encontró ninguna clave/credencial escrita en el código de
+  `api/space/` — el modelo base es público, no hace falta `HF_TOKEN`
+  para que funcione. Documentado en `docs/despliegue.md` cómo se
+  configuraría un secreto vía la UI de Settings de HF si hiciera falta
+  en el futuro (ej. al cambiar a Llama 3.2, que sí lo necesita).
+- Escrito `docs/despliegue.md`: paso a paso completo (crear el Space,
+  subir el código por UI o por git, activar ZeroGPU, variables de
+  entorno, esperar el build, comandos exactos de `curl` para probar
+  ambos endpoints, cómo redesplegar si algo falla).
+
+Decisiones tomadas:
+- Reescribir como Gradio en vez de pagar HF PRO para mantener FastAPI
+  — el objetivo explícito era una plataforma accesible con capa
+  gratuita para un equipo de estudiantes; pagar contradice eso.
+  `api/main.py` (FastAPI) se deja intacto en el repo como el servicio
+  de referencia/desarrollo local; `api/space/app.py` es la variante de
+  despliegue.
+- Duplicar el adaptador (~15MB) en vez de referenciarlo por ruta
+  relativa cruzada — simplicidad: lo que se sube al Space es
+  exactamente esa carpeta autocontenida, sin depender de la estructura
+  del resto del repo.
+- No crear el Space real en esta sesión — requiere la cuenta de HF de
+  un integrante del equipo (con correo verificado y +30 días de
+  antigüedad) y es una acción que le corresponde a una persona, no
+  algo que se deba automatizar sin su decisión explícita.
+
+Pruebas de aceptación (parcial): el código funciona de punta a punta
+localmente (probado con `curl` real, no solo unitarios) ✅; sin claves
+en el código ✅; documentación paso a paso completa ✅. **Falta la
+prueba real** (crear el Space con una cuenta del equipo, y correr
+`curl` contra la URL pública desde una máquina distinta a la que
+despliega) — no se puede simular sin ese acceso humano.
+
+Pendiente: crear el Space en Hugging Face con la cuenta de un
+integrante del equipo, confirmar que ZeroGPU está activo, correr la
+prueba de aceptación real desde otra máquina, y completar
+`docs/despliegue.md` con la URL pública y el resultado medido
+(traducción + tiempo de respuesta real en GPU).
+
+## Sesión 26 — 2026-09-17 (2) — Anderson García
+
+Qué se hizo: bug encontrado inmediatamente después del commit
+anterior: la
+excepción de `.gitignore` para adaptadores LoRA
+(`!finetuning/**/adapter/*.safetensors`) estaba acotada a la carpeta
+`finetuning/` — `api/space/adapter/adapter_model.safetensors` (los
+pesos reales del adaptador que se sube al Space) quedó **fuera del
+commit** sin que `git commit` avisara nada raro (el archivo
+simplemente nunca se agregó a `git add`, sin error visible).
+Descubierto al revisar el resumen del commit y notar que
+`adapter_model.safetensors` no aparecía en la lista de archivos
+creados. Corregido generalizando el patrón a `!**/adapter/*.safetensors`
+/ `!**/adapter/*.bin` (sin acotar a una carpeta), y confirmado con
+`git status` que el archivo ahora sí queda staged.
+
+Pendiente (sin cambios): el mismo de la entrada anterior.
+
+## Sesión 26 — 2026-09-18 — Anderson García
+
+Bloqueo real encontrado al intentar crear el Space de verdad: la
+elegibilidad de la excepción gratuita de ZeroGPU es más estricta en la
+práctica que lo que sugería la documentación de HF (que hablaba de
+"cuentas personales gratuitas en buen estado" sin más detalle
+visible). En la pantalla real de creación de Space
+(`huggingface.co/new-space`), tanto Gradio como Docker aparecen
+bloqueados de una con un badge "Paid" — no hay ninguna opción de
+elegir ZeroGPU específicamente en ese paso para evitar el bloqueo,
+contrario a lo que se esperaba tras leer la documentación.
+
+Qué se hizo:
+- Verificado en la práctica (captura de pantalla real del usuario en
+  `huggingface.co/new-space`): SDK Gradio y Docker muestran "Paid" de
+  entrada; el mensaje exacto es *"Gradio and Docker Spaces require a
+  paid plan / Static Spaces stay free for everyone. To create a Space
+  that runs on compute, subscribe to PRO."* — sin mención de la
+  excepción de ZeroGPU en esa pantalla.
+- Investigado un hilo de la comunidad de HF
+  (discuss.huggingface.co) que confirma que el mensaje real dice
+  específicamente *"hosting Gradio and Docker Spaces on free
+  **cpu-basic** requires a PRO subscription"* — no hay confirmación
+  pública de un flujo alternativo para activar la excepción de
+  ZeroGPU directamente desde el asistente de creación.
+- Descartada la hipótesis de que el bloqueo fuera por el SDK en sí:
+  confirmado con el usuario que su cuenta de HF **sí tiene el correo
+  verificado** (`huggingface.co/settings/account`) — un requisito
+  cumplido.
+- **Causa real confirmada**: la cuenta se creó el **2026-09-02**
+  (Sesión 13, para el intento de acceso a Llama 3.2) — a fecha de hoy
+  (2026-09-18) tiene **16 días**, por debajo del requisito de **+30
+  días** que pide Hugging Face para la excepción gratuita de ZeroGPU
+  en cuentas personales. Es la causa más probable del bloqueo (aunque
+  no se pudo confirmar 100% que desaparezca automáticamente al cumplir
+  los 30 días, dado que la pantalla de creación tampoco mostró la
+  excepción explícitamente en ningún punto).
+
+Decisiones tomadas (con el usuario):
+- **No usar la cuenta de otro integrante del equipo** para saltarse la
+  espera — se prefirió esperar con la cuenta propia.
+- **No bloquear el resto del proyecto por esto**: seguir avanzando en
+  otras sesiones mientras se cumple la antigüedad de cuenta, y retomar
+  el despliegue real cuando la cuenta cumpla 30 días
+  (**~2026-10-02**).
+- Todo el código y la documentación de despliegue (`api/space/`,
+  `docs/despliegue.md`) ya están listos y no necesitan ningún cambio
+  para cuando se retome — el único bloqueo es la elegibilidad de la
+  cuenta, no el trabajo técnico.
+
+Pendiente: retomar el despliegue real a partir de **2026-10-02**
+(cuando la cuenta de HF cumpla 30 días) — crear el Space, confirmar
+que ya no aparece el bloqueo de "Paid" con ZeroGPU seleccionado,
+subir `api/space/`, y correr la prueba de aceptación real desde otra
+máquina. Si para entonces sigue bloqueado pese a los 30 días,
+contactar soporte de HF o usar la cuenta de otro integrante del equipo
+como plan B.
+
+## Sesión 27 — 2026-09-18 — Anderson García
+
+Contenerizar el servicio de la API (Docker/Podman) — cerrada con
+evidencia real, tras un diagnóstico largo de un crash reproducible.
+
+Contexto: Docker Desktop no se pudo instalar en esta máquina (error de
+instalación); se usó **Podman** como alternativa, con `podman machine`
+corriendo una VM Linux sobre WSL2 en Windows.
+
+Qué se hizo:
+- Escrito `Dockerfile` (imagen `python:3.11-slim`, sin dependencias
+  del sistema operativo — todo instala desde wheels precompilados),
+  `docker-compose.yml`, `.dockerignore`, y `api/requirements.txt`
+  (dependencias puntuales del servicio, no el `requirements.txt`
+  completo del proyecto — mismo criterio ya usado en
+  `entrenar_lora_colab.ipynb` y `api/space/requirements.txt`).
+  `COPY` explícito y puntual (no `COPY . .`) de solo lo que el
+  servicio necesita: `api/main.py`, `finetuning/probar_baseline.py`,
+  y el adaptador de `finetuning/checkpoints/generador1/adapter/`.
+- **Bug real #1 — `podman-compose` en Windows ignora el campo
+  `dockerfile:`**: con `Dockerfile`/`docker-compose.yml` dentro de
+  `api/` y `context: ..` + `dockerfile: api/Dockerfile`, `podman-compose
+  --verbose` mostró que el comando de build generado ni siquiera
+  incluía el flag `-f` — construía buscando un Dockerfile en la raíz
+  del contexto (donde no está) y fallaba. Confirmado que es un bug de
+  la herramienta (no de la config: `podman-compose config` sí
+  mostraba la ruta resuelta correctamente, solo el build real la
+  ignoraba). Resuelto moviendo `Dockerfile` y `docker-compose.yml` a
+  la **raíz del repo** (contexto = mismo directorio, sin necesitar ese
+  campo).
+- **Bug real #2 — reenvío de puertos de Podman/gvproxy en Windows**:
+  con el contenedor corriendo y `podman port` mostrando
+  `0.0.0.0:8000->8000/tcp` correctamente, `curl http://127.0.0.1:8000/...`
+  y `curl http://localhost:8000/...` fallaban con conexión rechazada.
+  Diagnosticado con `netstat`: Windows solo tenía el puerto escuchando
+  en `[::1]:8000` (IPv6 loopback), no en IPv4; probar directo por
+  `[::1]` tampoco respondió de forma confiable. **Workaround real que
+  sí funcionó siempre**: pegarle a la IP propia de la VM de Podman
+  (`podman machine ssh podman-machine-default "ip -4 addr show eth0"`),
+  no a `localhost`.
+- **Bug real #3 (el más largo de diagnosticar) — crash de glibc**:
+  el primer `build` + `run` funcionó perfecto (confirmado con `curl`
+  real: `/salud` 200, `/traducir` con traducción correcta). Los
+  intentos siguientes (probar `docker-compose`, y luego varios
+  reintentos) empezaron a fallar con
+  `Fatal glibc error: malloc.c:2601 (sysmalloc): assertion failed`,
+  el proceso terminando con código 139 (SIGSEGV). Descartadas, en
+  orden, con evidencia real antes de encontrar la causa real:
+  - Corrupción del volumen de caché por haberlo copiado entre
+    volúmenes con un contenedor `alpine` intermedio — descartado: un
+    volumen **nunca antes usado**, con una descarga 100% limpia,
+    también crasheó.
+  - Memoria insuficiente en la VM de Podman/Windows — descartado:
+    cerrar aplicaciones para liberar RAM (de ~8GB a ~9.5GB libres) no
+    cambió nada; la VM siempre reportó suficiente memoria disponible
+    (`free -h`) al momento del crash.
+  - Inestabilidad acumulada de la VM tras varias horas de uso —
+    parcialmente cierto (se encontró un error real de `binfmt_misc` en
+    el filesystem de la VM), pero un `podman machine stop`+`start` no
+    lo resolvió por sí solo.
+  - Espacio en disco — descartado: 948GB libres de 1TB en la VM en
+    todo momento.
+  - **Causa real, aislada con un contenedor mínimo** (`python -c
+    "import torch"`, sin nuestro código ni el modelo): el crash
+    ocurre en el simple `import torch`. `api/requirements.txt` tenía
+    `torch>=2.3.0` (sin techo), que resolvía a la versión más nueva
+    disponible al momento de esta sesión, **2.14.0+cpu** — esa versión
+    específica crashea con este error de glibc en esta imagen base
+    (`python:3.11-slim`) sobre Podman/WSL2/Windows. **Fijado
+    `torch==2.13.0`** en `api/requirements.txt` (la misma versión ya
+    usada con éxito en toda la máquina local durante el resto del
+    proyecto, no una versión elegida al azar) — el `import torch`
+    mínimo pasó a funcionar de inmediato.
+  - Para descartar cualquier duda de inestabilidad remanente de la VM,
+    se recreó por completo (`podman machine rm` + `init` + `start`,
+    decisión tomada con el usuario tras explicarle que esto borra
+    todas las imágenes/volúmenes de Podman, no los archivos del
+    proyecto) antes de la corrida final.
+- **Prueba de aceptación real, con el fix aplicado y la VM recreada**:
+  `podman build` sin errores; contenedor levantado con `podman run`
+  → `GET /salud` → `200 {"estado":"ok"}` en ~36ms; `POST /traducir`
+  con `"Que nota, marica, quedo bacano!"` → `200 {"traduccion":"What a
+  note, dude, it turned out cool!",...}` en 33.8s, coherente, sin
+  texto corrupto ni repetido. Repetido con `docker-compose up` (vía
+  `python -m podman_compose`, ya que `podman compose` nativo no
+  encontró proveedor instalado en esta máquina) → mismo resultado,
+  `/salud` 200.
+- Documentado todo en `api/README.md` (sección nueva "Contenedor
+  (Docker / Podman)": build, run, compose, y los 3 problemas reales
+  con sus soluciones) y corregida una referencia de sesión mal
+  etiquetada que había quedado de la Sesión 25 (decía "Sesión 27" por
+  error).
+
+Decisiones tomadas:
+- Mover `Dockerfile`/`docker-compose.yml` a la raíz del repo en vez de
+  dentro de `api/` — cambio de plan respecto al diseño inicial, pero
+  necesario para sortear el bug real de `podman-compose` (no una
+  preferencia estética).
+- No declarar terminada la tarea con el primer `build`+`run` exitoso
+  sin más — cuando `docker-compose` empezó a fallar de forma
+  reproducible, se investigó hasta encontrar la causa real (versión de
+  `torch`) en vez de descartarlo como "problema de la máquina" sin
+  evidencia. El diagnóstico documentado aquí (aislar con un contenedor
+  mínimo, descartar memoria/disco/volumen con evidencia real antes de
+  llegar a la causa) queda como referencia para el equipo si algo así
+  vuelve a pasar.
+- Recrear la VM de Podman entera (no solo reiniciarla) fue una
+  decisión consultada con el usuario antes de ejecutarla, por ser una
+  acción más invasiva (borra imágenes/volúmenes existentes de Podman).
+
+Pruebas de aceptación: `docker build`/`podman build` termina sin
+errores ✅; `docker run`/`podman run` (y `docker-compose up`/
+`podman-compose up`) levanta el servicio ✅; `/salud` responde 200
+desde dentro del contenedor corriendo ✅ — los 3 criterios cumplidos
+con evidencia real, no simulada.
+
+Pendiente: cuando el equipo tenga Docker Desktop funcionando en alguna
+máquina, confirmar si el bug #1 (`dockerfile:` ignorado por
+`podman-compose`) también ocurre con `docker compose` nativo, o es
+exclusivo de `podman-compose` en Windows — de ser exclusivo, se podría
+volver a separar `Dockerfile` dentro de `api/` para quien use Docker
+real.
+
+## Sesión 28 — 2026-09-18 — Anderson García
+
+Rate limiting, validación de entrada, y confirmación de privacidad
+(NO persistencia de texto) en el servicio de la API.
+
+Contexto: `api/main.py` ya tenía validación básica de longitud/vacío
+desde la Sesión 25 (adelantada como "porción pequeña de la Sesión
+28"). Esta sesión completa lo que faltaba: rate limiting, y sobre todo
+convertir la promesa de privacidad de `CONTEXTO_PROYECTO.md` ("los
+datos sensibles no salen a una nube de terceros", "es auditable") en
+algo verificable en el código, no solo en un comentario.
+
+Qué se hizo:
+- **Rate limiting**: `_verificar_rate_limit()` — ventana deslizante en
+  memoria, por IP de cliente (`request.client.host`), con
+  `threading.Lock` (los endpoints corren en el threadpool de FastAPI,
+  así que sí hacía falta para seguridad entre hilos, no es solo
+  cosmético). Default 10 solicitudes/60s, configurable por
+  `RATE_LIMIT_MAX_SOLICITUDES`/`RATE_LIMIT_VENTANA_SEGUNDOS`. Al
+  superarse, `429` con mensaje claro y header `Retry-After`. Aplica
+  solo a `POST /traducir` (la operación cara) — `GET /salud` y el
+  `/metricas` nuevo quedan sin límite, a propósito.
+- **Validación de entrada**: la de la Sesión 25 ya cubría vacío/solo-
+  espacios (400) y longitud máxima 500 (422 vía Pydantic) — se dejó
+  igual, ya era correcta.
+- **Errores claros, nunca un stack trace crudo**: agregado
+  `manejador_errores_no_previstos` (captura cualquier `Exception` no
+  prevista → `500` con mensaje genérico entendible, el detalle real
+  solo queda en los logs del servidor) — FastAPI ya no exponía
+  tracebacks por default (`debug=False`), pero ahora queda garantizado
+  explícitamente en el código, no implícito en una configuración que
+  alguien podría cambiar sin darse cuenta de esta consecuencia.
+- **Confirmación de privacidad, hecha verificable, no solo dicha**:
+  agregado `GET /metricas` — SOLO 4 contadores agregados
+  (`total_solicitudes`, `traducciones_exitosas`,
+  `rechazadas_validacion`, `rechazadas_rate_limit`), nunca texto de
+  ninguna solicitud, sin persistencia a disco (se reinician en ceros
+  si el proceso reinicia). Agregado también
+  `manejador_error_validacion` para que los rechazos 422 de Pydantic
+  (que antes no pasaban por el cuerpo de `traducir()`) sí queden
+  contados en `rechazadas_validacion` — sin esto, las métricas
+  quedaban incompletas/engañosas para alguien auditando.
+- Prueba explícita de que la promesa se cumple, no solo se afirma:
+  `api/test_main.py::test_metricas_solo_expone_contadores_agregados`
+  manda un texto de prueba y confirma que NO aparece en la respuesta
+  de `/metricas` (ni el texto de entrada ni la traducción simulada).
+- 4 pruebas nuevas en `api/test_main.py` (11 en total, antes 7):
+  rate limit → 429 tras exceder el límite (con `Retry-After` y mensaje
+  claro), `/salud`/`/metricas` sin límite, métricas solo agregadas, y
+  error no previsto sin traceback expuesto. Agregado un fixture
+  `autouse` que limpia el estado de rate limiting y métricas entre
+  cada prueba — sin esto, las pruebas se habrían contaminado entre sí
+  (todas comparten la misma IP de `TestClient`).
+- **Prueba de aceptación real, con `curl` contra el servicio real
+  corriendo** (no solo `pytest`): 13 solicitudes seguidas a
+  `/traducir` contra el límite de 10/60s → las primeras 10 pasan el
+  rate limit, las 3 siguientes responden `429` con
+  `Retry-After: 60` y mensaje claro. Texto vacío y texto de 600
+  caracteres (límite 500) → ambos `422` con mensaje entendible en
+  `detail`, ningún `500`.
+- Sección nueva "Seguridad y privacidad" en `api/README.md`: qué SÍ
+  hace el servicio (rate limiting, validación, errores claros) y qué
+  NO hace (no persiste ni loguea texto, `/metricas` solo agregados,
+  sin persistencia de ningún tipo) — con cómo verificarlo cada punto,
+  no solo la afirmación.
+
+Decisiones tomadas:
+- Rate limiting en memoria (no Redis/almacén externo) — correcto para
+  una sola instancia del servicio (el estado actual del proyecto,
+  `CONTEXTO_PROYECTO.md`); agregar esa dependencia ahora habría sido
+  complejidad sin beneficio real todavía. Documentado explícitamente
+  como limitación a revisar si el servicio se escala a varias
+  instancias.
+- Agregar `GET /metricas` no lo pedía el prompt explícitamente, pero
+  la frase "confirma explícitamente... (solo métricas agregadas, no el
+  texto en sí)" pedía que la promesa de privacidad fuera verificable,
+  no solo un comentario — un endpoint real con una prueba que
+  confirma que no filtra texto es más convincente para "auditable" que
+  solo decirlo en la documentación.
+- Agregado el manejador de `RequestValidationError` (para contar los
+  422 de Pydantic en las métricas) tras notar, probando en vivo, que
+  `/metricas` mostraba `rechazadas_validacion: 0` pese a haber
+  rechazado texto vacío y texto largo — una métrica "agregada" que no
+  cuenta todo lo que dice contar no sirve para auditar nada.
+
+Pruebas de aceptación: `api/test_main.py` 11/11 pasan ✅; rate limiting
+real con `curl` → `429` en la solicitud 11 en adelante, con
+`Retry-After` y mensaje claro ✅; texto vacío/demasiado largo → `422`
+con mensaje entendible, nunca `500` ✅.
+
+Pendiente: ninguno específico de esta sesión — los 3 puntos pedidos
+(rate limiting, validación, confirmación de privacidad) y el criterio
+de calidad (errores claros, no stack traces) quedaron cumplidos con
+evidencia real, tanto en `pytest` como contra el servicio real
+corriendo.
+
+## Sesión 29 — 2026-09-20 — Mariana Malagón
+
+Logging/observabilidad (calidad por dialecto, latencia).
+
+Qué se hizo:
+- Extendido `api/main.py`: `POST /traducir` ahora mide la latencia real
+  de `_generar_traduccion` (`time.monotonic()` antes/después) y la
+  registra en `METRICAS_POR_DIALECTO[dialecto]`, y devuelve un
+  `solicitud_id` aleatorio (no reversible al texto) además de la
+  traducción.
+- Nuevo `POST /retroalimentacion`: recibe `{solicitud_id, es_correcta}`,
+  busca el dialecto asociado a ese `solicitud_id` (guardado solo como
+  `id -> dialecto`, nunca texto) y actualiza el conteo de
+  retroalimentación positiva/total de ese dialecto. `404` si el
+  `solicitud_id` no existe o ya se usó (evita votar dos veces con el
+  mismo id).
+- `GET /metricas` ahora agrega `por_dialecto`: por cada dialecto,
+  `solicitudes`, `latencia_promedio_seg` y `tasa_retroalimentacion_positiva`
+  — todo agregado, nunca texto.
+- 8 pruebas nuevas en `api/test_main.py` (15 en total): latencia
+  promedio correcta, retroalimentación positiva reflejada en métricas,
+  `solicitud_id` inválido rechazado, un mismo `solicitud_id` no se
+  puede usar dos veces. Actualizado el fixture de aislamiento para
+  limpiar también `METRICAS_POR_DIALECTO` y las solicitudes pendientes
+  de feedback entre pruebas.
+- `api/README.md`: nueva sección "Observabilidad" con el formato real
+  de `/metricas` y cómo se enlaza retroalimentación↔dialecto sin
+  guardar texto.
+
+Bug real encontrado y corregido en el camino: el primer intento de
+probar la latencia mockeaba `time.monotonic` globalmente — pero
+`_verificar_rate_limit` (Sesión 28) también usa `time.monotonic()`
+para su ventana deslizante, así que parcharlo de forma global
+descuadró el rate limiter y **colgó la corrida de `pytest`** (sin
+error, sin salida, el proceso quedó vivo indefinidamente). Diagnosticado
+matando el proceso colgado y revisando qué más usaba esa misma
+función. Corregido sin tocar el reloj global: la prueba de latencia
+ahora hace que la traducción mockeada tarde un `time.sleep(0.05)` real
+y mide sobre eso, en vez de simular el reloj.
+
+Decisiones tomadas:
+- No se agregó límite de tasa a `/retroalimentacion` — es una
+  operación barata (no toca el modelo) y limitarla no protege nada que
+  ya no proteja el hecho de que un `solicitud_id` solo se puede usar
+  una vez.
+- El mapa `solicitud_id -> dialecto` no tiene TTL/limpieza automática
+  (igual que el historial de rate limiting) — aceptable al tamaño de
+  este proyecto, documentado como lo primero a revisar si el tráfico
+  creciera.
+
+Pruebas de aceptación: `SKIP_MODEL_LOAD=1 python -m pytest api/test_main.py -v`
+→ **15/15 passed**. Solicitudes de prueba con distintos dialectos y
+latencias reales (via `time.sleep`), luego `GET /metricas` refleja
+correctamente los promedios y conteos esperados por dialecto — tal
+como pedía la prueba de aceptación original.
+
+Pendiente: probar `GET /metricas` contra el servicio real (con el
+modelo cargado de verdad, no mockeado) para confirmar que las
+latencias reportadas coinciden con lo medido manualmente en las
+Sesiones 25/27 (~50-80s) — no se hizo en esta sesión por la misma
+razón de siempre (sin GPU local).
+
+## Sesión 30 — 2026-09-20 — Mariana Malagón
+
+Pruebas de carga/latencia.
+
+Qué se hizo:
+- Agregado a `api/main.py` un modo de traducción simulada activable
+  solo con `SKIP_MODEL_LOAD=1` (`MOCK_TRANSLATION_TEXT` +
+  `MOCK_TRANSLATION_DELAY_SEG`) — permite levantar el servicio REAL
+  (`uvicorn`, no `TestClient`) y mandarle concurrencia real sin cargar
+  el modelo de 3B ni esperar 50-80s por solicitud. Nunca tiene efecto
+  si esas variables no están definidas (default = comportamiento
+  normal).
+- Escrito `api/prueba_carga.py`: `ThreadPoolExecutor` mandando N
+  solicitudes concurrentes a `/traducir` contra el servicio real
+  corriendo, midiendo código de respuesta y latencia.
+- **Corrida real, 2 veces, niveles 5/20/50 concurrentes**:
+  1. Con el rate limit por default (10/60s, Sesión 28): confirmado que
+     rechaza con `429` cualquier ráfaga sobre 10/min por IP — 10
+     pasan en total entre los niveles 5+20, el resto (incluyendo las
+     50 del último nivel) recibe `429`. Consistente entre niveles
+     porque la ventana de 60s es acumulativa por IP.
+  2. Con el rate limit desactivado (`RATE_LIMIT_MAX_SOLICITUDES=100000`),
+     para aislar la capacidad de concurrencia pura: **0% de errores en
+     los 3 niveles**, latencia promedio sube de forma moderada con la
+     concurrencia (0.71s → 0.94s → 1.30s a 5/20/50 concurrentes).
+- Documentado todo en `docs/pruebas_carga.md`: metodología, las 2
+  tablas de resultados, y cómo reproducir.
+
+Decisiones tomadas:
+- No probar con el modelo real — habría tardado varios minutos por
+  nivel sin medir nada nuevo (el cuello de botella, falta de GPU, ya
+  está documentado desde la Sesión 13). Se optó por aislar la pregunta
+  que sí depende del código del servicio (concurrencia, rate limiting)
+  de la que depende del hardware (latencia de inferencia).
+- **Limitación declarada explícitamente, no oculta**: esta prueba mide
+  la capa de API, no el sistema completo. Con el modelo real cargado,
+  múltiples generaciones concurrentes sobre el mismo objeto de modelo
+  probablemente se serializan (a diferencia del `sleep` simulado, que
+  sí libera el GIL) — el número de "solicitudes concurrentes que el
+  sistema completo aguanta" con el modelo real NO se reporta aquí
+  porque no se pudo medir honestamente sin GPU.
+
+Pruebas de aceptación: reporte con cifras reales de latencia y tasa de
+error para 5/20/50 concurrentes ✅; documentado que el límite de
+solicitudes concurrentes está gobernado por el rate limiting de la
+Sesión 28 (10/60s por IP) a nivel de API, con la salvedad explícita de
+qué falta medir con el modelo real ✅.
+
+Pendiente: repetir esta misma prueba contra el modelo real (o el
+despliegue de la Sesión 26) cuando haya GPU disponible, para tener el
+número real de throughput del sistema completo, no solo de la capa de
+API.
+
+## Sesión 31 — 2026-09-20 — Anderson García
+
+Pruebas de integración end-to-end.
+
+Qué se hizo:
+- Creada la carpeta `tests/` (Mariana había decidido explícitamente en
+  la Sesión 5 no crearla antes de tiempo — esta es la primera prueba
+  automatizada del calendario que la necesita).
+- Escrito `tests/test_integracion_e2e.py`: un solo flujo que confirma
+  las 6 etapas pedidas en un solo `TestClient`: solicitud →
+  validación/rate limiting → generación (mockeada) → métrica
+  registrada → respuesta con `solicitud_id` → retroalimentación
+  reflejada en `/metricas`. Cada etapa tiene su propia aserción con
+  mensaje descriptivo ("Etapa N rota: ...") en vez de una aserción
+  genérica al final, tal como pedía el criterio de calidad ("debe
+  fallar de forma clara y específica").
+- Agregada una aserción extra de privacidad (no pedida explícitamente,
+  pero gratis dado el resto de la prueba): confirma que ni el texto
+  original ni la traducción aparecen en ningún punto de `/metricas`.
+- Igual que el resto de `api/test_main.py`, usa `SKIP_MODEL_LOAD=1`
+  con la traducción mockeada — no contra el modelo real (sin GPU
+  local, cargar el modelo tardaría 50-80s solo para esta prueba).
+
+Decisiones tomadas:
+- Una sola función de prueba (no una por etapa) porque las 6 etapas
+  son secuenciales y dependientes entre sí (la etapa 6 necesita el
+  `solicitud_id` de la etapa 5) — dividirla en pruebas separadas
+  obligaría a repetir la solicitud inicial en cada una, o a compartir
+  estado entre pruebas de forma frágil.
+
+Pruebas de aceptación: `SKIP_MODEL_LOAD=1 python -m pytest
+tests/test_integracion_e2e.py -v` → 1 passed, con evidencia (mensajes
+de aserción) de que las 6 etapas de la cadena pasaron.
+
+Pendiente: correr esta misma prueba contra el servicio real desplegado
+(no solo mockeado) una vez exista la URL pública de la Sesión 26 —
+criterio de aceptación original que pedía correrla "contra el servicio
+desplegado", todavía bloqueado por la elegibilidad de la cuenta de HF
+(~2026-10-02).
+
+## Sesión 33 — 2026-09-20 — Paula Lozano
+
+Actualizar paper: Prototipo (evidencia de despliegue).
+
+Qué se hizo: escrito `docs/fase2_prototipo_borrador.md` — describe el
+servicio construido (API, seguridad, observabilidad, contenerización),
+la evidencia real de que funciona de punta a punta con el modelo real
+(latencias de las Sesiones 25/27), el estado del despliegue en la nube
+(Sesión 26: código listo, bloqueado por antigüedad de cuenta de HF, no
+por falta de trabajo técnico), los resultados de las pruebas de carga
+(Sesión 30), y qué cubre este MVP vs. qué queda para la Fase 3.
+
+Decisiones tomadas: cada cifra citada se verificó contra su documento
+fuente antes de escribirla (ninguna se redondeó ni se estimó de
+memoria) — criterio de aceptación explícito del prompt original.
+
+Pruebas de aceptación: cada cifra del borrador se puede encontrar
+textualmente en `docs/pruebas_carga.md`, `api/README.md` o
+`BITACORA.md` (Sesiones 25-27, 30).
+
+## Sesión 35 — 2026-09-20 — Mariana Malagón
+
+Actualizar paper: resultados preliminares de calidad.
+
+Qué se hizo: escrito `docs/fase2_resultados_borrador.md` — BLEU/chrF
+del modelo ajustado vs. la línea base (Sesión 21), con lenguaje
+cauteloso ("una primera señal sugiere...", no "confirmamos que...") y
+el hallazgo honesto de que Mexicana empeora en BLEU. Latencia
+(Sesiones 25/27). Explícito que son resultados de un solo generador y
+que ninguna de las tres preguntas de investigación se puede responder
+todavía con esta evidencia.
+
+**Decisión importante, no pedida explícitamente pero necesaria**: la
+sección de evaluación humana dice **"todavía no disponible"**, en vez
+de reportar el muestreo piloto de la Sesión 10 como si fuera
+evaluación humana real. Ese piloto lo calificó el equipo (con apoyo de
+IA) para probar el formato del CSV, no hablantes nativos reales —
+presentarlo en el paper como "evaluación humana" habría sido engañoso,
+así que se documenta la diferencia explícitamente en vez de mezclar
+ambas cosas.
+
+Pruebas de aceptación: cada cifra rastreable a
+`evaluation/reporte_metricas_generador1.md`,
+`evaluation/reporte_metricas_baseline.md` o `docs/pruebas_carga.md`.
+
+## Sesión 32 — 2026-09-20 — Anderson García
+
+Compilación final del documento de Fase 2.
+
+Qué se hizo:
+- Integradas al `.tex` las secciones nuevas: "Arquitectura (Fase 2)"
+  (con subsecciones de datos, aplicación, tecnología —incluida la
+  tabla de hiperparámetros de LoRA—, **gobernanza del proyecto** y
+  **hoja de ruta**, cerrando el requisito del syllabus que no tenía
+  sesión asignada en el calendario original), "Evidencia de
+  prototipo" y "Resultados preliminares", basadas en
+  `docs/fase2_arquitectura_borrador.md` (Sesión 18, actualizada en la
+  Sesión "extra" del 17 de septiembre), `docs/fase2_prototipo_borrador.md`
+  (Sesión 33) y `docs/fase2_resultados_borrador.md` (Sesión 35).
+- Reescrita la sección "Trabajo futuro" (antes describía toda la Fase
+  2 como pendiente; ahora describe solo lo que de verdad falta:
+  evaluación humana real, despliegue público, Generadores 2-3, fusión)
+  y "Conclusiones" (ahora reconoce el trabajo de esta fase, no solo la
+  propuesta de la Fase 1).
+- Actualizado el resumen (abstract) y la subsección "Organización del
+  documento" para reflejar las secciones nuevas.
+- Todas las referencias cruzadas nuevas usan `\ref{}` a etiquetas
+  reales (`sec:arquitectura`, `sec:gobernanza`, `sec:prototipo`,
+  `sec:resultados`), no números escritos a mano.
+- Compilado 4 veces en total (2 pasadas iniciales + 2 de verificación
+  tras corregir 2 "Overfull hbox" encontrados: la columna de la tabla
+  de LoRA era muy angosta para `target_modules`, y una oración con
+  varios `\texttt{}` seguidos no cabía en el ancho de línea).
+
+Decisiones tomadas:
+- No se reportó ningún resultado de evaluación humana real (Sesión
+  35) ni un número inventado de concurrencia con el modelo real
+  (Sesión 33) — se mantiene la misma política de honestidad del resto
+  del proyecto también dentro del documento final.
+- El presupuesto de tiempo/cómputo y el alcance dialectal declarado
+  (Sesión extra del 17 de septiembre) ya estaban integrados al cuerpo
+  del documento desde antes; esta sesión no los tocó de nuevo.
+
+Pruebas de aceptación verificadas: `pdflatex -interaction=nonstopmode
+main.tex` corrido 2 veces consecutivas sin errores (exit code 0);
+`grep -ic overfull` = 0; sin referencias ni citas indefinidas; 17
+páginas; todas las tablas y figuras con `\caption`/`\label`.
+
+Pendiente: nada bloqueante para esta sesión. Sigue pendiente
+sincronizar `paper/main.tex` de vuelta a Overleaf (fricción manual ya
+documentada en la Sesión "1 (por fin)").
+
+## Sesión 34 — 2026-09-20 — Paula Lozano
+
+Guion/demo para la sustentación de Fase 2.
+
+Qué se hizo: escrito `docs/guion_demo_fase2.md` — guion de ~2:30,
+diseñado alrededor de la restricción real de latencia (50-80s sin
+GPU): la solicitud se lanza ANTES de empezar a hablar, y el tiempo de
+espera se llena narrando la arquitectura, no quedándose en silencio.
+Dos escenarios contemplados según si el despliegue con GPU (Sesión 26)
+ya esté activo para la fecha de la sustentación o no. Plan B con 3
+niveles (video pre-grabado → tabla ya generada en pantalla → nunca
+improvisar una cifra que no esté en el repositorio).
+
+Decisiones tomadas: el guion asume el peor caso (sin GPU) como
+default, y trata el caso con GPU como una mejora, no al revés — más
+seguro para la sustentación real.
+
+Pendiente (acción del equipo, no simulable): practicar con cronómetro
+real, correr la demo en vivo al menos 2 veces antes del día, y grabar
+el video del Plan B con antelación — nada de esto se puede simular sin
+un presentador humano real.
+
+## Sesión 36 — 2026-09-20 — Mariana Malagón
+
+Ensayo de sustentación + banco de preguntas actualizado.
+
+Qué se hizo: escrito `docs/banco_preguntas_fase2.md` — preguntas
+esperables del profesor basadas en (1) el patrón ya visto en su
+retroalimentación de la Fase 1 (presupuesto, alcance, validación,
+independencia del conjunto de prueba) y (2) los huecos reales que este
+mismo equipo documentó sin esconder (Mexicana empeorando en BLEU,
+despliegue bloqueado, evaluación humana pendiente, cobertura parcial
+de BLEU/chrF, mezcla de dialecto encontrada). Cada respuesta cita el
+archivo donde está la evidencia, para no depender de memorizar cifras.
+
+Decisiones tomadas: no se inventó un "banco de preguntas de la Fase 1"
+que reciclar — no existe ninguno en el repositorio de antes, así que
+este se construyó desde cero, anclado en la retroalimentación real ya
+recibida y en las propias limitaciones documentadas del proyecto, no
+en preguntas genéricas de relleno.
+
+Pendiente (acción del equipo, no simulable): el ensayo en sí (cada
+integrante repasando en voz alta las preguntas de su área, y un
+ensayo completo cronometrado junto con el guion de demo de la Sesión
+34) requiere personas reales practicando — no es algo que se pueda
+completar dentro de esta sesión.
+
+---
+
+**Cierre de Fase 2**: con las Sesiones 21-36 completas (evaluación
+automática, seguridad, observabilidad, contenerización, pruebas de
+carga, integración e2e, y el paper actualizado con arquitectura,
+gobernanza, prototipo y resultados), el alcance comprometido para esta
+fase queda cerrado salvo dos pendientes explícitos y ya documentados
+en sus respectivas sesiones: la evaluación humana real (Sesión 22-24,
+bloqueada por reclutamiento) y el despliegue público (Sesión 26,
+bloqueado hasta ~2026-10-02 por antigüedad de cuenta). La Fase 3
+(Generadores 2-3, fusión de modelos, comparación completa de PI1-PI3)
+queda como el siguiente bloque de trabajo del proyecto.
+
+## Sesión extra (2) — 2026-09-20 — Paula Lozano
+
+Cierre de dos puntos específicos del syllabus del curso para la
+entrega de "Project Advance 2" que no tenían sesión asignada en el
+calendario de 60 sesiones: **arquitectura empresarial** y
+**escenarios de atributos de calidad** en formato formal.
+
+Qué se hizo:
+- Agregada la subsección "Arquitectura empresarial" al inicio de la
+  Sección de Arquitectura del paper: interesados (los 3 ya
+  identificados en la Fase 1, más la organización cliente que
+  adoptaría el servicio), capacidad de negocio habilitada, y
+  alineación con el modelo de negocio — todo por referencia cruzada a
+  contenido que ya existía en la Fase 1 (Sección de caracterización
+  del problema, tabla de diferenciación de producto), no contenido
+  inventado de cero.
+- Agregada la subsección "Escenarios de atributos de calidad": tabla
+  formal (estímulo/entorno/respuesta esperada/medida verificada) para
+  4 atributos —latencia, seguridad, privacidad/auditabilidad,
+  disponibilidad— cada uno con su medida tomada de evidencia ya
+  verificada en sesiones anteriores (Sesiones 25, 27, 28, 30), no de
+  cifras nuevas ni estimadas.
+- Recompilado: la tabla nueva produjo 2 "Overfull hbox" en el primer
+  intento (columnas muy angostas para "Disponibilidad"/"Privacidad /
+  auditabilidad", y el ancho total de la tabla excedía el
+  `\textwidth` por el `\tabcolsep` por defecto). Corregido ajustando
+  anchos de columna y reduciendo `\tabcolsep` a 3pt **acotado dentro
+  de un `\begingroup`/`\endgroup`** — sin el `\begingroup`, ese cambio
+  de espaciado se habría filtrado a la tabla de la hoja de ruta que
+  viene después, angostándola sin querer.
+
+Decisiones tomadas:
+- No se creó contenido nuevo de negocio para "arquitectura
+  empresarial" — se sintetizó y etiquetó explícitamente contenido que
+  la Fase 1 ya tenía, evitando duplicar texto innecesariamente vía
+  referencias cruzadas (`\ref{}`) a las secciones y tablas ya
+  existentes.
+- Las 4 medidas de los escenarios de calidad citan evidencia real ya
+  documentada (curl real, prueba de carga, pruebas automatizadas de
+  privacidad y manejo de errores) — ninguna es una cifra objetivo
+  aspiracional sin verificar.
+
+Pruebas de aceptación: `pdflatex -interaction=nonstopmode main.tex`
+2 pasadas, exit code 0, `grep -ic overfull` = 0, sin referencias/citas
+indefinidas, 18 páginas.
+
+## Sesión extra (3) — 2026-09-26 — Mariana Malagón
+
+Diagramas de arquitectura para el Project Advance 2 del syllabus.
+
+Qué se hizo:
+- Comparados los 12 entregables de la fila "Project Advance 2" del
+  syllabus contra `paper/main.tex` y `docs/`. Cubiertos: arquitectura
+  empresarial, de datos, de aplicación y de tecnología, escenarios de
+  calidad, hoja de ruta, gobernanza y evidencia de prototipo. Parciales:
+  diseño del componente inteligente, diseño de la API, plan de
+  despliegue en la nube y diseño de seguridad (el contenido existe,
+  pero disperso o sin sección propia). El paper solo tiene una figura
+  (el pipeline de 4 cajas de la Fase 1).
+- Escrito `docs/diagramas_arquitectura.md` con 9 diagramas Mermaid:
+  empresarial, datos, aplicación, API (tabla de endpoints + secuencia),
+  tecnología y componente inteligente, despliegue en la nube,
+  seguridad, hoja de ruta y gobernanza. Cada elemento sale de
+  `api/main.py`, `api/README.md`, `Dockerfile`, `docker-compose.yml`,
+  `api/space/`, `docs/despliegue.md`, `docs/modelo_gobernanza.md` y los
+  scripts de `generation/` y `finetuning/`. Lo pendiente o no
+  implementado va en línea punteada con fondo amarillo.
+- Agregada la entrada del archivo a `docs/README.md`.
+
+Decisiones tomadas:
+- Formato Mermaid en Markdown (se renderiza en GitHub y en la vista
+  previa de VS Code) y notación libre, porque el syllabus no dice si se
+  esperan diagramas ni en qué notación (C4, UML). No se sabe todavía si
+  el profesor los pide; hay que confirmarlo.
+- El diagrama de seguridad declara como no implementado lo que no
+  existe en el código: autenticación de clientes y límite de tasa
+  compartido entre instancias. TLS se deja como dependiente de la
+  plataforma, sin afirmar nada que no se haya verificado.
+
+Corrección tras verlos renderizados en tema oscuro: los nodos amarillos
+(pendientes) mostraban texto blanco sobre fondo claro, ilegible, y la
+hoja de ruta salía diminuta en horizontal. Se fijó `color:#1a1a1a` en
+todos los `classDef` y la hoja de ruta pasó a disposición vertical.
+
+Pendiente: volver a revisar los 9 diagramas renderizados tras el
+arreglo (no se pudieron renderizar dentro de esta sesión). Falta también decidir si
+se redibujan en TikZ dentro de `paper/main.tex`, y confirmar con el
+profesor si pide diagramas y en qué notación.
