@@ -2444,3 +2444,33 @@ Pendiente: volver a revisar los 9 diagramas renderizados tras el
 arreglo (no se pudieron renderizar dentro de esta sesión). Falta también decidir si
 se redibujan en TikZ dentro de `paper/main.tex`, y confirmar con el
 profesor si pide diagramas y en qué notación.
+
+---
+
+## Sesión 26 — 2026-10-07 — Anderson García
+
+Qué se hizo: pasados los 30 días de antigüedad de la cuenta de Hugging Face, se desplegó el servicio como Space público
+(`Andry891/traductor-jerga-dialectal`, Gradio + ZeroGPU) con el código ya preparado en `api/space/`.
+URL pública: https://andry891-traductor-jerga-dialectal.hf.space
+
+- Se clonó el Space vacío, se copió `api/space/` y se registró `adapter/tokenizer.json` (~11MB) con Git LFS
+  (HF exige LFS para archivos >10MB; su `.gitattributes` solo cubría `*.safetensors`).
+- Se alineó el encabezado de `api/space/README.md` con el Space creado (`sdk_version: 6.29.1`, `python_version: '3.12'`;
+  antes decía 5.0.0).
+- Primer build falló al cargar el adapter: `PeftModel.from_pretrained` sin `torch_device` usa `infer_device()`, que bajo
+  ZeroGPU devuelve `"cuda"` emulado, y el parche de `spaces` rompe la lectura del safetensors. Fix en `api/space/app.py`:
+  `torch_device="cpu"`. El traceback del usuario llegó cortado (sin la última línea), así que la causa se dedujo leyendo
+  `peft_model.py`; el Space pasó a "Running" tras el fix, lo que lo confirma en la práctica.
+- Prueba con `curl` a la URL pública (patrón de dos pasos de Gradio): `salud` -> `ok`; `traducir` con "Que chimba de parche,
+  nos vemos mas tarde bacano" -> "That's awesome patch, we'll meet up later cool." en 2.5 s.
+- `docs/despliegue.md` actualizado: URL real, historial del bloqueo marcado como resuelto, los dos problemas encontrados
+  y el resultado de la prueba.
+
+Decisiones tomadas:
+- Se usó la misma cuenta que se había bloqueado en vez de la de otro integrante: esperar los 30 días funcionó y evitó
+  depender de credenciales ajenas.
+- Se corrigió `api/space/app.py` en el repo (fuente de verdad) y se copió al Space, no al revés.
+
+Pendiente: la prueba de aceptación pedía hacer el `curl` desde una máquina distinta a la que despliega; solo se corrió
+desde la máquina de desarrollo. Falta que otro integrante (o un celular con datos móviles) la repita y se anote en
+`docs/despliegue.md`. Latencia GPU medida con una sola solicitud; no se midió con el Space "dormido" (primer arranque en frío).

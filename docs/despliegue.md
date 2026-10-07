@@ -9,17 +9,15 @@ opción). Código fuente del Space en
 `api/main.py`/FastAPI porque hospedar un Space Docker pasó a requerir
 plan PRO de pago en 2026).
 
-**URL pública**: _pendiente de completar una vez creado el Space —
-ver "Pendiente" al final de este documento._
+**URL pública**: https://andry891-traductor-jerga-dialectal.hf.space
+(Space: https://huggingface.co/spaces/Andry891/traductor-jerga-dialectal).
+Desplegado el 2026-10-07 — ver "Resultado del despliegue real" al final.
 
-> **Bloqueo real encontrado (2026-09-18, ver BITACORA.md Sesión 26)**:
-> en la pantalla de creación real (`huggingface.co/new-space`), Gradio
-> y Docker aparecen con un badge **"Paid"** desde el primer paso — no
-> hay forma de elegir ZeroGPU ahí para evitarlo. Confirmado que la
-> causa es la antigüedad de la cuenta usada (creada 2026-09-02, menos
-> de 30 días a la fecha), no el correo (ya estaba verificado). **No
-> reintentar antes del 2026-10-02** con esa misma cuenta — o usar la
-> cuenta de otro integrante del equipo que ya tenga +30 días.
+> **Historial del bloqueo (resuelto el 2026-10-07)**: el 2026-09-18, en
+> `huggingface.co/new-space`, Gradio y Docker aparecían con badge
+> **"Paid"** porque la cuenta tenía menos de 30 días (creada
+> 2026-09-02). Se esperó a que los cumpliera y el Space se pudo crear
+> sin problema el 2026-10-07 (ver BITACORA.md Sesión 26).
 
 ## Prerrequisitos
 
@@ -174,19 +172,37 @@ máquina") — ver el resultado real en "Pendiente" abajo.
   26): las solicitudes se ponen en cola hasta que se resetea 24h
   después del primer uso del día. No genera ningún cobro.
 
+## Resultado del despliegue real (2026-10-07)
+
+Creado con la Opción B (git): se clonó el Space vacío, se copió
+`api/space/` y se hizo `git push`. Dos detalles que no estaban en los
+pasos de arriba:
+
+- `adapter/tokenizer.json` pesa ~11MB y Hugging Face exige Git LFS
+  para archivos de más de 10MB: antes del primer commit hubo que
+  correr `git lfs track "adapter/tokenizer.json"` (el
+  `.gitattributes` que crea HF ya cubre `*.safetensors`, pero no
+  `*.json`).
+- Primer build fallido: `PeftModel.from_pretrained` sin `torch_device`
+  usa `infer_device()`, que bajo ZeroGPU devuelve `"cuda"` (emulado),
+  y el parche de `spaces` rompe la lectura del safetensors. Corregido
+  en `api/space/app.py` con `torch_device="cpu"`; el `.to("cuda")`
+  posterior sigue igual.
+
+Prueba de aceptación con `curl` contra la URL pública (hecha desde la
+máquina de desarrollo, ver limitación abajo):
+
+```
+salud     -> event: complete / data: ["ok"]
+traducir  -> "Que chimba de parche, nos vemos mas tarde bacano"
+             => "That's awesome patch, we'll meet up later cool."
+             (2.5 s, vs ~65 s en CPU local, BITACORA.md Sesión 25)
+```
+
 ## Pendiente
 
-- **Bloqueado hasta ~2026-10-02**: la cuenta de HF que se iba a usar
-  (creada 2026-09-02) no cumple todavía el requisito de +30 días para
-  la excepción gratuita de ZeroGPU — confirmado en la pantalla real de
-  creación del Space (ver aviso arriba). Decisión del equipo: esperar
-  con esa cuenta en vez de usar la de otro integrante (Sesión 26,
-  2026-09-18) — el resto del proyecto sigue avanzando mientras tanto.
-- Cuando se cumpla la fecha (o si se decide usar otra cuenta antes):
-  crear el Space de verdad, subir `api/space/` (todo ya está listo, no
-  necesita cambios), y completar la URL pública al inicio de este
-  documento.
-- Correr la prueba de aceptación real (`curl` desde una máquina
-  distinta a la que despliega) y documentar aquí el resultado
-  (traducción obtenida, tiempo de respuesta) una vez el Space esté
-  arriba.
+- La prueba de aceptación pedía correr el `curl` desde una máquina
+  **distinta** a la que despliega; hasta ahora solo se corrió desde la
+  máquina de desarrollo. Falta que otro integrante del equipo (o un
+  celular con datos móviles) corra los comandos del "Paso 6" y se
+  anote aquí el resultado.

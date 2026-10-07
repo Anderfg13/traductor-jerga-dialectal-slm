@@ -67,7 +67,7 @@ SYSTEM_PROMPT = (
 print(f"Cargando {MODEL_ID} + adaptador desde {ADAPTER_DIR}...")
 tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
 modelo_base = AutoModelForCausalLM.from_pretrained(MODEL_ID, dtype=torch.bfloat16)
-modelo = PeftModel.from_pretrained(modelo_base, str(ADAPTER_DIR))
+modelo = PeftModel.from_pretrained(modelo_base, str(ADAPTER_DIR), torch_device="cpu")
 modelo.to("cuda" if torch.cuda.is_available() else "cpu")
 modelo.eval()
 print("Modelo listo.")
