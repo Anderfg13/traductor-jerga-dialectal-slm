@@ -199,10 +199,15 @@ traducir  -> "Que chimba de parche, nos vemos mas tarde bacano"
              (2.5 s, vs ~65 s en CPU local, BITACORA.md Sesión 25)
 ```
 
+Prueba de aceptación desde un dispositivo y red distintos (2026-10-07):
+abriendo la URL pública en el navegador de un celular con datos móviles
+(sin Wi-Fi), la interfaz web tradujo correctamente el mismo texto. Con
+esto queda cumplido el criterio "solicitud a la URL pública desde una
+máquina distinta". La prueba se hizo por la interfaz web, no con
+`curl`.
+
 ## Pendiente
 
-- La prueba de aceptación pedía correr el `curl` desde una máquina
-  **distinta** a la que despliega; hasta ahora solo se corrió desde la
-  máquina de desarrollo. Falta que otro integrante del equipo (o un
-  celular con datos móviles) corra los comandos del "Paso 6" y se
-  anote aquí el resultado.
+- Ninguno para el despliegue. Sin medir todavía: latencia con el Space
+  dormido (primer arranque en frío) y comportamiento al agotar la cuota
+  diaria de ZeroGPU.

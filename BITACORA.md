@@ -2474,3 +2474,8 @@ Decisiones tomadas:
 Pendiente: la prueba de aceptación pedía hacer el `curl` desde una máquina distinta a la que despliega; solo se corrió
 desde la máquina de desarrollo. Falta que otro integrante (o un celular con datos móviles) la repita y se anote en
 `docs/despliegue.md`. Latencia GPU medida con una sola solicitud; no se midió con el Space "dormido" (primer arranque en frío).
+
+Actualización (misma fecha): prueba de aceptación cerrada. El usuario abrió la URL pública desde un celular con datos
+móviles (sin Wi-Fi) y la interfaz web tradujo bien el texto de prueba; antes también la había probado desde su mismo
+computador con el mismo resultado. Se hizo por interfaz web, no con `curl`. Pendiente restante: medir latencia con el
+Space dormido y el comportamiento al agotar la cuota diaria de ZeroGPU.
