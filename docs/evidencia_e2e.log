@@ -1,0 +1,13 @@
+# Evidencia E2E contra servicio real (modelo Qwen2.5-3B + LoRA, uvicorn local, sin mocks)
+# Fecha: 2026-10-07T22:49:52Z  Comando: python tests/test_integracion_e2e.py --url http://127.0.0.1:8000
+E2E contra http://127.0.0.1:8000
+[OK] Etapa 2a: validación rechaza texto vacío con 400
+[OK] Etapa 1-2: solicitud válida aceptada (validación + rate limiting) -> 200
+[OK] Etapa 3: el modelo generó la traducción -> "That's awesome patch, we'll catch up later cool."
+[OK] Etapa 5: la respuesta llegó al cliente con solicitud_id=9f3b2d9e8d0c4e26a8f21136cc7f2242
+[OK] Etapa 4: métrica registrada (solicitudes +1, latencia prom. 53.59 s)
+[OK] Etapa 6a: POST /retroalimentacion confirmó el registro
+[OK] Etapa 6b: /metricas refleja la retroalimentación (tasa positiva 1.0)
+[OK] Privacidad: /metricas no expone el texto ni la traducción
+RESULTADO: las 6 etapas pasaron.
+# codigo de salida: 0

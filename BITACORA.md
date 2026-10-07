@@ -2503,3 +2503,30 @@ Decisiones tomadas:
 Pendiente: repetir 20 y 50 pasadas ~24 h y/o con token. Hipótesis sin verificar: `@spaces.GPU(duration=30)` reserva 30 s
 por llamada aunque una traducción tarde ~2 s; probar `duration` menor (p. ej. 10) para estirar la cuota. n=3 en el nivel 5
 no basta para concluir paralelismo vs. serialización.
+
+---
+
+## Sesión 31 (2) — 2026-10-07 — Anderson García
+
+Qué se hizo: la prueba de integración E2E de la Sesión 31 quedó repetible contra un servicio real, no solo en proceso.
+`tests/test_integracion_e2e.py` ahora tiene una sola lógica (`verificar_cadena`) con dos modos: pytest (en proceso, generación
+mockeada) y CLI `python tests/test_integracion_e2e.py --url <URL>` (servicio real; sale con 0/1). En modo real no asume estado
+limpio: compara métricas antes y después.
+- Cada etapa falla con un mensaje "Etapa N ROTA" y lo esperado vs. lo recibido; se añadieron 2 pruebas que rompen a propósito
+  el registro de latencia y la retroalimentación y confirman que el fallo nombra la etapa 4 y la 6.
+- Se añadió la comprobación negativa de la etapa 2 (texto vacío → 400): prueba que la validación está conectada.
+- Pytest: 18/18 pasan (E2E + `api/test_main.py`).
+- Acceptance contra servicio real (uvicorn local con Qwen2.5-3B + LoRA, sin mocks): las 6 etapas pasan, traducción
+  "That's awesome patch, we'll catch up later cool.", latencia 53.6 s en CPU. Evidencia: `docs/evidencia_e2e.log`
+  (la primera corrida, 59.3 s, salió con la codificación rota y se repitió en UTF-8).
+- Nueva `docs/pendientes_despliegue.md` con lo que falta y espera condiciones externas (cuota de GPU, token, decisión del equipo).
+
+Decisiones tomadas:
+- La acceptance se corrió contra la API FastAPI real, NO contra el Space de Hugging Face: el Space solo tiene `traducir` y
+  `salud`, así que las etapas 4-6 no existen ahí; además la cuota anónima de ZeroGPU estaba agotada tras la Sesión 30 (2).
+  Esto cumple la cadena completa de punta a punta pero no "contra el servicio desplegado en HF"; queda como decisión del equipo
+  (portar métricas/retroalimentación al Space, o aceptar este alcance) en `docs/pendientes_despliegue.md` punto 4.
+- La rate limiting solo se verifica por su efecto en las solicitudes válidas (no se bloquean); el 429 bajo ráfaga no se repite
+  en modo real para no gastar 10 generaciones de ~55 s (ya cubierto por `api/test_main.py`).
+
+Pendiente: ver `docs/pendientes_despliegue.md`.
