@@ -2479,3 +2479,27 @@ Actualización (misma fecha): prueba de aceptación cerrada. El usuario abrió l
 móviles (sin Wi-Fi) y la interfaz web tradujo bien el texto de prueba; antes también la había probado desde su mismo
 computador con el mismo resultado. Se hizo por interfaz web, no con `curl`. Pendiente restante: medir latencia con el
 Space dormido y el comportamiento al agotar la cuota diaria de ZeroGPU.
+
+---
+
+## Sesión 30 (2) — 2026-10-07 — Anderson García
+
+Qué se hizo: prueba de carga contra el Space desplegado con el modelo real (el pendiente que dejó la Sesión 30, que solo
+midió la capa de API con traducción simulada). Nuevo `api/prueba_carga_space.py` (5/20/50 concurrentes, API de Gradio de
+dos pasos, latencia de extremo a extremo). Resultados en `docs/pruebas_carga.md`, "Resultado 3". Cliente anónimo:
+- Nivel 5: 3 OK / 2 fallos, latencia prom. 3.59 s (máx. 4.74 s). Nivel 20: 0 OK / 20 fallos. Nivel 50: 0 OK / 50 fallos.
+- Todos los fallos son por cuota de ZeroGPU ("exceeded your ZeroGPU quota... 45s requested vs. 39s left", luego "runs
+  limit"), con rechazo inmediato y mensaje claro; `salud` siguió en `ok` (el servicio no se cayó).
+- Límite claro encontrado: para un cliente anónimo el techo no es de concurrencia sino de cuota diaria de GPU: solo se
+  atendieron 4 traducciones (1 de calentamiento + 3) antes de agotarla; reinicia en ~24 h.
+
+Decisiones tomadas:
+- Se documentó tal cual que la latencia con 20 y 50 concurrentes NO se pudo medir (la cuota ya estaba agotada) en vez de
+  rellenar la tabla; cumple a medias el criterio "cifras de latencia para los tres niveles".
+- Se añadió soporte opcional de `HF_TOKEN` (variable de entorno) al script para repetir la prueba con más cuota, sin
+  escribir nunca el token en el código.
+- Esta prueba consumió la cuota diaria de GPU de la IP del usuario: el Space no responderá a su IP hasta que se reinicie.
+
+Pendiente: repetir 20 y 50 pasadas ~24 h y/o con token. Hipótesis sin verificar: `@spaces.GPU(duration=30)` reserva 30 s
+por llamada aunque una traducción tarde ~2 s; probar `duration` menor (p. ej. 10) para estirar la cuota. n=3 en el nivel 5
+no basta para concluir paralelismo vs. serialización.
