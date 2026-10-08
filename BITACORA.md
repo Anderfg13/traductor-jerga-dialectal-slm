@@ -2601,7 +2601,7 @@ Pendiente: lo que pedía la prueba de aceptación NO se pudo hacer desde aquí y
 
 ---
 
-## Sesión 41 (2) — 2026-10-07 — Anderson García
+## Sesión 37 — 2026-10-07 — Anderson García
 
 Qué se hizo: cierre formal de la tarea "Generador 2 como parámetro del mismo script". El script ya aceptaba `--generador 1|2|3` desde la Sesión extra (4) (un solo `generar_sintetico.py`, misma plantilla, mismas semillas, solo cambia la API); esta sesión lo verificó con la prueba de aceptación pedida y corrigió lo que esa prueba encontró.
 - **Docstring** de `generation/generar_sintetico.py` reescrito: ya no habla solo del Generador 1; describe los tres generadores, la estructura común del registro y cómo agregar un cuarto.
@@ -2613,3 +2613,25 @@ Decisiones tomadas:
 - Los generadores sí difieren en el número de variantes por semilla dentro de lo pedido (5-8); no se fuerza a que sean iguales.
 
 Pendiente: ninguno propio de esta tarea. Nota: el comportamiento del Generador 2 sobre las 3 semillas se probó con la ejecución real que ya existía (no se volvió a llamar a la API de Cohere solo para esto).
+
+---
+
+## Sesión 38 — 2026-10-07 — Anderson García
+
+Qué se hizo: generación completa del Generador 2 (Cohere) sobre las 100 semillas (`lote_01` + `lote_02`), consolidación y filtrado con el mismo `generation/validar.py`, y comparación contra el Generador 1. La generación y el filtrado se hicieron en la sesión anterior (extra 4); esta sesión los verificó y escribió la comparación, con el script reproducible `generation/comparar_generadores.py` → `generation/comparacion_generadores.md`. (La Sesión 37 no tenía entrada previa de otra persona; la de Anderson es la que valida el script con el Generador 2.)
+- `generation/dataset_generador2_limpio.json` existe: **632 variantes** (G1: 587; mismo orden de magnitud).
+- Generación: G1 589 variantes crudas (5.9 por semilla, rango 5-7); G2 632 (6.3, rango 6-7); G3 625 (6.2, rango 6-7).
+- Filtro (`validar.py`, la misma lógica para los tres; solo se cambió el nombre del archivo de reporte): **G1 descartó 2 de 589 (0.3 %)** — ambas "casi idéntica a la semilla" (`sem-031`, `sem-040`); **G2 descartó 0 de 632 (0.0 %)**; G3 0 de 625. Ningún generador tuvo variantes sospechosas.
+
+Observaciones relevantes para PI1 (no se ignoran):
+- El filtro prácticamente no discrimina entre generadores (0.3 % vs 0 %): solo mira vacíos, duplicados, longitud, similitud con la semilla y idioma. No es una medida de calidad comparable; las diferencias entre generadores tendrán que venir de la evaluación del modelo entrenado, no de este filtro.
+- **Mezcla de dialecto**: el Generador 1 tiene 6 variantes con "che" (marcador rioplatense) en semillas Caribeña, Andina y Chilena (`sem-010`, `sem-016`, `sem-097`, `sem-103`, `sem-104`, `sem-105`; una incluso mezcla "cuate", mexicano, en una variante chilena). Los generadores 2 y 3 tienen 0 con esta heurística. Es una pista de que G1 contamina dialectos más que los otros dos, pero la heurística mira un solo marcador (no detectaría otras mezclas) y son pocas variantes: se reporta como indicio, no como conclusión.
+- **Registro**: G2 produce más registro formal y menos jerga (formal 20 % / jerga 19 %) que G1 (12 % / 30 %) y G3 (7 % / 33 %), con el mismo prompt. Para una tarea de jerga, G2 aporta proporcionalmente menos jerga.
+- Longitud: G3 genera frases algo más largas (15.0 palabras en español, 15.5 en inglés) que G1 (14.0 / 13.2) y G2 (12.9 / 13.3).
+- Cuidado: G3 es un modelo "lite" más pequeño; cualquier diferencia no se puede atribuir solo a "qué LLM es" (ya anotado en la Sesión extra 4).
+
+Decisiones tomadas:
+- Se corrigió la numeración de la entrada anterior, que había quedado como "Sesión 41 (2)" por no tener el número; es la Sesión 37.
+- No se tocó el umbral ni la lógica del filtro para que no descarte más a G2: la tarea pedía anotar la diferencia, no igualarla.
+
+Pendiente: las observaciones de mezcla de dialecto y de registro son candidatas para la discusión de PI1 en el paper; confirmar con la evaluación humana si la contaminación de G1 se nota en la calidad percibida. Se añade al paper cuando haya resultados de entrenamiento.
