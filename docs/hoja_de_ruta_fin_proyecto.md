@@ -160,3 +160,5 @@ Resultados completos de la primera corrida en `docs/resultados_fase3.md`. Válid
 - [ ] Enviar a cada evaluador SOLO su hoja (`evaluation/evaluacion_humana/hojas/<Dialecto>.csv`) y las instrucciones, con el mensaje de `evaluation/mensaje_evaluadores_pi1.md`. **No compartir el repositorio ni la clave.** Guardar el archivo `clave_modelos.json` en un lugar seguro: no está en git; si se pierde, la ronda no se puede interpretar (solo queda su hash).
 - [ ] Decidir si se añade el modelo base como control.
 - [ ] Al recibir las hojas: guardarlas en `evaluation/evaluacion_humana/respuestas/` como `<Dialecto>__<ID>.csv` y avisarme; yo corro la consolidación y el kappa y actualizo el paper.
+
+**Análisis de PI1 (2026-10-08)**: `evaluation/analisis_pi1.md` ya existe con la parte automática; la parte humana dice "no disponible". Cuando haya hojas devueltas: `python evaluation/consolidar_resultados_humanos.py` y luego `python evaluation/analisis_pi1.py` (calcula el kappa de Fleiss y dice si humanos y métricas coinciden). Avísame para actualizar el paper.

@@ -2905,3 +2905,16 @@ Qué se hizo: informe de la fusión frente a los individuales en el archivo pedi
 Decisiones tomadas: el resultado se reporta tal cual; no se ajustó nada para favorecer a la fusión (las configuraciones de mergekit son las de la Sesión 47, sin cambios). Dos errores míos corregidos antes de entregar: una expresión regular con un `%` sin escapar y una frase del encabezado que decía que todos los individuales estaban "dentro del ruido" del mejor, cuando el Generador 2 queda por debajo de forma distinguible.
 
 Pendiente: evaluación humana (retención de matices) y más semillas de prueba para PI2.
+
+---
+
+## Sesión 51 — 2026-10-08 — Anderson García
+
+Qué se hizo: análisis consolidado de PI1 en `evaluation/analisis_pi1.md`, generado por el nuevo `evaluation/analisis_pi1.py`. **La parte humana NO se pudo calcular**: `evaluation/resultados_humanos_pi1.csv` no existe (no hay evaluadores confirmados, `evaluadores.csv` vacío, ninguna hoja enviada ni devuelta). Por eso **no hay un kappa de Fleiss calculado** y el criterio de aceptación ("kappa con valor numérico") **no se cumple**; no se simuló nada en el repositorio.
+- **Parte automática (con datos reales)**: ranking por chrF G3 (Google lite) 57.9 > G1 (Groq) 57.5 > G2 (Cohere) 55.3; BLEU 42.3 / 42.2 / 40.7. Diferencias (bootstrap por semilla, IC 95 %): G1 − G2 +2.3 chrF [+0.2, +4.2]; G3 − G2 +2.7 [+0.8, +5.3]; G1 − G3 −0.5 [−2.4, +1.1] (no distinguible); en BLEU ningún par se distingue.
+- **Respuesta a PI1 con la evidencia disponible**: **parcial y tentativa, no cerrada**. El generador importa en un sentido acotado (Cohere queda 2-3 puntos de chrF por debajo de los otros dos; entre Groq y Google no se distingue), pero sin evaluación humana no se sabe si eso corresponde a calidad percibida, las referencias son mayormente sintéticas y sesgadas hacia su propio LLM, y hay confusión entre "qué LLM es" y "qué tamaño tiene" (Google es "lite"). Hipótesis no probada: Cohere genera más registro formal y menos jerga.
+- **La parte humana está construida y probada** con calificaciones simuladas en una carpeta temporal (fuera del repo), en dos escenarios: (A) personas que ordenan igual que chrF → "coinciden", "clara con ambas señales alineadas"; (B) personas que prefieren a Cohere → "SE CONTRADICEN" en dos pares y "mixta, con contradicción". Calcula el kappa de Fleiss por dialecto (y el de Cohen ponderado), el puntaje medio por modelo con IC por bootstrap sobre ítems, compara rankings y añade una advertencia si el kappa medio es <0.40. En ambos escenarios simulados el kappa salió "leve" y la advertencia apareció.
+
+Decisiones tomadas: la regla de "coinciden / se contradicen / una señal distingue y la otra no" se fijó en código antes de ver datos humanos, para no decidirla a conveniencia; si los rankings no coinciden, el análisis lo declara como hallazgo a discutir, no lo oculta.
+
+Pendiente (criterios NO cumplidos): conseguir evaluadores, enviar las hojas (Sesión 49), consolidar, y volver a correr `python evaluation/analisis_pi1.py`; luego actualizar el paper con el kappa y la respuesta consolidada.
