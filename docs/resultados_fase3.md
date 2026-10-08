@@ -78,9 +78,11 @@ decenas de comparaciones y 9 semillas es una señal débil. Tiempo: ~130 s por
 adaptador para incorporarlos, 12 min (lineal) y 18 min (TIES) de `mergekit`.
 
 **La fusión lineal con PEFT perjudica.** Queda por debajo del base en chrF (−2.4
-[−4.4, −0.2]) y muy por debajo del resto. Es plausible (no verificado)
-que se deba a promediar por separado las matrices A y B de cada
-adaptador LoRA, lo que no equivale a promediar sus actualizaciones. Es un
+[−4.4, −0.2]) y muy por debajo del resto. Fue en realidad una causa
+doble (no aislada todavía): con pesos 1.0 PEFT suma las actualizaciones en
+lugar de promediarlas, y promediar A y B por separado introduce términos
+cruzados; la actualización resultante tiene 4.7 veces la norma del promedio
+ideal y coseno 0.64 con él (`merging/analisis_lineal_peft.md`). Es un
 resultado sobre esta implementación, no sobre la fusión en general.
 
 **Sobreajuste rápido.** En los cuatro entrenamientos la mejor validación
@@ -118,5 +120,5 @@ requiere datos; reentrenar con la mezcla cuesta ~52 min.
   matices.
 - Un solo modelo base (Qwen2.5-3B-Instruct): no se sabe si los
   resultados se sostienen con otro.
-- PI3 (portabilidad, competitividad frente a sistemas generales) no se
-  evaluó.
+- PI3 solo se evaluó en parte (portabilidad y comparación con LLM de
+  propósito general): ver `docs/resultados_pi3.md`.

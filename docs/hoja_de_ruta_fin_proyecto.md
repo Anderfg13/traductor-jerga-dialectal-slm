@@ -148,3 +148,6 @@ Resultados completos de la primera corrida en `docs/resultados_fase3.md`. Válid
 - [ ] Correr en orden; ahora la primera celda se detiene si no hay GPU, y cada paso se detiene si el anterior falló. Descargar `resultados_mergekit.zip` y avisarme.
 
 **Fusión con mergekit — hecha (2026-10-08)**: segunda corrida exitosa; resultados en `merging/fusion_simple.md`, `docs/resultados_fase3.md` y el paper (recompilado, 19 páginas). Ya no hay que repetir el notebook. Opcional: aislar si el fallo del promedio simple con PEFT viene de promediar A y B por separado.
+
+**Partes 2 y 4 (2026-10-08)**: PI3 evaluado en parte (`docs/resultados_pi3.md`; paper de 20 páginas actualizado) y análisis del fallo del promedio simple con PEFT hecho en el espacio de pesos (`merging/analisis_lineal_peft.md`).
+- [ ] **Tuyo (Colab, ~20 min, T4)**: correr `merging/aislar_lineal_peft_colab.ipynb` para aislar cuál de las dos causas (escala o términos cruzados) domina el fallo del promedio con PEFT: https://colab.research.google.com/github/Anderfg13/traductor-jerga-dialectal-slm/blob/develop/merging/aislar_lineal_peft_colab.ipynb — descargar `resultados_aislar_lineal.zip` y avisarme.

@@ -157,12 +157,28 @@ bueno; "gandalla" salió "really cool" con TIES, cuando significa abusivo, y
 | **TIES con mergekit (modelos completos)** | 44.0 [41.1, 47.6] | 58.0 [56.2, 60.2] |
 | Mejor adaptador individual (G3 / G1) | 42.3 / 42.2 | 57.9 / 57.5 |
 
-- **La hipótesis sobre el promedio lineal se sostiene.** El mismo método
-  (promedio simple) da 35.3 con PEFT y 44.2 con `mergekit`: mergekit −
-  PEFT = +9.2 BLEU [+6.1, +13.3] y +7.0 chrF [+4.8, +9.7]. Es consistente
-  con que el problema era cómo PEFT promedia las matrices A y B de cada
-  LoRA y no la idea de promediar; **no aislamos A y B** para probarlo
-  directamente.
+- **El mismo método da resultados muy distintos, y la causa tenía dos
+  partes (corrección de una explicación anterior).** Promedio simple con
+  PEFT 35.3 frente a 44.2 con `mergekit`: mergekit − PEFT = +9.2 BLEU
+  [+6.1, +13.3] y +7.0 chrF [+4.8, +9.7]. La explicación inicial ("PEFT
+  promedia A y B por separado") **era incompleta**: la corrida con PEFT
+  usó pesos 1.0 por adaptador, y PEFT `linear` con pesos 1.0 **suma** las
+  tres actualizaciones en lugar de promediarlas, mientras que `mergekit`
+  normaliza a 1/3. Dos diferencias a la vez. Un análisis directo de los
+  pesos reales (`merging/analisis_lineal_peft.md`, sin inferencia) muestra
+  que la actualización de PEFT w=1 tiene **4.74 veces la norma** del
+  promedio ideal y un coseno de solo **0.635** con él; que las matrices A
+  de adaptadores distintos son **ortogonales** (coseno 0.000), así que los
+  6 términos cruzados `B_i A_j` son ruido sin relación con ninguna tarea;
+  y que esos términos tienen **más energía (1.22 veces) que la señal**
+  (normalizar los pesos arregla la escala pero deja un error relativo de
+  1.22). Cuál de las dos partes domina la caída de calidad **no está
+  aislado todavía**: lo decide `merging/aislar_lineal_peft_colab.ipynb`
+  (PEFT `linear` normalizado, que corrige la escala pero conserva los
+  cruzados, frente a PEFT `cat` normalizado, que es el promedio exacto sin
+  cruzados). El `cat` se verificó en el espacio de pesos: reproduce el
+  promedio ideal con error relativo 2e-3, mientras que el `linear`
+  normalizado conserva el 1.21 predicho.
 - **Entre las fusiones que funcionan no hay diferencias distinguibles**:
   `mergekit` lineal, `mergekit` TIES, TIES/DARE+TIES con PEFT y la
   destilación quedan todos entre 43.7 y 44.2 BLEU (diferencias de 0.3 a 0.6
@@ -233,6 +249,5 @@ el primer error esconde la causa detrás de varios errores secundarios.
 ## Pendiente
 
 - Nada pendiente de la tarea: ambas fusiones cargan y generan texto coherente.
-- Opcional: aislar si el fallo del lineal con PEFT viene de promediar A y B por
-  separado (comparar con promediar los productos B·A), para convertir la
-  hipótesis en un hallazgo.
+- Correr `merging/aislar_lineal_peft_colab.ipynb` (~20 min, T4) para aislar cuál de las
+  dos causas (escala o términos cruzados) domina el fallo del lineal con PEFT.

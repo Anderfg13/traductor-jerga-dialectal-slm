@@ -14,6 +14,13 @@ Métodos (los de la propuesta del proyecto):
                 parámetros de cada adaptador y reescala el resto antes
                 de aplicar TIES (`--densidad` = fracción que se conserva).
   - linear    : promedio ponderado simple, como línea de comparación.
+  - cat       : concatena los adaptadores (rank = suma de los ranks): reproduce EXACTAMENTE
+                la suma ponderada de las actualizaciones sum_i w_i B_i A_i, sin los términos
+                cruzados B_i A_j que introduce `linear` (ver merging/analisis_lineal_peft.md).
+                Con --normalizar es el promedio exacto de las tres actualizaciones.
+  NOTA sobre `linear`: PEFT promedia por separado A y B, así que el producto contiene los
+  términos cruzados B_i A_j; y con pesos 1.0 SUMA las actualizaciones (no las promedia).
+  Para promediar de verdad hay que pasar --normalizar (pesos 1/n).
 
 Por qué PEFT (`add_weighted_adapter`) y no `mergekit`: los tres
 modelos son el MISMO modelo base (Qwen2.5-3B-Instruct) más un adaptador
@@ -50,9 +57,10 @@ import probar_baseline  # noqa: E402
 
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--metodo", choices=["ties", "dare_ties", "linear"], required=True)
+    p.add_argument("--metodo", choices=["ties", "dare_ties", "linear", "cat"], required=True)
     p.add_argument("--adaptadores", type=Path, nargs="+", required=True, help="carpetas de adaptadores a fusionar (2 o más)")
     p.add_argument("--pesos", type=float, nargs="+", default=None, help="peso por adaptador (default: todos 1.0)")
+    p.add_argument("--normalizar", action="store_true", help="pesos 1/n por adaptador (promedio en vez de suma); solo tiene sentido con linear y cat")
     p.add_argument("--densidad", type=float, default=0.5, help="fracción de parámetros que se conserva en ties/dare_ties (default: 0.5)")
     p.add_argument("--salida", type=Path, required=True)
     a = p.parse_args()
@@ -60,7 +68,7 @@ def main() -> int:
     if len(a.adaptadores) < 2:
         print("ERROR: hacen falta al menos 2 adaptadores para fusionar")
         return 1
-    pesos = a.pesos or [1.0] * len(a.adaptadores)
+    pesos = a.pesos or [(1.0 / len(a.adaptadores)) if a.normalizar else 1.0] * len(a.adaptadores)
     if len(pesos) != len(a.adaptadores):
         print(f"ERROR: {len(a.adaptadores)} adaptadores pero {len(pesos)} pesos")
         return 1
@@ -78,7 +86,7 @@ def main() -> int:
     for nombre, ruta in zip(nombres[1:], a.adaptadores[1:]):
         modelo.load_adapter(str(ruta), adapter_name=nombre)
 
-    kwargs = {} if a.metodo == "linear" else {"density": a.densidad}
+    kwargs = {} if a.metodo in ("linear", "cat") else {"density": a.densidad}
     modelo.add_weighted_adapter(
         adapters=nombres, weights=pesos, adapter_name="fusion", combination_type=a.metodo, **kwargs
     )

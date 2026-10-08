@@ -2845,3 +2845,20 @@ Correcciones a mis propios errores:
 Decisiones tomadas: se redacta como señal débil por las comparaciones múltiples; no se concluye que un método de fusión sea mejor que otro (no se distinguen).
 
 Pendiente: opcional, aislar la causa del fallo del lineal con PEFT (comparar con promediar los productos B·A). Evaluación humana y PI3 siguen pendientes.
+
+---
+
+## Sesión 48 — 2026-10-08 — Anderson García
+
+Qué se hizo: dos tareas pendientes de la Fase 3: (2) evaluar PI3 y (4) aislar por qué el promedio simple con PEFT salió mal.
+
+**Parte 4 — corrección de una explicación mía.** Al revisar el código de PEFT (`_generalized_task_arithmetic_weighted_adapter`) vi que la fusión "lineal" de la Fase 3 usó pesos 1.0 por adaptador: **suma** las tres actualizaciones en vez de promediarlas, y además multiplica las sumas de A y de B (términos cruzados `B_i·A_j`). `mergekit` normaliza a 1/3. Eran dos diferencias a la vez; mi explicación en el paper ("promediar A y B por separado") era incompleta. Con los adaptadores reales (`merging/analisis_lineal_peft.py` → `merging/analisis_lineal_peft.md`, sin inferencia): la actualización de PEFT w=1 tiene 4.74 veces la norma del promedio ideal y coseno 0.635 con él; las matrices A de adaptadores distintos son ortogonales (coseno 0.000), así que los 6 términos cruzados son ruido y tienen 1.22 veces la energía de la señal; normalizar los pesos arregla la escala pero deja error relativo 1.22. **Qué domina la caída de calidad no está aislado**: preparado `merging/aislar_lineal_peft_colab.ipynb` (PEFT `linear` normalizado vs PEFT `cat` normalizado, que es el promedio exacto; `fusionar_adaptadores.py` ganó `cat` y `--normalizar`; el `cat` se verificó en pesos: error 2e-3 frente al promedio ideal; el `linear` normalizado conserva 1.21). Paper, `merging/fusion_simple.md` y `docs/resultados_fase3.md` corregidos.
+
+**Parte 2 — PI3** (`docs/resultados_pi3.md`):
+- Portabilidad (`evaluation/pi3_portabilidad.py`): modelo base 6.17 GB, adaptador 14.8 MB (0.24 %); con la red bloqueada a nivel de sockets y HF offline, **0 intentos de conexión** y traducciones correctas; RAM 6.69 GB tras generar; CPU 46-65 s por traducción. Aclarado en el informe que la "carga 1.5 s / 0.5 GB" es engañosa (carga perezosa); la cifra útil es la RAM tras generar.
+- Competitividad (`evaluation/comparar_sistemas_generales.py`, mismo prompt, mismas métricas): contra gpt-oss-120b y qwen3.8-27b (no generaron datos) el mejor modelo pequeño (fusión lineal mergekit, 44.2/58.4) queda **por debajo de forma distinguible** (−3.9 y −3.4 BLEU, −4.5 y −4.0 chrF; `evaluation/analisis_bootstrap_pi3.md`); contra los generadores (sin sus propias referencias) no se distingue de command-r ni de gemini-3.5-flash-lite en BLEU y supera a gpt-oss-20b en BLEU (+3.5 [+0.2, +7.0]), con el sesgo de que aprendió de ellos. Con referencias humanas (n=9) los LLM grandes puntúan más, sin poder concluir.
+- Paper actualizado (tabla `tab:pi3`, párrafo de PI3, hoja de ruta, trabajo futuro, conclusiones): 20 páginas, 2 pasadas, 0 errores, 0 overfull, 0 `??`.
+
+Decisiones tomadas / limitaciones: el tamaño de `command-r` y de `gemini-3.5-flash-lite` no está verificado y se marca; faltan Google Translate/DeepL (sin clave): PI3 queda parcial; una traducción de qwen3.8-27b y alguna de los generadores fallaron (n 173/117, comparaciones sobre las mismas entradas disponibles); incidente menor: un script de portabilidad quedó con un error de sintaxis tras un reemplazo mío y se reparó antes de usarlo de nuevo.
+
+Pendiente: correr `merging/aislar_lineal_peft_colab.ipynb` (Colab, usuario); comparar contra sistemas de traducción dedicados; cuantización; evaluación humana.

@@ -36,6 +36,8 @@ ORDEN = [
     ("destilacion", "Fusión guiada por destilación multi-maestro"),
     ("mergekit_linear", "Fusión lineal (mergekit, modelos completos)"),
     ("mergekit_ties", "Fusión TIES (mergekit, modelos completos)"),
+    ("peft_linear_norm", "Fusión lineal con PEFT, pesos normalizados (1/3)"),
+    ("peft_cat_norm", "Fusión PEFT cat, pesos normalizados (promedio exacto)"),
 ]
 
 
