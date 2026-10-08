@@ -2668,3 +2668,19 @@ Decisiones tomadas:
 - Los tamaños son comparables (589 / 632 / 625), así que el tamaño del dataset no es una variable de confusión grande para PI1.
 
 Pendiente: ninguno propio. La respuesta a PI1 depende de entrenar con cada generador y medir (Colab, `docs/hoja_de_ruta_fin_proyecto.md`); esta tabla es solo el primer insumo, y el filtro automático casi no discrimina entre generadores.
+
+---
+
+## Sesión 41 — 2026-10-07 — Anderson García
+
+Qué se hizo: preparación del fine-tuning del Generador 2 (y de los demás) con la garantía de que la configuración es idéntica a la del Generador 1. **El entrenamiento en sí NO se corrió**: es cómputo pesado y la política del proyecto es Colab (`CONTEXTO_PROYECTO.md`); queda en `finetuning/fase3_pipeline_colab.ipynb`, que ya entrena G2, G3 y la mezcla con `entrenar_lora.py --todos`. (El archivo se llama `entrenar_lora.py`, no `entrenar.py`.)
+- **Splits del Generador 2**: listos (`generation/splits/dataset_generador2/`: 513 / 64 / 55 variantes), generados con el mismo `split_dataset.py` y el reparto fijo de semillas `seeds/split_semillas.json` (misma partición de semillas que G1 y G3, con verificación de que ninguna semilla se repite entre splits).
+- **Configuración idéntica, verificada**: `finetuning/entrenar_lora.py` es un único script para todos los datasets y su configuración está fija en el código, sin ramas por dataset: LoRA `r=8`, `lora_alpha=16`, `lora_dropout=0.05`, `bias="none"`, módulos `q_proj/k_proj/v_proj/o_proj`; `learning_rate=2e-4`, `per_device_train_batch_size=1`, hasta 10 épocas con `EarlyStoppingCallback(patience=2)` y `load_best_model_at_end`. Lo único que cambia con `--dataset-dir` es de dónde se leen los datos y la carpeta de salida. El `adapter_config.json` guardado del Generador 1 coincide con el código (r=8, alpha=16, dropout 0.05, mismos 4 módulos).
+- Nuevo `finetuning/verificar_config_identica.py`: lee la configuración del código con `ast`, y compara los `adapter_config.json` de generador1/2/3/mezcla entre sí y con el código; falla (código 1) nombrando el campo que difiera. Hoy solo existe el del Generador 1 (OK); los otros tres figuran como pendientes. La celda correspondiente se agregó al notebook.
+- Nuevo `finetuning/resumen_curva.py`: genera `curva_final_<nombre>.md` desde `loss_log.json`, y escribe "NO REGISTRADO" si no se le da hardware/tiempo (no inventa). Se probó con el log real del Generador 1: sus cifras (0.7180/0.3577/0.1932 de entrenamiento; 1.0972/1.5414/1.5243 de validación) coinciden exactamente con el informe manual de la Sesión 19.
+
+Decisiones tomadas:
+- Incidente: al probar `resumen_curva.py` sobrescribió por error `finetuning/curva_final_generador1.md` (el informe escrito a mano); se restauró desde git (`git checkout` de ese solo archivo, cambio no commiteado). Desde entonces el script se niega a sobrescribir sin `--forzar`.
+- Un matiz de validez: el early stopping hace que el número de épocas efectivas dependa del dataset (es el mecanismo, igual para todos, no una diferencia de configuración). El adaptador del Generador 1 que está en el repo se entrenó con el reparto anterior (189 ejemplos); el notebook lo reentrena con el reparto nuevo para que los cuatro salgan de las mismas condiciones.
+
+Pendiente (no se pudo hacer aquí; criterios de aceptación sin cumplir): que exista `finetuning/checkpoints/generador2/`, la prueba manual de traducciones coherentes, y `finetuning/curva_final_generador2.md`. Pasos en `docs/hoja_de_ruta_fin_proyecto.md`.

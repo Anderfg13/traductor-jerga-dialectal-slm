@@ -121,3 +121,8 @@ Marca cada casilla cuando esté hecho y pega aquí el dato que se pide.
 - [ ] Que cada integrante responda **sin leerla** al menos una pregunta nueva del banco (despliegue/modelo/latencia/cuota/privacidad/generador 3/PEFT/alcance) y marcar la casilla.
 - [ ] **No gastar la cuota de GPU del Space antes de la demo** (nada de `prueba_carga_space.py` ese día); probar el flujo de la demo como máximo 1-2 veces.
 - [ ] Grabar el video del Plan B (30-40 s) de una solicitud real al Space.
+
+**Después de entrenar en Colab (por cada adaptador: generador2, generador3, mezcla)**
+- [ ] Verificar que `python finetuning/verificar_config_identica.py` termina en `OK` con los 4 adaptadores (la celda del notebook ya lo corre). Si falla, la comparación de PI1 no es válida: pegarme la salida.
+- [ ] Generar el informe de cada curva con los datos reales: `python finetuning/resumen_curva.py generador2 --hardware "<GPU usada>" --tiempo "<minutos>" --ejemplos-train 513 --ejemplos-val 64` (ejemplos: G2 513/64, G3 508/61, mezcla 1496/183). Crea `finetuning/curva_final_generador2.md`.
+- [ ] Prueba manual rápida de cada adaptador nuevo (3-5 frases, ver `evaluation/generar_predicciones.py`) y anotar si las traducciones son coherentes.
