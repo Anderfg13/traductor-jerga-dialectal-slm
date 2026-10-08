@@ -13,5 +13,7 @@ Cada celda es **BLEU / chrF** sobre el test común (`evaluation/test_comun.json`
 | Fusión DARE+TIES | 43.8 / 57.7 | 10.5 / 13.9 (n=9) | 45.3 / 62.3 (n=54) | 45.6 / 57.6 (n=55) | 39.1 / 55.1 (n=56) |
 | Fusión lineal (promedio) | 35.3 / 51.5 | 0.9 / 8.8 (n=9) | 36.1 / 54.7 (n=54) | 38.9 / 52.4 (n=55) | 32.5 / 49.9 (n=56) |
 | Fusión guiada por destilación multi-maestro | 43.9 / 58.3 | 4.5 / 13.3 (n=9) | 45.3 / 62.4 (n=54) | 47.2 / 59.5 (n=55) | 38.7 / 55.2 (n=56) |
+| Fusión lineal (mergekit, modelos completos) | 44.2 / 58.4 | 4.9 / 14.1 (n=9) | 46.8 / 62.9 (n=54) | 48.4 / 60.4 (n=55) | 37.3 / 54.3 (n=56) |
+| Fusión TIES (mergekit, modelos completos) | 44.0 / 58.0 | 4.3 / 11.7 (n=9) | 45.6 / 62.0 (n=54) | 46.2 / 58.9 (n=55) | 39.3 / 55.4 (n=56) |
 
 Ver la docstring de `evaluation/tabla_comparativa.py` para cómo interpretar las columnas.

@@ -14,6 +14,8 @@ Test común: 174 entradas de 9 semillas; 1000 remuestreos de semillas con reempl
 | generador1 | 42.2 [38.7, 46.3] | 57.5 [55.5, 59.7] |
 | generador2 | 40.7 [38.7, 43.3] | 55.3 [53.6, 57.1] |
 | generador3 | 42.3 [39.0, 46.7] | 57.9 [55.7, 61.3] |
+| mergekit_linear | 44.2 [41.1, 48.3] | 58.4 [56.3, 61.2] |
+| mergekit_ties | 44.0 [41.1, 47.6] | 58.0 [56.2, 60.2] |
 | mezcla | 42.4 [39.9, 45.5] | 57.2 [55.2, 59.8] |
 
 ## Diferencias entre modelos
@@ -27,6 +29,8 @@ Test común: 174 entradas de 9 semillas; 1000 remuestreos de semillas con reempl
 | generador1 − baseline | +5.2 [+2.1, +8.6] * | 100% | +3.6 [+1.9, +5.6] * | 100% |
 | generador2 − baseline | +3.7 [+0.3, +7.3] * | 99% | +1.4 [-1.3, +4.2] | 85% |
 | generador3 − baseline | +5.1 [+2.4, +8.0] * | 100% | +4.1 [+2.1, +6.5] * | 100% |
+| mergekit_linear − baseline | +7.2 [+4.8, +10.1] * | 100% | +4.5 [+2.7, +6.8] * | 100% |
+| mergekit_ties − baseline | +7.0 [+4.5, +9.9] * | 100% | +4.1 [+2.1, +6.6] * | 100% |
 | mezcla − baseline | +5.3 [+3.5, +7.6] * | 100% | +3.4 [+1.5, +5.6] * | 100% |
 | destilacion − fusion_dare_ties | +0.0 [-1.7, +1.6] | 53% | +0.6 [-0.1, +1.3] | 95% |
 | destilacion − fusion_linear | +8.6 [+5.3, +13.0] * | 100% | +6.9 [+4.6, +9.6] * | 100% |
@@ -34,27 +38,44 @@ Test común: 174 entradas de 9 semillas; 1000 remuestreos de semillas con reempl
 | destilacion − generador1 | +1.4 [-0.7, +3.6] | 92% | +0.8 [-0.3, +2.2] | 91% |
 | destilacion − generador2 | +2.9 [+1.2, +4.9] * | 100% | +3.0 [+1.5, +4.7] * | 100% |
 | destilacion − generador3 | +1.5 [-0.9, +4.5] | 88% | +0.3 [-1.5, +2.1] | 62% |
+| destilacion − mergekit_linear | -0.6 [-2.5, +1.0] | 24% | -0.1 [-1.3, +1.0] | 43% |
+| destilacion − mergekit_ties | -0.4 [-1.9, +1.0] | 32% | +0.3 [-0.7, +1.2] | 72% |
 | destilacion − mezcla | +1.3 [-0.5, +3.0] | 91% | +1.0 [-0.5, +2.4] | 92% |
 | fusion_dare_ties − fusion_linear | +8.6 [+5.6, +12.5] * | 100% | +6.3 [+4.1, +8.7] * | 100% |
 | fusion_dare_ties − fusion_ties | -0.0 [-1.3, +1.1] | 51% | -0.5 [-1.0, +0.1] | 4% |
 | fusion_dare_ties − generador1 | +1.4 [-0.5, +3.4] | 92% | +0.2 [-0.7, +1.4] | 58% |
 | fusion_dare_ties − generador2 | +2.9 [+1.1, +5.2] * | 100% | +2.4 [+0.8, +4.4] * | 100% |
 | fusion_dare_ties − generador3 | +1.5 [-0.7, +4.1] | 90% | -0.3 [-2.0, +1.2] | 38% |
+| fusion_dare_ties − mergekit_linear | -0.6 [-1.6, +0.2] | 10% | -0.7 [-1.6, +0.2] | 5% |
+| fusion_dare_ties − mergekit_ties | -0.4 [-1.2, +0.4] | 21% | -0.3 [-1.0, +0.5] | 21% |
 | fusion_dare_ties − mezcla | +1.3 [+0.1, +2.5] * | 98% | +0.4 [-0.7, +1.4] | 80% |
 | fusion_linear − fusion_ties | -8.6 [-12.5, -5.6] * | 0% | -6.7 [-9.1, -4.7] * | 0% |
 | fusion_linear − generador1 | -7.1 [-11.4, -3.7] * | 0% | -6.1 [-8.2, -4.2] * | 0% |
 | fusion_linear − generador2 | -5.7 [-8.9, -3.0] * | 0% | -3.8 [-6.0, -1.8] * | 0% |
 | fusion_linear − generador3 | -7.0 [-11.0, -4.4] * | 0% | -6.6 [-9.6, -4.1] * | 0% |
+| fusion_linear − mergekit_linear | -9.2 [-13.3, -6.1] * | 0% | -7.0 [-9.7, -4.8] * | 0% |
+| fusion_linear − mergekit_ties | -8.9 [-12.9, -6.0] * | 0% | -6.6 [-8.5, -4.9] * | 0% |
 | fusion_linear − mezcla | -7.3 [-10.8, -4.5] * | 0% | -5.8 [-7.8, -3.7] * | 0% |
 | fusion_ties − generador1 | +1.4 [-0.7, +4.1] | 89% | +0.7 [-0.3, +2.1] | 86% |
 | fusion_ties − generador2 | +2.9 [+1.4, +4.5] * | 100% | +2.9 [+1.6, +4.6] * | 100% |
 | fusion_ties − generador3 | +1.5 [-0.8, +4.1] | 91% | +0.2 [-1.6, +1.7] | 60% |
+| fusion_ties − mergekit_linear | -0.6 [-1.8, +0.5] | 14% | -0.2 [-1.4, +0.7] | 34% |
+| fusion_ties − mergekit_ties | -0.4 [-1.4, +0.7] | 25% | +0.2 [-0.6, +1.0] | 64% |
 | fusion_ties − mezcla | +1.3 [+0.3, +2.4] * | 100% | +0.9 [-0.2, +1.9] | 94% |
 | generador1 − generador2 | +1.5 [-1.4, +4.1] | 86% | +2.3 [+0.2, +4.2] * | 98% |
 | generador1 − generador3 | +0.1 [-2.8, +3.4] | 52% | -0.5 [-2.4, +1.1] | 34% |
+| generador1 − mergekit_linear | -2.0 [-4.2, -0.2] * | 2% | -0.9 [-2.2, +0.2] | 6% |
+| generador1 − mergekit_ties | -1.8 [-3.5, -0.2] * | 1% | -0.5 [-1.5, +0.4] | 15% |
 | generador1 − mezcla | -0.1 [-2.2, +1.9] | 46% | +0.3 [-0.9, +1.4] | 69% |
 | generador2 − generador3 | -1.4 [-4.6, +1.7] | 17% | -2.7 [-5.3, -0.8] * | 0% |
+| generador2 − mergekit_linear | -3.5 [-6.1, -1.6] * | 0% | -3.1 [-5.6, -1.3] * | 0% |
+| generador2 − mergekit_ties | -3.3 [-5.4, -1.5] * | 0% | -2.7 [-4.8, -1.0] * | 0% |
 | generador2 − mezcla | -1.6 [-3.6, +0.1] | 4% | -2.0 [-4.4, -0.3] * | 0% |
+| generador3 − mergekit_linear | -2.2 [-4.2, -0.5] * | 0% | -0.4 [-1.5, +0.6] | 21% |
+| generador3 − mergekit_ties | -1.9 [-4.6, +0.4] | 6% | -0.0 [-1.8, +2.2] | 45% |
 | generador3 − mezcla | -0.2 [-2.6, +2.1] | 43% | +0.7 [-1.1, +2.7] | 76% |
+| mergekit_linear − mergekit_ties | +0.3 [-0.7, +1.3] | 66% | +0.4 [-0.7, +1.8] | 71% |
+| mergekit_linear − mezcla | +1.9 [+0.9, +3.2] * | 100% | +1.1 [+0.1, +2.4] * | 98% |
+| mergekit_ties − mezcla | +1.7 [+0.8, +2.6] * | 100% | +0.8 [-0.1, +1.6] | 96% |
 
 `*` = el intervalo de 95 % NO incluye 0 (diferencia distinguible con estos datos).

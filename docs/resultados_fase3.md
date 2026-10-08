@@ -31,6 +31,8 @@ resultados definitivos, y no incluyen evaluación humana ni PI3.
 | Fusión DARE+TIES | 43.8 [40.5, 47.5] | 57.7 [55.6, 60.2] |
 | Fusión lineal (promedio) | 35.3 [32.5, 37.5] | 51.5 [49.6, 53.8] |
 | Fusión por destilación multi-maestro | 43.9 [40.8, 47.5] | 58.3 [56.5, 60.5] |
+| Fusión lineal con `mergekit` (modelos completos) | 44.2 [41.1, 48.3] | 58.4 [56.3, 61.2] |
+| Fusión TIES con `mergekit` (modelos completos) | 44.0 [41.1, 47.6] | 58.0 [56.2, 60.2] |
 
 ## Qué sugieren los datos
 
@@ -55,7 +57,8 @@ destilación) igualan al mejor modelo individual y lo superan por ~+1.4
 BLEU y entre −0.3 y +0.8 chrF, **pero ese margen no se distingue del ruido**
 (intervalos que incluyen 0: p. ej. TIES − G1 +1.4 [−0.7, +4.1]). Sí
 superan de forma distinguible al Generador 2 y, en BLEU, al modelo
-entrenado sobre la mezcla (TIES − mezcla +1.3 [+0.3, +2.4]; en chrF no).
+entrenado sobre la mezcla (TIES − mezcla +1.3 [+0.3, +2.4]; en chrF no),
+salvo la destilación, que no se distingue de la mezcla (+1.3 [−0.5, +3.0]).
 No se puede afirmar que la fusión supere al mejor individual; solo que
 no es peor y que una primera señal apunta a que podría ser algo mejor.
 
@@ -63,7 +66,18 @@ no es peor y que una primera señal apunta a que podría ser algo mejor.
 ΔchrF +0.1 (indistinguibles). Costó ~95 min de GPU frente a ~24 s de
 TIES. Con estos datos no se justifica el costo extra.
 
-**La fusión lineal perjudica.** Queda por debajo del base en chrF (−2.4
+**Actualización con `mergekit` (2026-10-08, `merging/fusion_simple.md`).** Al
+fusionar los modelos completos con `mergekit`, el promedio simple da 44.2
+BLEU / 58.4 chrF (mergekit − PEFT: +9.2 BLEU [+6.1, +13.3]), es decir, el
+problema de la fusión lineal de más abajo era de la implementación con PEFT
+y no de promediar. Entre las fusiones que funcionan (mergekit lineal y TIES,
+TIES y DARE+TIES con PEFT, destilación) no hay diferencias distinguibles
+(43.7 a 44.2 BLEU). `mergekit` lineal supera a los adaptadores del
+Generador 1 y 3 en BLEU (+2.0 y +2.2, intervalo sin 0), no en chrF; con
+decenas de comparaciones y 9 semillas es una señal débil. Tiempo: ~130 s por
+adaptador para incorporarlos, 12 min (lineal) y 18 min (TIES) de `mergekit`.
+
+**La fusión lineal con PEFT perjudica.** Queda por debajo del base en chrF (−2.4
 [−4.4, −0.2]) y muy por debajo del resto. Es plausible (no verificado)
 que se deba a promediar por separado las matrices A y B de cada
 adaptador LoRA, lo que no equivale a promediar sus actualizaciones. Es un

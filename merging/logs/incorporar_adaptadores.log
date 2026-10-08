@@ -1,0 +1,31 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1791483777.706832    3002 cpu_feature_guard.cc:227] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1791483782.761548    3002 cudart_stub.cc:31] Could not find cuda drivers on your machine, GPU will not be used.
+Fetching 2 files:   0%|          | 0/2 [00:00<?, ?it/s]Fetching 2 files:  50%|█████     | 1/2 [01:02<01:02, 62.67s/it]Fetching 2 files: 100%|██████████| 2/2 [01:02<00:00, 31.34s/it]
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:16<00:16, 16.57s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:25<00:00, 12.19s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:25<00:00, 12.84s/it]
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1791484397.275317    5885 cpu_feature_guard.cc:227] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1791484405.910965    5885 cudart_stub.cc:31] Could not find cuda drivers on your machine, GPU will not be used.
+generador1: cargando base en float16 (cuda)...
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:25<00:25, 25.62s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:34<00:00, 16.01s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:34<00:00, 17.46s/it]
+generador1: modelo completo guardado en /content/traductor-jerga-dialectal-slm/merging/modelos_completos/generador1 (6.2 GB, 134 s)
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1791484562.818207    6632 cpu_feature_guard.cc:227] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1791484566.319248    6632 cudart_stub.cc:31] Could not find cuda drivers on your machine, GPU will not be used.
+generador2: cargando base en float16 (cuda)...
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:16<00:16, 16.37s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:25<00:00, 12.15s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:25<00:00, 12.79s/it]
+generador2: modelo completo guardado en /content/traductor-jerga-dialectal-slm/merging/modelos_completos/generador2 (6.2 GB, 120 s)
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1791484697.831082    7238 cpu_feature_guard.cc:227] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1791484700.965555    7238 cudart_stub.cc:31] Could not find cuda drivers on your machine, GPU will not be used.
+generador3: cargando base en float16 (cuda)...
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:16<00:16, 16.36s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:25<00:00, 12.09s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:25<00:00, 12.73s/it]
+generador3: modelo completo guardado en /content/traductor-jerga-dialectal-slm/merging/modelos_completos/generador3 (6.2 GB, 138 s)

@@ -1,7 +1,6 @@
 # Fusión con `mergekit`: promedio simple y TIES
 
-Estado: **la primera corrida real falló (sesión sin GPU, ver abajo) y no hay ninguna
-fusión real todavía**; preparada y verificada con modelos diminutos (cómputo pesado: Colab,
+Estado: **ejecutada (segunda corrida, 2026-10-08)**: las dos fusiones se hicieron y generan texto coherente; la primera corrida había fallado (ver abajo) (cómputo pesado: Colab,
 `merging/fusion_mergekit_colab.ipynb`). Este documento se completa con
 los resultados reales cuando se corra (ver "Pendiente").
 
@@ -119,15 +118,79 @@ modelo completo resultante:
 Esto valida el paso 1 y el script de prueba con el modelo real, pero
 sigue sin ser la fusión de los tres adaptadores.
 
+## Resultado de la fusión real (segunda corrida en Colab, 2026-10-08)
+
+Las dos fusiones se hicieron y se guardaron por separado
+(`merging/salida/linear/` y `merging/salida/ties/`, ~6 GB cada una, fuera
+de git; sus configuraciones quedaron en `mergekit_config.yml`). Logs en
+`merging/logs/`. El único aviso de `mergekit` fue una deprecación de
+`torch_dtype`; ningún error. Tiempos (celda de Colab): incorporar los tres
+adaptadores 466 s (~130 s cada uno), `mergekit` lineal 739 s, TIES 1069 s,
+predicciones ~271 s por modelo.
+
+**Prueba de coherencia (5 frases, leídas a mano).** Ambos modelos cargan sin
+errores y producen texto en inglés fluido, sin salidas vacías, repetidas ni
+basura:
+
+| Entrada | Promedio simple | TIES |
+|---|---|---|
+| Che, estoy remando con el sueldo que me dan. | Hey, I'm struggling to make ends meet with the salary I get. | Man, I'm struggling to make ends meet with the salary I get. |
+| ¡Qué chimba de parche, nos vemos más tarde, parcero! | What a mess, see you later, buddy! | What a mess, see you later, buddy! |
+| Ese cuate es bien gandalla, no te fíes de él. | That guy is really shady, don't trust him. | That guy is really cool, don't trust him. |
+| No hay bronca, ahorita te marco. | No problem, I'll call you right now. | No problem, I'll call you in a bit. |
+| Estar hecho percha después de tanto laburar. | Worn out after all that work. | I'm totally wiped out after all that work. |
+
+Aceptación cumplida en el sentido pedido (carga y no es basura). Calidad:
+4 de 5 frases son correctas en ambos modelos salvo errores puntuales ("qué
+chimba de parche" salió "What a mess" en los dos, cuando "chimba" es algo
+bueno; "gandalla" salió "really cool" con TIES, cuando significa abusivo, y
+"shady" con el promedio simple, que es más cercano).
+
+**Métricas** (BLEU / chrF globales sobre el test común de 174 entradas, IC
+95 % por bootstrap sobre semillas):
+
+| Modelo | BLEU | chrF |
+|---|---|---|
+| Promedio simple con PEFT (A y B por separado) | 35.3 [32.5, 37.5] | 51.5 [49.6, 53.8] |
+| **Promedio simple con mergekit (modelos completos)** | **44.2 [41.1, 48.3]** | **58.4 [56.3, 61.2]** |
+| TIES con PEFT | 43.7 [40.9, 47.1] | 58.2 [56.4, 60.4] |
+| **TIES con mergekit (modelos completos)** | 44.0 [41.1, 47.6] | 58.0 [56.2, 60.2] |
+| Mejor adaptador individual (G3 / G1) | 42.3 / 42.2 | 57.9 / 57.5 |
+
+- **La hipótesis sobre el promedio lineal se sostiene.** El mismo método
+  (promedio simple) da 35.3 con PEFT y 44.2 con `mergekit`: mergekit −
+  PEFT = +9.2 BLEU [+6.1, +13.3] y +7.0 chrF [+4.8, +9.7]. Es consistente
+  con que el problema era cómo PEFT promedia las matrices A y B de cada
+  LoRA y no la idea de promediar; **no aislamos A y B** para probarlo
+  directamente.
+- **Entre las fusiones que funcionan no hay diferencias distinguibles**:
+  `mergekit` lineal, `mergekit` TIES, TIES/DARE+TIES con PEFT y la
+  destilación quedan todos entre 43.7 y 44.2 BLEU (diferencias de 0.3 a 0.6
+  con intervalos que incluyen 0). El método de fusión importa menos que
+  fusionar bien.
+- **Frente al mejor individual**: `mergekit` lineal supera a los
+  adaptadores del Generador 1 (+2.0 BLEU [+0.2, +4.2]) y del 3 (+2.2
+  [+0.5, +4.2]) en BLEU con intervalo que no incluye 0, pero no en chrF
+  (+0.9 y +0.4, con 0 dentro). Con TIES se distingue del Generador 1 en BLEU
+  (+1.8 [+0.2, +3.5]) y no del 3. **Precaución**: son decenas de
+  comparaciones sobre solo 9 semillas, así que un intervalo que apenas
+  excluye 0 puede ser casualidad; se lee como señal, no como prueba.
+
 ## Primera corrida real en Colab: falló, y por qué (2026-10-08)
 
 Logs en `merging/logs/corrida1_sin_gpu/`. **No se obtuvo ninguna fusión.**
 Lo que muestran los logs, y lo que es inferencia:
 
-- **La sesión no tenía GPU** (el log de TensorFlow dice `Could not find
-  cuda drivers on your machine`). Hecho. Con ~12.7 GB de RAM de sistema,
-  cargar el modelo base en float16 (~6 GB) y fusionar/guardar deja poco
-  margen.
+- **Corrección (2026-10-08, tras la segunda corrida)**: en la primera
+  versión de este documento se afirmó que la sesión no tenía GPU porque
+  el log decía `Could not find cuda drivers on your machine`. **Esa
+  afirmación no estaba probada y era engañosa**: ese aviso lo emite
+  TensorFlow (que Colab trae instalado y no usamos), no PyTorch, y
+  aparece también en la corrida que sí usó GPU (el log de la segunda
+  corrida dice `cargando base en float16 (cuda)`). No sabemos si la
+  primera sesión tenía GPU. Lo que sí es un hecho: el script de entonces
+  cargaba el modelo siempre en CPU (`device_map="cpu"`), con ~12.7 GB de
+  RAM de sistema y un modelo fp16 de ~6 GB.
 - **El paso 1 (incorporar adaptadores) murió sin traceback** a los 120 s:
   el log tiene una sola barra de carga de modelo y ninguna línea de éxito.
   `mergekit` luego encontró el `config.json` del Generador 1 pero no el
@@ -169,10 +232,7 @@ el primer error esconde la causa detrás de varios errores secundarios.
 
 ## Pendiente
 
-- **Repetir** `merging/fusion_mergekit_colab.ipynb` en Colab **con GPU T4
-  activada** (~25 GB de disco) y traer `resultados_mergekit.zip`.
-- Completar este documento con: si cargan sin errores, las 5
-  traducciones de prueba de cada fusión (leídas a mano), BLEU/chrF
-  frente al base y frente a la fusión con PEFT, y cualquier error nuevo.
-- Criterio de aceptación pendiente: modelo fusionado cargando sin
-  errores y generando texto coherente en al menos 5 ejemplos.
+- Nada pendiente de la tarea: ambas fusiones cargan y generan texto coherente.
+- Opcional: aislar si el fallo del lineal con PEFT viene de promediar A y B por
+  separado (comparar con promediar los productos B·A), para convertir la
+  hipótesis en un hallazgo.

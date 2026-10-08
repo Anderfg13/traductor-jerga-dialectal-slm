@@ -146,3 +146,5 @@ Resultados completos de la primera corrida en `docs/resultados_fase3.md`. Válid
 **Fusión con mergekit — primera corrida falló (2026-10-08)**: sin GPU (Colab te dejó en CPU) y el paso 1 murió por memoria. Ya está corregido. Para repetirla:
 - [ ] En Colab: **Entorno de ejecución → Cambiar tipo de entorno → T4 GPU**, y abrir de nuevo el notebook desde el enlace de GitHub (trae la versión corregida). Si Colab dice que se agotó la cuota de GPU, esperar o usar otra cuenta.
 - [ ] Correr en orden; ahora la primera celda se detiene si no hay GPU, y cada paso se detiene si el anterior falló. Descargar `resultados_mergekit.zip` y avisarme.
+
+**Fusión con mergekit — hecha (2026-10-08)**: segunda corrida exitosa; resultados en `merging/fusion_simple.md`, `docs/resultados_fase3.md` y el paper (recompilado, 19 páginas). Ya no hay que repetir el notebook. Opcional: aislar si el fallo del promedio simple con PEFT viene de promediar A y B por separado.

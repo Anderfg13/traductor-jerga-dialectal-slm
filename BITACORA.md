@@ -2826,3 +2826,22 @@ Qué se hizo: análisis de la primera corrida real de `merging/fusion_mergekit_c
 Decisiones tomadas: se conservan los logs de la corrida fallida como evidencia (información para el paper, como pedía la tarea); no se intentó "arreglar" la fusión con otra técnica; no se modificó nada de los resultados de la Fase 3.
 
 Pendiente (criterios de aceptación NO cumplidos): repetir el notebook con GPU T4 activa; luego fusión con `mergekit`, carga del modelo fusionado y 5 traducciones coherentes. Pasos en `docs/hoja_de_ruta_fin_proyecto.md`.
+
+---
+
+## Sesión 47 (3) — 2026-10-08 — Anderson García
+
+Qué se hizo: segunda corrida de `merging/fusion_mergekit_colab.ipynb` (zip `resultados_mergekit (1).zip`): **las dos fusiones con `mergekit` funcionaron**. Detalle en `merging/fusion_simple.md`.
+- **Aceptación**: `merging/salida/linear/` y `merging/salida/ties/` (modelos completos, ~6 GB, fuera de git) cargan sin errores y generan texto coherente en las 5 frases de prueba (leídas a mano; sin vacíos, repeticiones ni basura). Con errores de traducción puntuales: "qué chimba de parche" → "What a mess" en ambos; "gandalla" → "really cool" con TIES y "shady" con el promedio simple.
+- **Errores/comportamientos**: ningún error en esta corrida; solo una deprecación de `torch_dtype`. Los de la primera corrida (memoria, notebook sin parada) ya estaban documentados y corregidos.
+- **Métricas** (BLEU / chrF, test común): `mergekit` lineal 44.2 / 58.4; `mergekit` TIES 44.0 / 58.0; frente a 35.3 / 51.5 del promedio simple con PEFT. mergekit − PEFT = +9.2 BLEU [+6.1, +13.3] y +7.0 chrF [+4.8, +9.7]. Consistente con que el fallo del lineal con PEFT venía de promediar A y B por separado (no aislado). Entre las fusiones que funcionan no hay diferencias distinguibles (43.7 a 44.2). `mergekit` lineal supera al Generador 1 (+2.0 BLEU [+0.2, +4.2]) y al 3 (+2.2 [+0.5, +4.2]) en BLEU, no en chrF: señal débil (decenas de comparaciones, 9 semillas). Bootstrap de 11 modelos en `evaluation/analisis_bootstrap.md`.
+- Tiempos: incorporar los 3 adaptadores 466 s; `mergekit` lineal 739 s y TIES 1069 s; predicciones ~271 s por modelo.
+- Paper (`paper/main.tex`): tabla con las dos filas nuevas, párrafo de PI2 reescrito y conclusiones; compila limpio (2 pasadas, 0 errores, 0 overfull, 0 `??`, 19 páginas); `paper/main.pdf` actualizado.
+
+Correcciones a mis propios errores:
+- **La Sesión 47 (2) afirmó que la sesión de Colab no tenía GPU** por el aviso de TensorFlow `Could not find cuda drivers`. Era una señal engañosa: ese aviso es de TensorFlow, no de PyTorch, y aparece también en esta corrida, que sí usó GPU (`cargando base ... (cuda)`). La afirmación no estaba probada; se corrigió en `merging/fusion_simple.md`. Lo que sí se sabe es que el script de entonces cargaba el modelo siempre en CPU. La entrada de la Sesión 47 (2) se deja tal cual (historial) y esta la corrige.
+- El texto de resultados de la sesión anterior decía que las tres fusiones útiles superan a la mezcla en BLEU; la destilación no (+1.3 [−0.5, +3.0]). Corregido en `docs/resultados_fase3.md` y en el paper.
+
+Decisiones tomadas: se redacta como señal débil por las comparaciones múltiples; no se concluye que un método de fusión sea mejor que otro (no se distinguen).
+
+Pendiente: opcional, aislar la causa del fallo del lineal con PEFT (comparar con promediar los productos B·A). Evaluación humana y PI3 siguen pendientes.
