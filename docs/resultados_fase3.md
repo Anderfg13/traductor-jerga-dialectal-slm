@@ -47,6 +47,23 @@ incertidumbre real.
   de validación no son comparables entre generadores: cada uno se valida
   con sus propias variantes.)
 
+## Tiempos de la primera corrida (Colab, GPU Tesla T4)
+
+Duración de cada celda según Colab (incluye cargar el modelo base):
+
+| Paso | Tiempo |
+|---|---|
+| Entrenar Generador 1 | 0 s (saltado: ver "Qué se descartó") |
+| Entrenar Generador 2 (513 ejemplos) | ~19 min |
+| Entrenar Generador 3 (508 ejemplos) | ~18 min |
+| Entrenar mezcla (1496 ejemplos) | ~52 min |
+| Fusiones | 38 s y 14 s (dos tiempos reportados para tres métodos; no se atribuyen a uno en concreto) |
+| Predicciones de los 8 modelos sobre el test común | ~42 min en total |
+
+El tiempo escala con el número de ejemplos (la mezcla tiene ~3 veces
+más y tardó ~2.8 veces más). Un adaptador pesa ~15 MB frente a ~6 GB del
+modelo base, dato útil para el atributo de eficiencia/portabilidad.
+
 ## Limitaciones
 
 - 9 semillas de prueba; una sola corrida por modelo (no se midió la

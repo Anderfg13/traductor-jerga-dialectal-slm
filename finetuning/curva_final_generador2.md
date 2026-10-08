@@ -4,8 +4,8 @@ Generado por `finetuning/resumen_curva.py` a partir de `finetuning/checkpoints/g
 
 ## Hardware y datos
 
-- Hardware: NO REGISTRADO
-- Tiempo total: NO REGISTRADO
+- Hardware: Google Colab, GPU Tesla T4
+- Tiempo total: ~19 min (tiempo de la celda de Colab, incluye cargar el modelo)
 - Ejemplos de entrenamiento: 513; de validación: 64
 - Pasos de entrenamiento registrados: 1539; épocas evaluadas: 3
 

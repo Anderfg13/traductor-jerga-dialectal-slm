@@ -2726,3 +2726,13 @@ Qué se hizo: posible corrección del fallo de la destilación en Colab, sin hab
 Decisiones tomadas / honestidad: esto es una hipótesis razonable, NO una causa confirmada. Si la destilación vuelve a fallar en Colab, hace falta el mensaje de error real. Tampoco se probó en GPU.
 
 Pendiente: segunda corrida de Colab (generador1, fusiones, destilación) y mensaje de error si persiste; ver `docs/hoja_de_ruta_fin_proyecto.md`.
+
+---
+
+## Sesión 43 (3) — 2026-10-07 — Anderson García
+
+Qué se hizo: se completaron los campos de hardware y tiempo de los informes `finetuning/curva_final_{generador2,generador3,mezcla}.md` con los datos que dio el usuario de las celdas de Colab (GPU Tesla T4; ~19, ~18 y ~52 min, que incluyen cargar el modelo), y se añadió la tabla de tiempos a `docs/resultados_fase3.md` (fusiones 38 s y 14 s sin atribuir a un método porque eran dos tiempos para tres; predicciones de los 8 modelos ~42 min en total). El 0 s del Generador 1 confirma que su entrenamiento se saltó.
+
+Decisiones tomadas: los tiempos son los de la celda de Colab (no solo el entrenamiento), y así se indica; el tiempo de las fusiones no se reparte por método para no inventar.
+
+Pendiente: el informe del Generador 1 (`curva_final_generador1.md`) sigue siendo el de la Sesión 19 (datos viejos) hasta que se reentrene en la segunda corrida.
