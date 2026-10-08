@@ -2716,3 +2716,13 @@ Decisiones tomadas:
 - Este fallo se detectó porque se comparó el tamaño implícito de entrenamiento con el esperado; conviene mantener esa comprobación (ya está en el notebook).
 
 Pendiente (criterios de la Semana 8 aún sin cumplir): no existe un `generador1` válido, así que PI1 está incompleto y PI2 sin evaluar; hay que repetir en Colab generador1, fusiones y destilación (lista en `docs/hoja_de_ruta_fin_proyecto.md`). El paper sigue con los resultados de la Fase 2 hasta tener la corrida completa.
+
+---
+
+## Sesión 43 (2) — 2026-10-07 — Anderson García
+
+Qué se hizo: posible corrección del fallo de la destilación en Colab, sin haber visto el error real (la copia del notebook guardada desde Colab no traía salidas). Revisión de `merging/destilacion_multimaestro.py`: con `device_map="auto"` el modelo queda en la GPU, pero `perdidas()` y `ce_validacion()` dejaban `ids`, `mask` y `labels` en CPU, e indexar un tensor CUDA con una máscara booleana de CPU lanza `RuntimeError`. Las pruebas locales no lo vieron porque todo corre en CPU. Ahora los tensores se mueven a `modelo.device`. `tests/test_destilacion.py` sigue pasando (2/2).
+
+Decisiones tomadas / honestidad: esto es una hipótesis razonable, NO una causa confirmada. Si la destilación vuelve a fallar en Colab, hace falta el mensaje de error real. Tampoco se probó en GPU.
+
+Pendiente: segunda corrida de Colab (generador1, fusiones, destilación) y mensaje de error si persiste; ver `docs/hoja_de_ruta_fin_proyecto.md`.

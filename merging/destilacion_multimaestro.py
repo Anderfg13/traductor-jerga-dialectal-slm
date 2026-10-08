@@ -58,7 +58,10 @@ from entrenar_lora import DatasetTraduccion, cargar_ejemplos  # noqa: E402
 
 def perdidas(modelo, ids, mask, etiquetas, maestros, alfa):
     """Devuelve (pérdida total, KL, CE) para UN ejemplo."""
-    ids, mask, etiquetas = ids.unsqueeze(0), mask.unsqueeze(0), etiquetas.unsqueeze(0)
+    # el modelo puede estar en GPU (Colab) y los tensores del dataset nacen en CPU: indexar un tensor
+    # CUDA con una máscara booleana de CPU falla, así que se mueve todo al dispositivo del modelo
+    dev = modelo.device
+    ids, mask, etiquetas = ids.unsqueeze(0).to(dev), mask.unsqueeze(0).to(dev), etiquetas.unsqueeze(0).to(dev)
     objetivo = etiquetas[:, 1:] != -100  # posiciones de la respuesta (tras el desplazamiento)
 
     with torch.no_grad():
@@ -85,7 +88,9 @@ def ce_validacion(modelo, val, maestros):
     total, n = 0.0, 0
     with torch.no_grad():
         for ej in val:
-            ids, mask, et = ej["input_ids"].unsqueeze(0), ej["attention_mask"].unsqueeze(0), ej["labels"].unsqueeze(0)
+            dev = modelo.device
+            ids, mask, et = (ej["input_ids"].unsqueeze(0).to(dev), ej["attention_mask"].unsqueeze(0).to(dev),
+                             ej["labels"].unsqueeze(0).to(dev))
             obj = et[:, 1:] != -100
             lp = F.log_softmax(modelo(input_ids=ids, attention_mask=mask).logits[:, :-1][obj].float(), dim=-1)
             total += F.nll_loss(lp, et[:, 1:][obj]).item()
