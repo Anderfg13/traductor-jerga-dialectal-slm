@@ -11,15 +11,26 @@ del tiempo total del guion si se espera una respuesta en vivo sin
 preparar nada antes. **El guion está diseñado alrededor de esta
 restricción real, no ignorándola.**
 
-Antes del día de la sustentación, confirmar cuál de estos dos
-escenarios aplica y ajustar el Paso 3 según corresponda:
+**Actualización 2026-10-07: el despliegue ya está activo**
+(`https://andry891-traductor-jerga-dialectal.hf.space`, ver
+`docs/despliegue.md`): una traducción tarda ~2.5 s, no minutos. Dos
+opciones para la demo:
 
-- **Si para esa fecha el despliegue en Hugging Face Spaces con ZeroGPU
-  ya está activo** (posible desde el 2026-10-02, ver
-  `docs/despliegue.md`): la latencia baja a segundos, no a minutos —
-  usar la URL pública en vivo sin necesidad del Plan B.
-- **Si todavía no está desplegado**: seguir el guion tal como está
-  (con la solicitud lanzada ANTES de empezar a hablar).
+- **Servicio público (recomendado, es lo que "está desplegado")**:
+  abrir la URL en el navegador, escribir "Che, estoy remando con el
+  sueldo que me dan." y tocar Traducir. La traducción sale en segundos,
+  así que ya no hace falta lanzar la solicitud antes de hablar; el
+  texto del minuto 0:35-1:20 se puede decir igual.
+  **Cuidado con la cuota**: la GPU gratuita de ZeroGPU alcanza para
+  muy pocas traducciones por día para un cliente anónimo (se agotó
+  tras ~4 en la prueba de carga del 2026-10-07 y tarda ~24 h en
+  reiniciarse). **No correr `api/prueba_carga_space.py` ni probar
+  muchas veces el mismo día de la sustentación**; guardar las
+  traducciones para la demo en vivo, y tener el Plan B listo por si
+  la cuota se acabó.
+- **API contenerizada local** (si se quiere mostrar `/metricas`, que el
+  Space no expone): seguir el guion tal como está, con el modelo en
+  CPU (50-80 s) y la solicitud lanzada ANTES de empezar a hablar.
 
 ## Guion (2:30 aprox.)
 
@@ -60,18 +71,21 @@ curl -X POST http://localhost:8000/traducir \
 **[1:35-2:00] Métricas y honestidad sobre lo que falta**
 > "El servicio también expone métricas por dialecto — latencia,
 > retroalimentación — sin exponer nunca el contenido. Y somos
-> transparentes con lo que aún nos falta: la latencia real sin GPU es
-> de 50 a 80 segundos por solicitud, así que el despliegue con GPU
-> real es el siguiente paso, no un detalle menor. Y todavía no tenemos
+> transparentes con lo que aún nos falta: sin GPU la latencia es de 50
+> a 80 segundos por solicitud; con la GPU del servicio desplegado
+> bajó a unos 2.5 segundos, aunque aún no la medimos con muchos
+> usuarios a la vez y la GPU gratuita tiene una cuota diaria muy
+> limitada. Y todavía no tenemos
 > evaluación con hablantes nativos reales — la infraestructura para
 > reclutarlos ya existe, pero no inventamos resultados que no
 > tenemos."
 
 **[2:00-2:20] Cierre**
-> "En resumen: un solo generador, un modelo, un servicio real que
-> funciona de punta a punta. Lo que sigue es escalar a los otros dos
-> generadores y probar si fusionar los tres modelos resultantes nos da
-> lo mejor de los tres."
+> "En resumen: un solo modelo entrenado, un servicio real y público
+> que funciona de punta a punta. Los datos de los otros dos
+> generadores ya están listos; lo que sigue es entrenarlos y probar si
+> fusionar los tres modelos nos da lo mejor de los tres — todavía no
+> sabemos si lo hace."
 
 ## Plan B si la demo en vivo falla
 
@@ -89,7 +103,8 @@ curl -X POST http://localhost:8000/traducir \
 
 ## Pendiente (acción del equipo, no simulable)
 
-- Practicar este guion con cronómetro real y ajustar tiempos.
+- Practicar este guion con cronómetro real y ajustar tiempos; anotar
+  los tiempos en la tabla de `docs/banco_preguntas_fase2.md`.
 - Probar la demo en vivo al menos 2 veces antes de la sustentación,
   con el entorno real que se vaya a usar ese día (local, contenedor, o
   el despliegue si ya está listo).

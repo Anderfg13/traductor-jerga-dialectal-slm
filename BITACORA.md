@@ -2581,3 +2581,20 @@ Decisiones tomadas:
 - Se mantuvo el lenguaje cauteloso ("una primera señal sugiere"); no se agregaron conclusiones nuevas.
 
 Pendiente: las cifras de calidad siguen siendo de 8 ejemplos y un solo generador; se reemplazarán con los resultados de `finetuning/fase3_pipeline_colab.ipynb` cuando se corra en Colab (casilla en `docs/hoja_de_ruta_fin_proyecto.md`). La evaluación humana real sigue sin existir.
+
+---
+
+## Sesión 36 (2) — 2026-10-07 — Anderson García
+
+Qué se hizo: actualización de `docs/banco_preguntas_fase2.md` y de `docs/guion_demo_fase2.md` con lo nuevo de la Fase 2.
+- Preguntas nuevas con respuesta honesta: por qué Hugging Face Spaces (y qué se descartó), por qué Qwen2.5-3B, qué tan realista es la latencia (2.5 s individual con GPU; 50-80 s en CPU; sin medir bajo carga), si soportaría usuarios reales (no: cuota de GPU), por qué solo un generador y ninguna fusión ejecutada, el cambio de modelo del Generador 3, por qué PEFT y no `mergekit`, y la pregunta incómoda de privacidad (el Space público pasa por infraestructura de un tercero).
+- Corregidas respuestas viejas: "¿por qué no está desplegado?" (ya lo está desde el 2026-10-07), latencia, y el 8-de-23 (el reparto cambió).
+- Sección de ensayo cronometrado con tabla de tiempos y casilla por integrante; responsable sugerido por área.
+- El guion de demo asumía "si todavía no está desplegado": se actualizó (servicio público ~2.5 s) y se añadió la advertencia de no gastar la cuota de GPU antes de la sustentación.
+
+Decisiones tomadas:
+- En la respuesta sobre el modelo se dice explícitamente que Qwen no se eligió comparando candidatos (solo se midió Qwen; Gemma y Llama nunca se midieron, verificado en la bitácora) para no sobreafirmar.
+- Se corrigió la framing del prompt ("una técnica de fusión"): hoy no hay ninguna técnica ejecutada.
+- La respuesta de privacidad admite que la ventaja "no sale a una nube de terceros" aplica al contenedor propio, no al Space público de demostración.
+
+Pendiente: lo que pedía la prueba de aceptación NO se pudo hacer desde aquí y queda sin cumplir: el ensayo cronometrado con el equipo completo y que cada integrante responda una pregunta nueva sin leerla (casillas en `docs/hoja_de_ruta_fin_proyecto.md` y en el propio banco). No se inventó ningún tiempo de ensayo; el tiempo asignado por el profesor también está por completar.

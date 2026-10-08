@@ -114,3 +114,10 @@ Marca cada casilla cuando esté hecho y pega aquí el dato que se pide.
 - [ ] Actualizar `paper/main.tex`: sección de Resultados con las tablas de la Fase 3, discusión de PI1/PI2/PI3, limitaciones; recompilar con `paper/auditar_tex.py` y dos pasadas de pdflatex.
 - [ ] Data cards de los generadores 2 y 3; actualizar `generation/test_apis.py` y README con `gemini-3.5-flash-lite`.
 - [ ] Decidir con el equipo si se portan métricas/retroalimentación al Space (`docs/pendientes_despliegue.md`, punto 4).
+
+**Sustentación (Fase 2) — tuyo y del equipo**
+- [ ] Averiguar el tiempo asignado a la sustentación y anotarlo en `docs/banco_preguntas_fase2.md`.
+- [ ] Ensayo completo cronometrado con las tres personas y la demo en vivo; llenar la tabla de tiempos (debe caer dentro del tiempo asignado).
+- [ ] Que cada integrante responda **sin leerla** al menos una pregunta nueva del banco (despliegue/modelo/latencia/cuota/privacidad/generador 3/PEFT/alcance) y marcar la casilla.
+- [ ] **No gastar la cuota de GPU del Space antes de la demo** (nada de `prueba_carga_space.py` ese día); probar el flujo de la demo como máximo 1-2 veces.
+- [ ] Grabar el video del Plan B (30-40 s) de una solicitud real al Space.
