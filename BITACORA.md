@@ -2891,3 +2891,17 @@ Qué se hizo: preparación completa de la ronda de evaluación humana ciega de l
 Decisiones tomadas: no se incluyó el modelo base como control (el pedido eran los tres individuales); se deja a decisión del equipo. Los evaluadores se identifican por ID, no por nombre.
 
 Pendiente (criterios de aceptación NO cumplidos): confirmar ≥3 evaluadores nativos por dialecto, enviar, recoger las hojas y calcular kappa. Pasos en `docs/hoja_de_ruta_fin_proyecto.md`.
+
+---
+
+## Sesión 50 — 2026-10-08 — Anderson García
+
+Qué se hizo: informe de la fusión frente a los individuales en el archivo pedido, `evaluation/comparacion_fusion_simple.md`, generado por el nuevo `evaluation/comparacion_fusion.py`. Las cifras ya existían (Sesiones 44-48); lo nuevo es el archivo específico, la comparación explícita contra el mejor individual y una verificación en código de que todos los modelos se evaluaron sobre exactamente las mismas 174 entradas y 9 semillas.
+- **Mejor individual**: LoRA del Generador 3 (42.3 BLEU / 57.9 chrF), fijado de antemano como el de mayor chrF global; el Generador 1 (42.2 / 57.5) no se distingue de él y el Generador 2 (40.7 / 55.3) queda por debajo.
+- **Fusiones** (mergekit): promedio simple 44.2 / 58.4; TIES 44.0 / 58.0. Frente al mejor individual: promedio simple +2.2 BLEU [+0.5, +4.2] y +0.4 chrF [−0.6, +1.5]; TIES +1.9 BLEU [−0.4, +4.6] y +0.0 chrF [−2.2, +1.8]. Frente al modelo entrenado sobre la mezcla: +1.9 y +1.7 BLEU (distinguibles). Frente al Generador 2: +3.5 y +3.3 BLEU.
+- **Respuesta preliminar a PI2**: la fusión no fue peor que el mejor individual; una primera señal sugiere que es al menos igual y quizás algo mejor en BLEU, pero la ventaja es pequeña (en chrF no se distingue de un empate, y con TIES tampoco en BLEU) y no se puede afirmar que lo supere. Promedio simple y TIES no se distinguen entre sí; las réplicas con PEFT (promedio, cat, TIES, DARE+TIES) y la destilación quedan en el mismo rango (43.5-43.9 BLEU).
+- Cautelas anotadas en el informe: 9 semillas, una corrida por modelo, referencias mayormente sintéticas, decenas de comparaciones, "mejor individual" elegido con el mismo test, sin evaluación humana.
+
+Decisiones tomadas: el resultado se reporta tal cual; no se ajustó nada para favorecer a la fusión (las configuraciones de mergekit son las de la Sesión 47, sin cambios). Dos errores míos corregidos antes de entregar: una expresión regular con un `%` sin escapar y una frase del encabezado que decía que todos los individuales estaban "dentro del ruido" del mejor, cuando el Generador 2 queda por debajo de forma distinguible.
+
+Pendiente: evaluación humana (retención de matices) y más semillas de prueba para PI2.
