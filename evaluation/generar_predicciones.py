@@ -42,6 +42,7 @@ def main() -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--nombre", required=True, help="nombre del modelo, se usa en el archivo de salida")
     p.add_argument("--adapter", type=Path, default=None, help="carpeta del adaptador LoRA (omitir = modelo base)")
+    p.add_argument("--modelo-completo", type=Path, default=None, help="carpeta de un modelo completo (salida de mergekit); no combina con --adapter")
     p.add_argument("--test", type=Path, default=RAIZ / "evaluation" / "test_comun.json")
     p.add_argument("--salida-dir", type=Path, default=RAIZ / "evaluation" / "predicciones")
     a = p.parse_args()
@@ -51,8 +52,12 @@ def main() -> int:
     print(f"Modelo: {a.nombre} | adapter: {a.adapter} | GPU: {cuda} | {len(test)} entradas")
 
     tokenizer = AutoTokenizer.from_pretrained(probar_baseline.MODEL_ID)
+    if a.modelo_completo and a.adapter:
+        print("ERROR: --modelo-completo y --adapter no se combinan")
+        return 1
     modelo = AutoModelForCausalLM.from_pretrained(
-        probar_baseline.MODEL_ID, dtype=torch.bfloat16, device_map="auto" if cuda else "cpu"
+        str(a.modelo_completo) if a.modelo_completo else probar_baseline.MODEL_ID,
+        dtype=torch.bfloat16, device_map="auto" if cuda else "cpu",
     )
     if a.adapter is not None:
         modelo = PeftModel.from_pretrained(modelo, str(a.adapter))

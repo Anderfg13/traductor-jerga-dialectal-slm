@@ -139,3 +139,6 @@ Resultados completos de la primera corrida en `docs/resultados_fase3.md`. Válid
 **Estado tras la segunda corrida de Colab (2026-10-08)**: hecha. Generador 1 reentrenado (475 ejemplos), fusiones y destilación completas; resultados en `docs/resultados_fase3.md`. Ya no es necesario volver a correr el notebook salvo para repetir con otra semilla. Sigue abierto: evaluación humana, PI3 (portabilidad), actualizar el paper con estos resultados, ensayo de la sustentación y la prueba de carga del Space.
 
 **Paper (2026-10-08)**: actualizado con los resultados completos de la Fase 3 (Sección Resultados, datos, hoja de ruta, trabajo futuro, conclusiones); compila limpio, 19 páginas. Sigue abierto: que un compañero lo lea de principio a fin; incorporar la evaluación humana y PI3 cuando existan; revisar que Mariana y Paula estén de acuerdo con el tono de las conclusiones.
+
+**Fusión con mergekit (Sesión 47) — tuyo**
+- [ ] Abrir `merging/fusion_mergekit_colab.ipynb` en Colab (T4, ~25 GB de disco): https://colab.research.google.com/github/Anderfg13/traductor-jerga-dialectal-slm/blob/develop/merging/fusion_mergekit_colab.ipynb y correrlo en orden. Si falla algo, **no lo corrijas**: pásame el error tal cual (va al paper). Descargar `resultados_mergekit.zip` y avisarme.

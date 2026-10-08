@@ -2794,3 +2794,21 @@ Decisiones tomadas:
 - No se repitió el entrenamiento ni la evaluación: se reutilizaron las predicciones de la corrida de Colab.
 
 Pendiente: respuesta definitiva a PI1 requiere evaluación humana (personas) y más semillas de prueba.
+
+---
+
+## Sesión 47 — 2026-10-08 — Anderson García
+
+Qué se hizo: preparación de la fusión con `mergekit` (promedio simple y TIES) de los tres adaptadores LoRA, con los modelos guardados por separado. **La fusión con los modelos reales NO se corrió**: es cómputo pesado (3 modelos de ~6 GB) y la política del proyecto es Colab. Queda en `merging/fusion_mergekit_colab.ipynb`. Proceso y decisiones en `merging/fusion_simple.md`.
+- **Por qué importa**: en la Fase 3 la fusión "lineal" con PEFT quedó por debajo del modelo base (chrF 51.5 vs 53.9). `mergekit` fusiona modelos completos, lo que equivale a base + promedio de las actualizaciones; si ahora el promedio simple funciona, la causa era cómo se promediaba (hipótesis: A y B por separado), no fusionar.
+- **Preparado**: `merging/configs/{linear,ties}.yaml` (validan contra el esquema de `mergekit` 0.1.4), `merging/incorporar_adaptadores.py` (cada adaptador → modelo completo en float16), `merging/probar_fusion.py` (5 frases + heurísticas de basura/repetición), opción `--modelo-completo` en `evaluation/generar_predicciones.py`, el notebook de Colab (registra todo error en `merging/logs/`), y los dos modelos nuevos en `evaluation/tabla_comparativa.py`. `.gitignore` excluye los modelos completos.
+- **Verificado localmente**: (a) `mergekit` con 4 modelos Qwen2 diminutos aleatorios: el promedio simple coincide con el promedio exacto (error 6.5e-4, fp16) y TIES da un modelo finito con las mismas claves; (b) con el modelo real y SOLO el adaptador del Generador 1: incorporarlo tomó 103 s, el modelo completo carga y las 5 frases salen sin basura ni repeticiones (5/5), aunque con errores de traducción reales ("qué chimba de parche" → "What a mess"; "gandalla" → "really cool"), anotados en el documento.
+
+Errores y comportamientos inesperados (para el paper, documentados en `merging/fusion_simple.md`):
+- **`mergekit` 0.1.4 es incompatible con `transformers` 5.x**: falla con `PydanticUserError: ConfiguredModuleArchitecture is not fully defined; you should define torch` aunque `pydantic` cumpla (2.10.6). Solución verificada: `transformers<5` (4.57.6) y `huggingface_hub<1`. El mensaje no apunta a la versión.
+- `mergekit` exige modelos completos, no adaptadores: hay que incorporarlos primero (~25 GB de disco frente a ~45 MB de los adaptadores).
+- `--copy-tokenizer` falla si el modelo de origen no trae tokenizador (artefacto de la prueba diminuta; no aplica a la fusión real).
+
+Decisiones tomadas: float16 al guardar los modelos completos (bfloat16 podría redondear la actualización pequeña del LoRA; no verificado contra bf16); mismos hiperparámetros de TIES que con PEFT (density 0.5, pesos 1) para comparar; los modelos de ~6 GB no se versionan.
+
+Pendiente (criterios de aceptación NO cumplidos): fusionar los tres adaptadores reales, que el modelo fusionado cargue y genere texto coherente en 5 ejemplos, y evaluarlo. Se cumple al correr el notebook en Colab; pasos en `docs/hoja_de_ruta_fin_proyecto.md`.

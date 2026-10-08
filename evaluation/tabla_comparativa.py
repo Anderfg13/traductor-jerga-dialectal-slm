@@ -34,6 +34,8 @@ ORDEN = [
     ("fusion_dare_ties", "Fusión DARE+TIES"),
     ("fusion_linear", "Fusión lineal (promedio)"),
     ("destilacion", "Fusión guiada por destilación multi-maestro"),
+    ("mergekit_linear", "Fusión lineal (mergekit, modelos completos)"),
+    ("mergekit_ties", "Fusión TIES (mergekit, modelos completos)"),
 ]
 
 

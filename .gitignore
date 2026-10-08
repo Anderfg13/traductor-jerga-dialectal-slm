@@ -55,3 +55,7 @@ paper/*.toc
 paper/*.fls
 paper/*.fdb_latexmk
 paper/*.synctex.gz
+
+# Fusión con mergekit: modelos completos de ~6 GB, no van a git
+merging/modelos_completos/
+merging/salida/
