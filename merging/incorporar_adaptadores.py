@@ -21,6 +21,7 @@ Salida:  merging/modelos_completos/<generadorN>/  (fuera de git, ~6 GB c/u)
 """
 
 import argparse
+import gc
 import sys
 import time
 from pathlib import Path
@@ -48,17 +49,29 @@ def main() -> int:
             print(f"ERROR: falta {adapter}")
             return 1
         destino = a.salida / g
-        if (destino / "config.json").exists():
-            print(f"{g}: ya existe {destino}, se salta")
+        if (destino / "config.json").exists() and sum(f.stat().st_size for f in destino.glob("*.safetensors")) > 5e9:
+            print(f"{g}: ya existe {destino} (completo), se salta", flush=True)
             continue
         t0 = time.time()
-        base = AutoModelForCausalLM.from_pretrained(probar_baseline.MODEL_ID, dtype=torch.float16, device_map="cpu")
+        # En GPU el modelo no ocupa la RAM del sistema (Colab gratis tiene ~12.7 GB y el modelo fp16 ya
+        # pesa ~6 GB): en la primera corrida real el proceso murió sin traceback en una sesión sin GPU.
+        dispositivo = "cuda" if torch.cuda.is_available() else "cpu"
+        print(f"{g}: cargando base en float16 ({dispositivo})...", flush=True)
+        base = AutoModelForCausalLM.from_pretrained(probar_baseline.MODEL_ID, dtype=torch.float16, device_map=dispositivo)
         modelo = PeftModel.from_pretrained(base, str(adapter)).merge_and_unload()
         destino.mkdir(parents=True, exist_ok=True)
-        modelo.save_pretrained(str(destino), safe_serialization=True)
+        # shards de 1 GB: guardar de a pedazos evita el pico de memoria de serializar todo junto
+        modelo.save_pretrained(str(destino), safe_serialization=True, max_shard_size="1GB")
         tokenizer.save_pretrained(str(destino))
-        print(f"{g}: modelo completo guardado en {destino} ({time.time() - t0:.0f} s)")
+        tam = sum(f.stat().st_size for f in destino.glob("*.safetensors"))
+        if tam < 5e9:
+            print(f"ERROR: {g}: pesos guardados incompletos ({tam / 1e9:.1f} GB, se esperaban ~6 GB)", flush=True)
+            return 1
+        print(f"{g}: modelo completo guardado en {destino} ({tam / 1e9:.1f} GB, {time.time() - t0:.0f} s)", flush=True)
         del modelo, base
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
     return 0
 
 

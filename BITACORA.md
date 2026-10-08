@@ -2812,3 +2812,17 @@ Errores y comportamientos inesperados (para el paper, documentados en `merging/f
 Decisiones tomadas: float16 al guardar los modelos completos (bfloat16 podría redondear la actualización pequeña del LoRA; no verificado contra bf16); mismos hiperparámetros de TIES que con PEFT (density 0.5, pesos 1) para comparar; los modelos de ~6 GB no se versionan.
 
 Pendiente (criterios de aceptación NO cumplidos): fusionar los tres adaptadores reales, que el modelo fusionado cargue y genere texto coherente en 5 ejemplos, y evaluarlo. Se cumple al correr el notebook en Colab; pasos en `docs/hoja_de_ruta_fin_proyecto.md`.
+
+---
+
+## Sesión 47 (2) — 2026-10-08 — Anderson García
+
+Qué se hizo: análisis de la primera corrida real de `merging/fusion_mergekit_colab.ipynb` (zip `resultados_mergekit.zip`, solo logs). **No se obtuvo ninguna fusión.** Detalle en `merging/fusion_simple.md`; logs archivados en `merging/logs/corrida1_sin_gpu/`.
+- **Hechos**: la sesión de Colab no tenía GPU (`Could not find cuda drivers`); el paso 1 (incorporar adaptadores) terminó a los 120 s sin traceback ni mensaje de éxito; `mergekit` encontró el `config.json` del Generador 1 pero no el del 2; las pruebas de coherencia y las predicciones (12 s en vez de ~5.6 min) fallaron porque faltaban los modelos de entrada. Los 38 s y 13 s de `mergekit` son lo que tardó en fallar.
+- **Inferencia (no confirmada por ningún log)**: el proceso murió por falta de memoria (RAM de Colab ~12.7 GB; modelo fp16 ~6 GB) al guardar el primer modelo. Los `print` se perdieron porque iban por `tee` sin vaciar el búfer.
+- **El notebook no se detenía en el primer error**, por lo que los pasos siguientes generaron errores en cascada que ocultaban la causa.
+- **Arreglos**: `incorporar_adaptadores.py` usa GPU si hay, guarda en shards de 1 GB, libera memoria entre adaptadores, imprime con `flush=True` y verifica que los pesos sumen ~6 GB; el notebook exige GPU en la primera celda, corre cada adaptador en su proceso y verifica cada paso antes de seguir. Reprobado localmente con el modelo real y un adaptador: 7 shards, 6.2 GB, 94 s en CPU, salto de "ya existe" correcto (salida borrada, no se versiona).
+
+Decisiones tomadas: se conservan los logs de la corrida fallida como evidencia (información para el paper, como pedía la tarea); no se intentó "arreglar" la fusión con otra técnica; no se modificó nada de los resultados de la Fase 3.
+
+Pendiente (criterios de aceptación NO cumplidos): repetir el notebook con GPU T4 activa; luego fusión con `mergekit`, carga del modelo fusionado y 5 traducciones coherentes. Pasos en `docs/hoja_de_ruta_fin_proyecto.md`.

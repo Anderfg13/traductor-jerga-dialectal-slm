@@ -142,3 +142,7 @@ Resultados completos de la primera corrida en `docs/resultados_fase3.md`. Válid
 
 **Fusión con mergekit (Sesión 47) — tuyo**
 - [ ] Abrir `merging/fusion_mergekit_colab.ipynb` en Colab (T4, ~25 GB de disco): https://colab.research.google.com/github/Anderfg13/traductor-jerga-dialectal-slm/blob/develop/merging/fusion_mergekit_colab.ipynb y correrlo en orden. Si falla algo, **no lo corrijas**: pásame el error tal cual (va al paper). Descargar `resultados_mergekit.zip` y avisarme.
+
+**Fusión con mergekit — primera corrida falló (2026-10-08)**: sin GPU (Colab te dejó en CPU) y el paso 1 murió por memoria. Ya está corregido. Para repetirla:
+- [ ] En Colab: **Entorno de ejecución → Cambiar tipo de entorno → T4 GPU**, y abrir de nuevo el notebook desde el enlace de GitHub (trae la versión corregida). Si Colab dice que se agotó la cuota de GPU, esperar o usar otra cuenta.
+- [ ] Correr en orden; ahora la primera celda se detiene si no hay GPU, y cada paso se detiene si el anterior falló. Descargar `resultados_mergekit.zip` y avisarme.

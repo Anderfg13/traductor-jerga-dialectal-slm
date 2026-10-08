@@ -1,0 +1,102 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1791483907.933127    3653 cpu_feature_guard.cc:227] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1791483915.551202    3653 cudart_stub.cc:31] Could not find cuda drivers on your machine, GPU will not be used.
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.13/dist-packages/transformers/utils/hub.py", line 479, in cached_files
+    hf_hub_download(
+    ~~~~~~~~~~~~~~~^
+        path_or_repo_id,
+        ^^^^^^^^^^^^^^^^
+    ...<10 lines>...
+        local_files_only=local_files_only,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/dist-packages/huggingface_hub/utils/_validators.py", line 106, in _inner_fn
+    validate_repo_id(arg_value)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/dist-packages/huggingface_hub/utils/_validators.py", line 154, in validate_repo_id
+    raise HFValidationError(
+    ...<2 lines>...
+    )
+huggingface_hub.errors.HFValidationError: Repo id must be in the form 'repo_name' or 'namespace/repo_name': 'merging/modelos_completos/generador2'. Use `repo_type` argument if needed.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.13/dist-packages/transformers/configuration_utils.py", line 721, in _get_config_dict
+    resolved_config_file = cached_file(
+        pretrained_model_name_or_path,
+    ...<10 lines>...
+        _commit_hash=commit_hash,
+    )
+  File "/usr/local/lib/python3.13/dist-packages/transformers/utils/hub.py", line 322, in cached_file
+    file = cached_files(path_or_repo_id=path_or_repo_id, filenames=[filename], **kwargs)
+  File "/usr/local/lib/python3.13/dist-packages/transformers/utils/hub.py", line 532, in cached_files
+    _get_cache_file_to_return(path_or_repo_id, filename, cache_dir, revision, repo_type)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/dist-packages/transformers/utils/hub.py", line 143, in _get_cache_file_to_return
+    resolved_file = try_to_load_from_cache(
+        path_or_repo_id, full_filename, cache_dir=cache_dir, revision=revision, repo_type=repo_type
+    )
+  File "/usr/local/lib/python3.13/dist-packages/huggingface_hub/utils/_validators.py", line 106, in _inner_fn
+    validate_repo_id(arg_value)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/dist-packages/huggingface_hub/utils/_validators.py", line 154, in validate_repo_id
+    raise HFValidationError(
+    ...<2 lines>...
+    )
+huggingface_hub.errors.HFValidationError: Repo id must be in the form 'repo_name' or 'namespace/repo_name': 'merging/modelos_completos/generador2'. Use `repo_type` argument if needed.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/bin/mergekit-yaml", line 8, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/usr/local/lib/python3.13/dist-packages/click/core.py", line 1442, in __call__
+    return self.main(*args, **kwargs)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/dist-packages/click/core.py", line 1363, in main
+    rv = self.invoke(ctx)
+  File "/usr/local/lib/python3.13/dist-packages/click/core.py", line 1226, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/dist-packages/click/core.py", line 794, in invoke
+    return callback(*args, **kwargs)
+  File "/usr/local/lib/python3.13/dist-packages/mergekit/options.py", line 166, in wrapper
+    return f(*args, **kwargs)
+  File "/usr/local/lib/python3.13/dist-packages/mergekit/scripts/run_yaml.py", line 30, in main
+    run_merge(
+    ~~~~~~~~~^
+        merge_config,
+        ^^^^^^^^^^^^^
+    ...<2 lines>...
+        config_source=config_source,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/dist-packages/mergekit/merge.py", line 42, in run_merge
+    arch_info = get_architecture_info(merge_config, options)
+  File "/usr/local/lib/python3.13/dist-packages/mergekit/architecture/__init__.py", line 79, in get_architecture_info
+    arch_info_for_config(m.config(trust_remote_code=options.trust_remote_code))
+                         ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/dist-packages/mergekit/common.py", line 143, in config
+    res = AutoConfig.from_pretrained(
+        self.model.path,
+        revision=self.model.revision,
+        trust_remote_code=trust_remote_code,
+    )
+  File "/usr/local/lib/python3.13/dist-packages/transformers/models/auto/configuration_auto.py", line 1332, in from_pretrained
+    config_dict, unused_kwargs = PretrainedConfig.get_config_dict(pretrained_model_name_or_path, **kwargs)
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/dist-packages/transformers/configuration_utils.py", line 662, in get_config_dict
+    config_dict, kwargs = cls._get_config_dict(pretrained_model_name_or_path, **kwargs)
+                          ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/dist-packages/transformers/configuration_utils.py", line 744, in _get_config_dict
+    raise OSError(
+    ...<4 lines>...
+    )
+OSError: Can't load the configuration of 'merging/modelos_completos/generador2'. If you were trying to load it from 'https://huggingface.co/models', make sure you don't have a local directory with the same name. Otherwise, make sure 'merging/modelos_completos/generador2' is the correct path to a directory containing a config.json file

@@ -1,7 +1,7 @@
 # Fusión con `mergekit`: promedio simple y TIES
 
-Estado: **preparada y verificada con modelos diminutos; la fusión con los
-modelos reales NO se ha ejecutado todavía** (cómputo pesado: Colab,
+Estado: **la primera corrida real falló (sesión sin GPU, ver abajo) y no hay ninguna
+fusión real todavía**; preparada y verificada con modelos diminutos (cómputo pesado: Colab,
 `merging/fusion_mergekit_colab.ipynb`). Este documento se completa con
 los resultados reales cuando se corra (ver "Pendiente").
 
@@ -119,10 +119,58 @@ modelo completo resultante:
 Esto valida el paso 1 y el script de prueba con el modelo real, pero
 sigue sin ser la fusión de los tres adaptadores.
 
+## Primera corrida real en Colab: falló, y por qué (2026-10-08)
+
+Logs en `merging/logs/corrida1_sin_gpu/`. **No se obtuvo ninguna fusión.**
+Lo que muestran los logs, y lo que es inferencia:
+
+- **La sesión no tenía GPU** (el log de TensorFlow dice `Could not find
+  cuda drivers on your machine`). Hecho. Con ~12.7 GB de RAM de sistema,
+  cargar el modelo base en float16 (~6 GB) y fusionar/guardar deja poco
+  margen.
+- **El paso 1 (incorporar adaptadores) murió sin traceback** a los 120 s:
+  el log tiene una sola barra de carga de modelo y ninguna línea de éxito.
+  `mergekit` luego encontró el `config.json` del Generador 1 pero no el
+  del Generador 2. Interpretación: el proceso murió, **probablemente por
+  falta de memoria** mientras guardaba el primer modelo (`save_pretrained`
+  de un modelo de 6 GB en un solo archivo). Es una inferencia: ningún log
+  trae un `OutOfMemory` explícito, porque el sistema operativo mata el
+  proceso sin dejar mensaje de Python.
+- **Las líneas `print` se perdieron**: el script escribía con `print` sin
+  vaciar el búfer, y como la salida iba por `tee`, lo que no se había
+  vaciado desapareció con el proceso. Por eso tampoco quedó el mensaje
+  de éxito del primer modelo.
+- **Todo lo demás es consecuencia en cascada, no fallos independientes**:
+  `mergekit` (`OSError: Can't load the configuration of
+  'merging/modelos_completos/generador2'`), las pruebas de coherencia
+  (`HFValidationError` porque `merging/salida/linear` no existe) y las
+  predicciones (12 s en lugar de ~5.6 min) fallaron porque faltaban los
+  modelos de entrada. Los tiempos de 38 s y 13 s de `mergekit` son lo que
+  tardó en fallar, no en fusionar.
+- **El notebook no frenaba en el primer error**, así que los pasos
+  siguientes corrieron igual y produjeron más errores que ocultaban la
+  causa.
+
+Cambios hechos a raíz de esto:
+
+- `incorporar_adaptadores.py`: usa GPU si hay (el modelo no ocupa RAM de
+  sistema), guarda en shards de 1 GB, vacía la memoria entre adaptadores,
+  imprime con `flush=True`, y **verifica** que los pesos guardados sumen
+  ~6 GB (si no, sale con error). "Ya existe" ahora exige pesos completos,
+  no solo `config.json`.
+- Notebook: exige GPU al inicio (`assert torch.cuda.is_available()`),
+  corre cada adaptador en su propio proceso, y se detiene en el primer
+  fallo (verifica los 3 modelos completos y la salida de cada `mergekit`
+  antes de seguir).
+
+Lección para el paper: con herramientas de fusión sobre modelos de varios
+GB, un fallo de memoria no deja traceback, y un flujo que no se detiene en
+el primer error esconde la causa detrás de varios errores secundarios.
+
 ## Pendiente
 
-- Correr `merging/fusion_mergekit_colab.ipynb` en Colab (T4, ~25 GB de
-  disco) y traer `resultados_mergekit.zip`.
+- **Repetir** `merging/fusion_mergekit_colab.ipynb` en Colab **con GPU T4
+  activada** (~25 GB de disco) y traer `resultados_mergekit.zip`.
 - Completar este documento con: si cargan sin errores, las 5
   traducciones de prueba de cada fusión (leídas a mano), BLEU/chrF
   frente al base y frente a la fusión con PEFT, y cualquier error nuevo.
