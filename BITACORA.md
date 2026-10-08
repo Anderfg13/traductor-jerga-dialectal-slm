@@ -2762,3 +2762,20 @@ Decisiones tomadas:
 - El bootstrap de esta pasada usó 1000 remuestreos (la primera, 2000).
 
 Pendiente: evaluación humana (personas), PI3 (portabilidad), actualizar `paper/main.tex` con estos resultados, ensayo de la sustentación y prueba de carga del Space; ver `docs/hoja_de_ruta_fin_proyecto.md`.
+
+---
+
+## Sesión 45 — 2026-10-08 — Anderson García
+
+Qué se hizo: actualización de `paper/main.tex` con los resultados completos de la Fase 3 (`docs/resultados_fase3.md`), que habían dejado desactualizado el documento (hablaba de un solo generador, 8 ejemplos de prueba y ninguna fusión).
+- **Sección Resultados reescrita** (antes "Resultados preliminares"): tabla con los 9 modelos y su intervalo de 95 % por bootstrap sobre semillas (`tab:resultados-fase3`), y párrafos de ajuste fino, PI1 (generadores), PI2 (fusión, destilación y fusión lineal), sobreajuste y costo, evaluación humana (sigue sin existir), latencia, y qué significan y qué no. Todo redactado como señal tentativa: 9 semillas de prueba, una corrida por modelo, referencias mayormente sintéticas, sesgo de cada generador hacia sus propias referencias.
+- **Datos**: los tres generadores sobre las 100 semillas (589/632/625 variantes; filtro 2/0/0 descartadas), reparto fijo 81/10/9, cambio de modelo del Generador 3, y el indicio de mezcla de dialecto (6 variantes con "che" en G1 y ninguna en G2/G3) con su salvedad de heurística de un solo marcador.
+- **Resto**: introducción de la arquitectura, caption de la tabla de LoRA (idéntica en los 4 adaptadores), hoja de ruta, alcance del MVP (el servicio desplegado sirve el adaptador viejo del Generador 1, no una fusión), trabajo futuro y conclusiones.
+- **Compilación**: dos pasadas de `pdflatex`, 0 errores, 0 Overfull hbox, 0 referencias/citas indefinidas, 0 `??` en el texto del PDF, **19 páginas**; `paper/auditar_tex.py` sin problemas. Se revisó visualmente la tabla nueva (página 15). `paper/main.pdf` actualizado.
+
+Decisiones tomadas:
+- Se reemplazó la tabla de la Fase 2 (base vs. Generador 1 sobre 8 de 23 ejemplos): era de otro reparto de semillas y ya no es comparable. Sigue documentada en `docs/fase2_resultados_borrador.md`.
+- Las cifras del paper se copiaron de `evaluation/analisis_bootstrap.md` y `evaluation/comparacion_fase3.md`; no se redondeó ni se inventó ninguna.
+- Sin conclusiones fuertes: se dice explícitamente que no se puede afirmar que la fusión supere al mejor individual.
+
+Pendiente: lectura del documento por una persona que no lo haya visto; evaluación humana y PI3 (aún no existen); acuerdo de Mariana y Paula con el texto de resultados y conclusiones, que reescribe lo que ellas habían integrado en la Sesión 35.
