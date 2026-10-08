@@ -2684,3 +2684,17 @@ Decisiones tomadas:
 - Un matiz de validez: el early stopping hace que el número de épocas efectivas dependa del dataset (es el mecanismo, igual para todos, no una diferencia de configuración). El adaptador del Generador 1 que está en el repo se entrenó con el reparto anterior (189 ejemplos); el notebook lo reentrena con el reparto nuevo para que los cuatro salgan de las mismas condiciones.
 
 Pendiente (no se pudo hacer aquí; criterios de aceptación sin cumplir): que exista `finetuning/checkpoints/generador2/`, la prueba manual de traducciones coherentes, y `finetuning/curva_final_generador2.md`. Pasos en `docs/hoja_de_ruta_fin_proyecto.md`.
+
+---
+
+## Sesión 42 — 2026-10-07 — Anderson García
+
+Qué se hizo: preparación del fine-tuning del Generador 3, igual que la Sesión 41 para el Generador 2. **El entrenamiento NO se corrió** (cómputo pesado; política del proyecto: Colab); `finetuning/fase3_pipeline_colab.ipynb` ya entrena `generador3` con `entrenar_lora.py --dataset-dir generation/splits/dataset_generador3 --todos`.
+- **Splits verificados** sobre `generation/dataset_generador3_limpio.json`: train 508 variantes / 81 semillas, val 61 / 10, test 56 / 9. Comprobado con un script ad hoc contra `seeds/split_semillas.json`: los splits de los generadores 1, 2, 3 y mezcla contienen solo semillas del reparto fijo, y **las 9 semillas de test son las mismas en G1, G2 y G3** (diferencia vacía). Es lo que hace comparable a los tres modelos.
+- **Configuración**: la misma que se verificó en la Sesión 41 (un solo `entrenar_lora.py`, sin ramas por dataset: LoRA r=8, alpha=16, dropout 0.05, módulos Q/K/V/O; lr 2e-4, batch 1, hasta 10 épocas con early stopping paciencia 2). `finetuning/verificar_config_identica.py` se volvió a correr: OK con el único adaptador existente (G1); G2, G3 y mezcla figuran como pendientes de comparar.
+
+Decisiones tomadas:
+- No se escribió `finetuning/curva_final_generador3.md` a mano ni con valores supuestos: se genera con `finetuning/resumen_curva.py generador3 ...` cuando exista `loss_log.json` real de Colab.
+- Ningún cambio de código en esta sesión: el proceso del Generador 3 es exactamente el mismo que el del 2 (única variable: el dataset).
+
+Pendiente (criterios de aceptación NO cumplidos): `finetuning/checkpoints/generador3/` no existe, y por lo tanto el equipo todavía NO tiene los tres modelos individuales (SLM+A, SLM+B, SLM+C) para la comparación de la Semana 8; hoy solo existe el del Generador 1, entrenado con el reparto anterior (el notebook lo reentrena). Se cumple al correr el notebook en Colab; pasos en `docs/hoja_de_ruta_fin_proyecto.md`.

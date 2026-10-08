@@ -126,3 +126,4 @@ Marca cada casilla cuando esté hecho y pega aquí el dato que se pide.
 - [ ] Verificar que `python finetuning/verificar_config_identica.py` termina en `OK` con los 4 adaptadores (la celda del notebook ya lo corre). Si falla, la comparación de PI1 no es válida: pegarme la salida.
 - [ ] Generar el informe de cada curva con los datos reales: `python finetuning/resumen_curva.py generador2 --hardware "<GPU usada>" --tiempo "<minutos>" --ejemplos-train 513 --ejemplos-val 64` (ejemplos: G2 513/64, G3 508/61, mezcla 1496/183). Crea `finetuning/curva_final_generador2.md`.
 - [ ] Prueba manual rápida de cada adaptador nuevo (3-5 frases, ver `evaluation/generar_predicciones.py`) y anotar si las traducciones son coherentes.
+- [ ] **Hito Semana 8**: confirmar que existen `finetuning/checkpoints/generador1`, `generador2` y `generador3` (los tres modelos individuales) con sus `curva_final_generadorN.md`.
