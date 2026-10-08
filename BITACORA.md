@@ -2651,3 +2651,20 @@ Decisiones tomadas:
 - `generation/probar_prompt_derivacion.py` (la prueba manual de la Sesión 6) sigue nombrando `gemini-3.6-flash`; se dejó como registro histórico de esa sesión.
 
 Pendiente: ninguno propio de esta tarea. La comparación de calidad entre los tres generadores depende del entrenamiento en Colab (`docs/hoja_de_ruta_fin_proyecto.md`).
+
+---
+
+## Sesión 40 — 2026-10-07 — Anderson García
+
+Qué se hizo: cierre del Generador 3 sobre todo el banco y tabla comparativa de los tres generadores. La generación, validación y filtrado del Generador 3 se hicieron antes (Sesión extra 4) y la Sesión 39 validó el script; esta sesión comprobó que existen los tres `generation/dataset_generador{1,2,3}_limpio.json` y armó `generation/comparacion_generadores.md` con `generation/comparar_generadores.py`.
+- Una fila por generador: **G1** 589 generados → 587 tras el filtro (2 descartadas, 0.3 %), 0.9 s por llamada; **G2** 632 → 632 (0 %), 27.6 s por llamada (rango 16-72 s); **G3** 625 → 625 (0 %), 2.9 s por llamada. Costo: $0 en los tres (capa gratuita).
+- Tiempo: el de las corridas reales no se guardó (se pausaron/reanudaron; la de Cohere se colgó), así que se midió con 3 llamadas reales por generador sobre `sem-006`, `sem-007`, `sem-018` (`generation/latencias_generadores.json`). Estimación para 100 semillas secuenciales, sin reintentos por límite de tasa: G1 ~1 min, G2 ~46 min, G3 ~5 min. Cohere es muy variable (16 a 72 s), lo que explica que pareciera colgarse.
+- Costo: dinero 0; se reportan semillas procesadas y tokens aproximados (caracteres / 4, no el conteo del proveedor). No se calculó un "costo si fuera de pago": no se verificaron tarifas vigentes.
+- La tabla incluye además estadísticas de los datos (variantes por semilla, longitud, registro, mezcla de dialecto) y una sección "cómo leerla para PI1".
+
+Decisiones tomadas:
+- Se midió la latencia en vez de estimarla desde las marcas de tiempo de los archivos, porque esas incluyen pausas y reinicios y darían una cifra engañosa.
+- Con solo 3 mediciones por generador y desde una sola máquina/hora, los tiempos son una referencia gruesa; la tabla lo dice.
+- Los tamaños son comparables (589 / 632 / 625), así que el tamaño del dataset no es una variable de confusión grande para PI1.
+
+Pendiente: ninguno propio. La respuesta a PI1 depende de entrenar con cada generador y medir (Colab, `docs/hoja_de_ruta_fin_proyecto.md`); esta tabla es solo el primer insumo, y el filtro automático casi no discrimina entre generadores.
