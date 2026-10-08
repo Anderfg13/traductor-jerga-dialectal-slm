@@ -1,10 +1,10 @@
 # Reporte de filtrado automático
 
-Dataset de entrada: `dataset_generador1.json` (238 variantes)
+Dataset de entrada: `dataset_generador1.json` (589 variantes)
 
-- **Aprobadas (incluidas en el dataset limpio):** 236 (99.2% del total sin contar sospechosas por separado)
+- **Aprobadas (incluidas en el dataset limpio):** 587 (99.7% del total sin contar sospechosas por separado)
 - **Marcadas como sospechosas (se quedan en el dataset limpio, revisar a mano):** 0
-- **Descartadas:** 2 (0.8% del total)
+- **Descartadas:** 2 (0.3% del total)
 
 ## Razones de descarte
 

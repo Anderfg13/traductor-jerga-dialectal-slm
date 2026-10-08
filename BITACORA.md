@@ -2530,3 +2530,23 @@ Decisiones tomadas:
   en modo real para no gastar 10 generaciones de ~55 s (ya cubierto por `api/test_main.py`).
 
 Pendiente: ver `docs/pendientes_despliegue.md`.
+
+---
+
+## Sesión extra (4) — 2026-10-07 — Anderson García
+
+Qué se hizo: se dejó lista y verificada toda la preparación de la Fase 3 que no necesita GPU ni personas; lo que sigue es correr el notebook en Colab.
+- **Datos de los 3 generadores sobre las mismas 100 semillas** (`lote_01` + `lote_02`). Hasta ahora el Generador 1 solo se había generado con `lote_01` (40 semillas). `generar_sintetico.py` ahora acepta `--generador 1|2|3` y `--lotes`; `consolidar.py` toma el generador como argumento. Resultado (variantes limpias): G1 587 (Groq), G2 632 (Cohere), G3 625 (Google).
+- **Reparto fijo de semillas** (`seeds/split_semillas.json`, 81/10/9, estratificado por dialecto): `split_dataset.py` lo usa para los 3 generadores, así todos se entrenan y evalúan con las mismas semillas por split (antes dependía de qué variantes sobrevivían al filtro, y habría diferido entre generadores).
+- `generation/mezclar_datasets.py` (dataset mezcla 1+2+3: 1496/183/165) y `evaluation/construir_test_comun.py` (174 entradas: 9 "oro" con referencia humana de las semillas + variantes de test de cada generador).
+- **Fusión**: `merging/fusionar_adaptadores.py` (TIES, DARE+TIES, lineal vía `add_weighted_adapter` de PEFT); probado con un adaptador real (17 s en CPU). **Destilación multi-maestro**: `merging/destilacion_multimaestro.py` (estudiante que imita el promedio de 3 maestros + CE); su lógica se verifica con `tests/test_destilacion.py` (modelo diminuto aleatorio: solo el estudiante recibe gradiente, los maestros no cambian).
+- **Evaluación**: `evaluation/generar_predicciones.py`, `metricas_automaticas.py` con desglose por fuente y `--salida-json`, `tabla_comparativa.py`, `preparar_evaluacion_humana.py` (hojas ciegas) y `kappa.py` (Fleiss y Cohen ponderado; `tests/test_kappa.py` lo verifica contra el valor publicado 0.210 y el 0.4 clásico).
+- `finetuning/fase3_pipeline_colab.ipynb`: entrena 4 adaptadores, fusiona, destila, predice con 9 modelos, mide y empaqueta. Hoja de ruta: `docs/hoja_de_ruta_fin_proyecto.md`.
+
+Decisiones tomadas:
+- **Generador 3 pasó de `gemini-3.6-flash` a `gemini-3.5-flash-lite`**: el nivel gratuito del primero permite solo 20 solicitudes/día (100 semillas = 5 días); el lite tiene 15/min. Se descartaron las 21 salidas ya generadas con 3.6-flash para que el generador sea un solo modelo. Es un cambio respecto a `test_apis.py`/README, que aún nombran 3.6-flash.
+- **Fusión con PEFT en vez de `mergekit`**: los 3 modelos son el mismo base + LoRA r=8; PEFT hace TIES/DARE sobre los adaptadores sin materializar 3 copias de 3B (~18 GB). Es una desviación del plan original ("vía mergekit").
+- Reparaciones de JSON en `consolidar.py` (`strict=False` y reponer una comilla de apertura omitida por Gemini); `sem-059` (G1) y varias de G3 se regeneraron. Cohere/Google se quedaron colgados una vez: el script es reanudable y se reinició.
+- El test común mezcla referencias humanas (oro, solo 9 entradas) con referencias de cada LLM; por eso se reporta por fuente, y el oro es la columna menos sesgada.
+
+Pendiente: no se entrenó ni evaluó ningún modelo nuevo; ninguna cifra de Fase 3 existe todavía. `destilacion_multimaestro.py` NO se corrió con el modelo real (un ejemplo con 3B en CPU pasó de 25 min sin terminar); solo su lógica está verificada con un modelo diminuto, así que es el script con más riesgo de fallar la primera vez en Colab. Los siguientes pasos y quién los hace están en `docs/hoja_de_ruta_fin_proyecto.md` (Colab, evaluadores humanos, paper). Faltan data cards de G2 y G3 y actualizar `test_apis.py`/README con el modelo de Google.

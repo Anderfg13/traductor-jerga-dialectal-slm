@@ -28,13 +28,16 @@ semilla se salta (no se vuelve a llamar a la API). Correr el script de
 nuevo tras una interrupcion retoma solo las semillas pendientes. Para
 forzar regenerar una semilla ya procesada, borra su archivo de salida.
 
-Uso:
+Uso (--generador 1=Groq por defecto, 2=Cohere, 3=Google; --lotes 1 2
+usa las semillas de lote_01 y lote_02; las salidas van a
+generation/raw/generadorN/):
     python generation/generar_sintetico.py
+    python generation/generar_sintetico.py --generador 2 --lotes 1 2
     python generation/generar_sintetico.py --ids sem-007 sem-018 sem-006
     python generation/generar_sintetico.py --max-reintentos 5 --espera-base 2
 
 Variables de entorno (definidas en .env, ver .env.example):
-    GROQ_API_KEY   -- clave de API de Groq (obligatoria)
+    GROQ_API_KEY / COHERE_API_KEY / GOOGLE_API_KEY -- según --generador
 """
 
 import argparse
@@ -49,10 +52,16 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-SEEDS_PATH = Path(__file__).resolve().parent.parent / "seeds" / "lote_01.json"
-RAW_DIR = Path(__file__).resolve().parent / "raw" / "generador1"
-MODEL = "openai/gpt-oss-20b"
-MAX_TOKENS = 1500
+SEEDS_DIR = Path(__file__).resolve().parent.parent / "seeds"
+GENERATION_DIR = Path(__file__).resolve().parent
+
+# Los 3 generadores del proyecto (CONTEXTO_PROYECTO.md). El número es el
+# usado en los nombres de carpeta/archivo (raw/generadorN, dataset_generadorN).
+GENERADORES = {
+    1: {"nombre": "groq", "modelo": "openai/gpt-oss-20b", "env": "GROQ_API_KEY", "max_tokens": 1500},
+    2: {"nombre": "cohere", "modelo": "command-r-08-2024", "env": "COHERE_API_KEY", "max_tokens": 2500},
+    3: {"nombre": "google", "modelo": "gemini-3.5-flash-lite", "env": "GOOGLE_API_KEY", "max_tokens": 3000},
+}
 
 # Misma plantilla que generation/prompt_derivacion.md y
 # generation/probar_prompt_derivacion.py (Sesion 6) — se mantiene en
@@ -111,28 +120,75 @@ def construir_prompt(semilla: dict) -> str:
     return PLANTILLA.format(**semilla)
 
 
-def llamar_groq_con_reintentos(client, prompt: str, max_reintentos: int, espera_base: float) -> str:
-    """Llama a Groq con backoff exponencial ante errores transitorios
-    (429 rate limit, timeouts, errores 5xx). Respeta el header
-    Retry-After cuando la API lo entrega. Relanza la excepcion tras
-    agotar los reintentos, o de inmediato ante errores no transitorios
-    (ej. clave invalida, prompt rechazado)."""
-    import groq
+def crear_cliente(num_generador: int):
+    cfg = GENERADORES[num_generador]
+    api_key = os.environ[cfg["env"]]
+    if num_generador == 1:
+        from groq import Groq
 
+        return Groq(api_key=api_key)
+    if num_generador == 2:
+        import cohere
+
+        return cohere.ClientV2(api_key=api_key)
+    from google import genai
+
+    return genai.Client(api_key=api_key)
+
+
+def _llamar_una_vez(num_generador: int, client, prompt: str) -> str:
+    cfg = GENERADORES[num_generador]
+    if num_generador == 1:
+        resp = client.chat.completions.create(
+            model=cfg["modelo"],
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=cfg["max_tokens"],
+            reasoning_effort="low",
+        )
+        return resp.choices[0].message.content or ""
+    if num_generador == 2:
+        resp = client.chat(
+            model=cfg["modelo"],
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=cfg["max_tokens"],
+        )
+        return resp.message.content[0].text or ""
+    from google.genai import types
+
+    resp = client.models.generate_content(
+        model=cfg["modelo"],
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            max_output_tokens=cfg["max_tokens"],
+            thinking_config=types.ThinkingConfig(thinking_level="minimal"),
+        ),
+    )
+    return resp.text or ""
+
+
+def _es_transitorio(e: Exception) -> bool:
+    """429, 5xx, timeouts y errores de conexión se reintentan; el resto
+    (clave inválida, prompt rechazado) no."""
+    codigo = getattr(e, "status_code", None) or getattr(e, "code", None)
+    if isinstance(codigo, int) and (codigo == 429 or 500 <= codigo < 600):
+        return True
+    nombre = type(e).__name__
+    return any(k in nombre for k in ("RateLimit", "TooManyRequests", "Timeout", "Connection", "InternalServer", "ServiceUnavailable"))
+
+
+def llamar_con_reintentos(num_generador: int, client, prompt: str, max_reintentos: int, espera_base: float) -> str:
+    """Backoff exponencial ante errores transitorios; respeta el header
+    Retry-After si la API lo manda. Relanza tras agotar los reintentos,
+    o de inmediato ante errores no transitorios."""
     for intento in range(max_reintentos + 1):
         try:
-            resp = client.chat.completions.create(
-                model=MODEL,
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=MAX_TOKENS,
-                reasoning_effort="low",
-            )
-            return resp.choices[0].message.content or ""
-        except (groq.RateLimitError, groq.APIConnectionError, groq.APITimeoutError, groq.InternalServerError) as e:
-            if intento == max_reintentos:
+            return _llamar_una_vez(num_generador, client, prompt)
+        except Exception as e:  # noqa: BLE001
+            if not _es_transitorio(e) or intento == max_reintentos:
                 raise
             espera = espera_base * (2 ** intento)
-            retry_after = getattr(getattr(e, "response", None), "headers", {}).get("retry-after")
+            headers = getattr(getattr(e, "response", None), "headers", None)
+            retry_after = headers.get("retry-after") if hasattr(headers, "get") else None
             if retry_after:
                 try:
                     espera = max(espera, float(retry_after))
@@ -144,38 +200,48 @@ def llamar_groq_con_reintentos(client, prompt: str, max_reintentos: int, espera_
     raise RuntimeError("no debería llegar aquí")  # pragma: no cover
 
 
+def cargar_semillas(lotes: list[int]) -> list[dict]:
+    semillas = []
+    for n in lotes:
+        semillas.extend(json.loads((SEEDS_DIR / f"lote_{n:02d}.json").read_text(encoding="utf-8")))
+    return semillas
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--generador", type=int, choices=sorted(GENERADORES), default=1, help="1=Groq (default), 2=Cohere, 3=Google")
+    parser.add_argument("--lotes", type=int, nargs="+", default=[1], help="lotes de semillas a usar, p. ej. 1 2 (default: 1)")
     parser.add_argument("--ids", nargs="+", help="procesar solo estos ids de semilla (por defecto: todas)")
     parser.add_argument("--max-reintentos", type=int, default=5, help="reintentos ante error transitorio (default: 5)")
     parser.add_argument("--espera-base", type=float, default=2.0, help="segundos base del backoff exponencial (default: 2.0)")
     args = parser.parse_args()
 
-    semillas = json.loads(SEEDS_PATH.read_text(encoding="utf-8"))
+    cfg = GENERADORES[args.generador]
+    raw_dir = GENERATION_DIR / "raw" / f"generador{args.generador}"
+
+    semillas = cargar_semillas(args.lotes)
     if args.ids:
         semillas_por_id = {s["id"]: s for s in semillas}
         faltantes = [i for i in args.ids if i not in semillas_por_id]
         if faltantes:
-            print(f"ERROR: ids no encontrados en {SEEDS_PATH.name}: {faltantes}")
+            print(f"ERROR: ids no encontrados en los lotes {args.lotes}: {faltantes}")
             return 1
         semillas = [semillas_por_id[i] for i in args.ids]
 
     try:
-        from groq import Groq
-
-        client = Groq(api_key=os.environ["GROQ_API_KEY"])
+        client = crear_cliente(args.generador)
     except KeyError:
-        print("ERROR: falta la variable de entorno GROQ_API_KEY (ver .env.example)")
+        print(f"ERROR: falta la variable de entorno {cfg['env']} (ver .env.example)")
         return 1
 
-    RAW_DIR.mkdir(parents=True, exist_ok=True)
+    raw_dir.mkdir(parents=True, exist_ok=True)
 
     ok = True
     procesadas = 0
     saltadas = 0
     for semilla in semillas:
         seed_id = semilla["id"]
-        salida_path = RAW_DIR / f"{seed_id}.json"
+        salida_path = raw_dir / f"{seed_id}.json"
 
         if salida_path.exists():
             print(f"--- {seed_id}: ya existe, se salta ---")
@@ -185,7 +251,7 @@ def main() -> int:
         print(f"--- {seed_id} ({semilla['texto_original']!r}, {semilla['dialecto_region']}) ---")
         prompt = construir_prompt(semilla)
         try:
-            texto = llamar_groq_con_reintentos(client, prompt, args.max_reintentos, args.espera_base)
+            texto = llamar_con_reintentos(args.generador, client, prompt, args.max_reintentos, args.espera_base)
         except Exception as e:  # noqa: BLE001 - reportar cualquier fallo y seguir con la siguiente semilla
             print(f"  ERROR ({type(e).__name__}): {e}")
             ok = False
@@ -193,14 +259,14 @@ def main() -> int:
 
         registro = {
             "seed_id": seed_id,
-            "generador": "groq",
-            "modelo": MODEL,
+            "generador": cfg["nombre"],
+            "modelo": cfg["modelo"],
             "timestamp_utc": datetime.now(timezone.utc).isoformat(),
             "prompt": prompt,
             "respuesta_cruda": texto,
         }
         salida_path.write_text(json.dumps(registro, ensure_ascii=False, indent=2), encoding="utf-8")
-        print(f"  OK: guardado en {salida_path.relative_to(SEEDS_PATH.parent.parent)}")
+        print(f"  OK: guardado en {salida_path.relative_to(GENERATION_DIR.parent)}")
         procesadas += 1
 
     print(f"\nTotal: {procesadas} generadas, {saltadas} ya existían, {'sin errores' if ok else 'con errores (ver arriba)'}.")

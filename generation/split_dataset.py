@@ -17,6 +17,10 @@ semillas 80/10/10 DENTRO de cada dialecto por separado (no sobre el
 total mezclado), para que ningún dialecto quede ausente o subrepresentado
 en val/test solo por mala suerte del muestreo aleatorio.
 
+El reparto de semillas es FIJO e igual para todos los generadores (ver
+`cargar_split_semillas`); un generador al que se le filtró alguna
+semilla simplemente no tiene variantes de ella en ese split.
+
 Uso:
     python generation/split_dataset.py [ruta_dataset_limpio]
 
@@ -48,22 +52,46 @@ def repartir_semillas(seed_ids: list[str], rng: random.Random) -> dict[str, list
     }
 
 
+SPLIT_SEMILLAS_PATH = GENERATION_DIR.parent / "seeds" / "split_semillas.json"
+
+
+def cargar_split_semillas() -> dict[str, list[str]]:
+    """Reparto FIJO de TODAS las semillas (seeds/lote_*.json) en
+    train/val/test, estratificado por dialecto. Depende solo de las
+    semillas y de SEMILLA_ALEATORIA, no de qué variantes sobrevivieron
+    al filtrado de un generador concreto: así los 3 generadores se
+    entrenan y evalúan con EXACTAMENTE las mismas semillas por split
+    (requisito para comparar generadores, PI1) y el test se puede
+    evaluar contra las traducciones de referencia humanas de las
+    semillas. Se guarda en seeds/split_semillas.json."""
+    por_dialecto = defaultdict(list)
+    for lote in sorted((GENERATION_DIR.parent / "seeds").glob("lote_*.json")):
+        for semilla in json.loads(lote.read_text(encoding="utf-8")):
+            por_dialecto[semilla["dialecto_region"]].append(semilla["id"])
+
+    rng = random.Random(SEMILLA_ALEATORIA)
+    reparto_total = {"train": [], "val": [], "test": []}
+    for dialecto in sorted(por_dialecto):
+        reparto = repartir_semillas(por_dialecto[dialecto], rng)
+        for split, ids in reparto.items():
+            reparto_total[split].extend(ids)
+    reparto_total = {k: sorted(v) for k, v in reparto_total.items()}
+    SPLIT_SEMILLAS_PATH.write_text(json.dumps(reparto_total, ensure_ascii=False, indent=2), encoding="utf-8")
+    return reparto_total
+
+
 def main() -> int:
     dataset_path = Path(sys.argv[1]) if len(sys.argv) > 1 else GENERATION_DIR / "dataset_generador1_limpio.json"
     dataset = json.loads(dataset_path.read_text(encoding="utf-8"))
 
-    por_dialecto_semillas = defaultdict(list)
     variantes_por_semilla = defaultdict(list)
     for variante in dataset:
         variantes_por_semilla[variante["seed_id"]].append(variante)
-        por_dialecto_semillas[variante["dialecto_region"]].append(variante["seed_id"])
 
-    rng = random.Random(SEMILLA_ALEATORIA)
-    semillas_por_split = {"train": [], "val": [], "test": []}
-    for dialecto, seed_ids in por_dialecto_semillas.items():
-        reparto = repartir_semillas(list(set(seed_ids)), rng)
-        for split, ids in reparto.items():
-            semillas_por_split[split].extend(ids)
+    reparto_fijo = cargar_split_semillas()
+    semillas_por_split = {
+        split: [i for i in ids if i in variantes_por_semilla] for split, ids in reparto_fijo.items()
+    }
 
     splits = {}
     for split, seed_ids in semillas_por_split.items():
