@@ -2918,3 +2918,15 @@ Qué se hizo: análisis consolidado de PI1 en `evaluation/analisis_pi1.md`, gene
 Decisiones tomadas: la regla de "coinciden / se contradicen / una señal distingue y la otra no" se fijó en código antes de ver datos humanos, para no decidirla a conveniencia; si los rankings no coinciden, el análisis lo declara como hallazgo a discutir, no lo oculta.
 
 Pendiente (criterios NO cumplidos): conseguir evaluadores, enviar las hojas (Sesión 49), consolidar, y volver a correr `python evaluation/analisis_pi1.py`; luego actualizar el paper con el kappa y la respuesta consolidada.
+
+---
+
+## Sesión extra (6) — 2026-10-08 — Anderson García
+
+Qué se hizo: auditoría de la lista de pendientes `docs/hoja_de_ruta_fin_proyecto.md`. El usuario preguntó si todo estaba agregado; la respuesta honesta fue "casi todo, pero la lista no es fiable": era un registro acumulado con casillas sin marcar de cosas ya hechas (corridas de Colab, fusiones, aislamiento del promedio con PEFT, PI3, paper) y le faltaban pendientes reales. Se añadió arriba una sección única "PENDIENTES ACTUALES" (A: depende del usuario o de personas; B: lo hago yo cuando lleguen datos humanos; C: lo puedo hacer ya) y las listas viejas quedaron marcadas como históricas, no borradas.
+
+Pendientes que faltaban y ahora constan: confirmar la numeración de sesiones de la bitácora (muchas se numeraron por inferencia); revisión del paper por Mariana y Paula (se reescribieron sus secciones de Resultados y Conclusiones); guardar la clave privada de la ronda de evaluación humana; decidir el merge o PR de `develop` a `main`; claves de Google Translate y DeepL para cerrar PI3; medir el arranque en frío del Space; data cards de los generadores 2 y 3; actualizar `README.md`; cuantización; ampliar el conjunto de prueba.
+
+Decisiones tomadas: no se reescribió el historial de la lista; solo se antepuso la sección vigente y se renombró el encabezado antiguo. Esta entrada se numeró "extra (6)" para no inventar otro número de sesión.
+
+Pendiente: lo que consta en esa sección.

@@ -5,6 +5,60 @@
 pendientes del despliegue). Cada paso dice **quién/dónde** lo hace, el
 **comando** y **dónde se anota el resultado**.
 
+## PENDIENTES ACTUALES (lista consolidada, 2026-10-08)
+
+**Esta sección es la única que vale.** Las casillas de más abajo son un registro
+histórico: varias aparecen sin marcar aunque ya se hicieron (corridas de Colab,
+fusiones, aislamiento del promedio con PEFT, PI3, paper). Si algo de abajo
+contradice esta sección, manda esta.
+
+### A. Depende de ti o de otras personas
+
+**Evaluación humana (PI1) — lo más importante que falta**
+- [ ] Conseguir **3 evaluadores nativos por dialecto** (Caribeña, Andina, Rioplatense, Mexicana, Chilena = 15) y anotarlos en `evaluation/evaluadores.csv` con un ID (E1, E2...), no con nombre real. Hoy está vacío.
+- [ ] Calibración cruzada de la rúbrica entre dos del equipo (5 ejemplos, diferencia máx. de 1 punto; ver el final de `evaluation/rubrica_humana.md`).
+- [ ] Decidir si se añade el modelo base como control en la ronda.
+- [ ] Enviar a cada evaluador **solo** su hoja (`evaluation/evaluacion_humana/hojas/<Dialecto>.csv`) y las instrucciones, con el texto de `evaluation/mensaje_evaluadores_pi1.md`. No compartir el repositorio ni la clave.
+- [ ] **Guardar `evaluation/evaluacion_humana/clave_modelos.json` en un lugar seguro** (no está en git; si se pierde, la ronda no se puede interpretar: solo queda su hash).
+- [ ] Guardar las hojas devueltas en `evaluation/evaluacion_humana/respuestas/` como `<Dialecto>__<ID>.csv` y avisarme.
+
+**Paper**
+- [ ] Que **un compañero que no lo haya visto lo lea de principio a fin** y anote referencias rotas o partes confusas.
+- [ ] Que **Mariana y Paula revisen** las secciones de Resultados y Conclusiones: las reescribí y reemplazan lo que ellas integraron en la Sesión 35.
+
+**Sustentación**
+- [ ] Averiguar el tiempo asignado y anotarlo en `docs/banco_preguntas_fase2.md`.
+- [ ] Ensayo cronometrado completo con las tres personas y la demo en vivo; llenar la tabla de tiempos.
+- [ ] Que cada integrante responda **sin leerla** al menos una pregunta nueva del banco.
+- [ ] Grabar el video del Plan B (30-40 s) de una solicitud real al Space.
+- [ ] **No gastar la cuota de GPU del Space antes de la demo** (nada de `prueba_carga_space.py` ese día).
+
+**Despliegue en Hugging Face (ver también `docs/pendientes_despliegue.md`)**
+- [ ] Repetir la carga del Space con 20 y 50 concurrentes cuando se reinicie la cuota (`python api/prueba_carga_space.py --niveles 5 20 50`; opcional con `HF_TOKEN`).
+- [ ] Decidir si se baja `duration` de `@spaces.GPU` (30 → 10) para estirar la cuota: requiere tu token para el `git push` al Space.
+- [ ] Medir el arranque en frío del Space dormido (una sola solicitud con cronómetro, tras horas sin uso).
+- [ ] Decidir con el equipo si se portan métricas y retroalimentación al Space (hoy solo traducir/salud).
+
+**Entrega**
+- [ ] **Confirmar la numeración de sesiones de la bitácora.** Muchas entradas mías se numeraron por inferencia, porque los prompts no traían número: `Sesión 26` (2026-10-07), `30 (2)`, `31 (2)`, `35 (2)`, `36 (2)`, `37` a `51` (con subíndices en la 43, 47 y 48), `extra (4)`, `extra (5)` y la `extra (6)`. Renombrar las que el calendario del curso asigne distinto.
+- [ ] Decidir qué se entrega y si hay que hacer el merge o PR de `develop` a `main` (no se ha hecho).
+- [ ] (Opcional, PI3) Conseguir claves de Google Translate y DeepL para comparar contra sistemas de traducción dedicados; sin ellas esa comparación no se puede hacer.
+
+### B. Lo hago yo cuando lleguen los datos humanos
+- [ ] `python evaluation/consolidar_resultados_humanos.py` → `evaluation/resultados_humanos_pi1.csv`.
+- [ ] `python evaluation/analisis_pi1.py` → kappa de Fleiss por dialecto, puntaje humano por modelo y si coinciden con las métricas automáticas.
+- [ ] Actualizar `paper/main.tex` (PI1 y conclusiones), recompilar y anotar la bitácora.
+- [ ] Publicar `clave_modelos.json` y verificar su hash con `clave_sha256.txt`.
+
+### C. Lo puedo hacer yo ya, sin depender de nadie (pídemelo)
+- [ ] **Data cards** de los generadores 2 y 3 (existe solo la del 1).
+- [ ] **Actualizar `README.md`** con la estructura nueva (`merging/`, `tests/`, scripts de evaluación); el hook de commit lo viene avisando.
+- [ ] PI3: probar cuantización (int8/int4) para ver si el uso en CPU se vuelve interactivo.
+- [ ] Ampliar el conjunto de prueba (hoy 9 semillas): es la mayor limitación estadística de todos los resultados.
+- [ ] Entender por qué los términos cruzados de PEFT no dañan el promedio (opcional).
+
+---
+
 ## Estado de partida (hecho y verificado)
 
 - Fase 2 completa: API, contenedor, seguridad, observabilidad, E2E,
@@ -92,7 +146,7 @@ cards de los generadores 2 y 3 (existe solo la del 1) y actualizar
 
 ---
 
-## Lista de verificación (lo que sigue abierto)
+## Lista de verificación histórica (NO vigente; ver "PENDIENTES ACTUALES" arriba)
 
 Marca cada casilla cuando esté hecho y pega aquí el dato que se pide.
 
