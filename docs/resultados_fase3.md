@@ -1,88 +1,108 @@
-# Resultados de la Fase 3 — parciales (2026-10-07)
+# Resultados de la Fase 3 (corrida completa, 2026-10-08)
 
-Primera corrida de `finetuning/fase3_pipeline_colab.ipynb` en Colab. **Es
-una corrida parcial**: solo son válidos el modelo base y los adaptadores
-de los generadores 2 y 3 y de la mezcla. El adaptador del Generador 1,
-las tres fusiones y la destilación hay que repetirlos (ver "Qué se
-descartó y por qué"). Por eso **todavía no se puede responder PI1 ni PI2**.
+Salida de `finetuning/fase3_pipeline_colab.ipynb` (Google Colab, GPU
+Tesla T4). Corrida completa y válida: los 4 adaptadores se entrenaron
+con las mismas semillas por split y la **misma configuración de LoRA**
+(`finetuning/verificar_config_identica.py`: OK), y el Generador 1 se
+reentrenó con 475 ejemplos (en la primera corrida se había saltado por
+error y se descartó; ver `BITACORA.md` Sesión 43).
 
 Fuentes: `evaluation/comparacion_fase3.md` (BLEU/chrF),
 `evaluation/analisis_bootstrap.md` (intervalos),
 `evaluation/reportes/*.json`, `finetuning/curva_final_*.md`,
-`finetuning/checkpoints/*/loss_log.json`. Configuración de LoRA idéntica
-en los cuatro adaptadores (`finetuning/verificar_config_identica.py`: OK).
+`finetuning/tiempos_fase3_corrida2.json`.
 
-## Calidad automática (BLEU / chrF, test común de 174 entradas, 9 semillas)
+**Alcance y cautela.** El test común tiene 174 entradas de **solo 9
+semillas**; una corrida por modelo; la mayoría de las referencias son
+sintéticas. Los intervalos de 95 % salen de remuestrear semillas
+completas. Las conclusiones de abajo son **señales tentativas**, no
+resultados definitivos, y no incluyen evaluación humana ni PI3.
 
-| Modelo | BLEU global (IC 95 %) | chrF global (IC 95 %) |
+## Resultados (BLEU / chrF globales, IC 95 %)
+
+| Modelo | BLEU | chrF |
 |---|---|---|
 | Base sin ajustar | 37.0 [34.3, 40.1] | 53.9 [51.8, 55.9] |
-| LoRA Generador 2 (Cohere) | 40.7 [38.7, 43.3] | 55.3 [53.6, 57.2] |
-| LoRA Generador 3 (Google lite) | 42.3 [38.8, 46.6] | 57.9 [55.5, 61.4] |
-| LoRA sobre la mezcla 1+2+3 | 42.4 [39.9, 45.4] | 57.2 [55.2, 59.7] |
+| LoRA Generador 1 (Groq) | 42.2 [38.7, 46.3] | 57.5 [55.5, 59.7] |
+| LoRA Generador 2 (Cohere) | 40.7 [38.7, 43.3] | 55.3 [53.6, 57.1] |
+| LoRA Generador 3 (Google lite) | 42.3 [39.0, 46.7] | 57.9 [55.7, 61.3] |
+| LoRA sobre la mezcla 1+2+3 | 42.4 [39.9, 45.5] | 57.2 [55.2, 59.8] |
+| Fusión TIES | 43.7 [40.9, 47.1] | 58.2 [56.4, 60.4] |
+| Fusión DARE+TIES | 43.8 [40.5, 47.5] | 57.7 [55.6, 60.2] |
+| Fusión lineal (promedio) | 35.3 [32.5, 37.5] | 51.5 [49.6, 53.8] |
+| Fusión por destilación multi-maestro | 43.9 [40.8, 47.5] | 58.3 [56.5, 60.5] |
 
-Intervalos por bootstrap sobre semillas completas (las variantes de una
-semilla no son independientes). Con solo 9 semillas son anchos: es la
-incertidumbre real.
+## Qué sugieren los datos
 
-## Qué sostienen los datos
+**Ajuste fino.** Una primera señal indica que ajustar con datos
+sintéticos ayuda: los tres adaptadores individuales superan al base en
+BLEU (+3.7 a +5.2, intervalo sin 0); en chrF el Generador 2 (+1.4) no se
+distingue del base.
 
-- **Una primera señal indica que el ajuste fino ayuda**: los tres
-  adaptadores superan al base en BLEU con intervalo que no incluye 0
-  (+3.7, +5.1, +5.3). En chrF solo se distinguen del base el Generador 3
-  (+4.1) y la mezcla (+3.4); el Generador 2 (+1.4) no.
-- **Entre generadores**: en chrF, el Generador 3 queda por encima del 2
-  (−2.7 de G2 − G3, intervalo [−5.1, −0.8]); en BLEU no se distinguen.
-  La mezcla no se distingue del Generador 3. Es una señal **tentativa**
-  sobre PI1 y está incompleta: falta el Generador 1.
-- **Sesgo de referencia, visible en los datos**: cada generador sale
-  mejor en la columna cuyas referencias escribió su propio LLM (G2 en
-  "Ref. g2": 47.4 BLEU; G3 en "Ref. g3": 38.3), como se anticipó al
-  diseñar el test común. Por eso el subconjunto "oro" (referencias del
-  equipo) es el menos sesgado, pero tiene **solo 9 entradas** y BLEU
-  entre 1.4 y 5.3 (frases cortas e idiomáticas): no permite concluir nada.
-- **Todos los entrenamientos sobreajustan rápido**: en los cuatro la
-  mejor validación es la época 1 y empeora en las 2 y 3 mientras el
-  entrenamiento baja; el early stopping guardó la época 1. (Las pérdidas
-  de validación no son comparables entre generadores: cada uno se valida
-  con sus propias variantes.)
+**PI1 — efecto del generador (tentativo).** Los Generadores 1 y 3 no se
+distinguen entre sí (ΔBLEU +0.1, ΔchrF −0.5, intervalos amplios). El
+Generador 2 (Cohere) queda por debajo de ambos en chrF (G1−G2 +2.3
+[+0.2, +4.2]; G3−G2 +2.7 [+0.8, +5.3]) y no se distingue en BLEU. Una
+hipótesis, **no probada**, es que Cohere generó más registro formal y
+menos jerga con el mismo prompt (20 % formal / 19 % jerga, frente a 12 % /
+30 % de G1 y 7 % / 33 % de G3; `generation/comparacion_generadores.md`).
+El Generador 3 es un modelo "lite" más pequeño, así que "qué LLM es" no
+se separa de "qué tamaño tiene". Cada generador además sale mejor en la
+columna cuyas referencias escribió su propio LLM (sesgo de referencia).
 
-## Tiempos de la primera corrida (Colab, GPU Tesla T4)
+**PI2 — fusión (tentativo).** Las tres fusiones útiles (TIES, DARE+TIES,
+destilación) igualan al mejor modelo individual y lo superan por ~+1.4
+BLEU y entre −0.3 y +0.8 chrF, **pero ese margen no se distingue del ruido**
+(intervalos que incluyen 0: p. ej. TIES − G1 +1.4 [−0.7, +4.1]). Sí
+superan de forma distinguible al Generador 2 y, en BLEU, al modelo
+entrenado sobre la mezcla (TIES − mezcla +1.3 [+0.3, +2.4]; en chrF no).
+No se puede afirmar que la fusión supere al mejor individual; solo que
+no es peor y que una primera señal apunta a que podría ser algo mejor.
 
-Duración de cada celda según Colab (incluye cargar el modelo base):
+**La destilación no aporta sobre TIES.** Destilación − TIES: ΔBLEU −0.0,
+ΔchrF +0.1 (indistinguibles). Costó ~95 min de GPU frente a ~24 s de
+TIES. Con estos datos no se justifica el costo extra.
 
-| Paso | Tiempo |
-|---|---|
-| Entrenar Generador 1 | 0 s (saltado: ver "Qué se descartó") |
-| Entrenar Generador 2 (513 ejemplos) | ~19 min |
-| Entrenar Generador 3 (508 ejemplos) | ~18 min |
-| Entrenar mezcla (1496 ejemplos) | ~52 min |
-| Fusiones | 38 s y 14 s (dos tiempos reportados para tres métodos; no se atribuyen a uno en concreto) |
-| Predicciones de los 8 modelos sobre el test común | ~42 min en total |
+**La fusión lineal perjudica.** Queda por debajo del base en chrF (−2.4
+[−4.4, −0.2]) y muy por debajo del resto. Es plausible (no verificado)
+que se deba a promediar por separado las matrices A y B de cada
+adaptador LoRA, lo que no equivale a promediar sus actualizaciones. Es un
+resultado sobre esta implementación, no sobre la fusión en general.
 
-El tiempo escala con el número de ejemplos (la mezcla tiene ~3 veces
-más y tardó ~2.8 veces más). Un adaptador pesa ~15 MB frente a ~6 GB del
-modelo base, dato útil para el atributo de eficiencia/portabilidad.
+**Sobreajuste rápido.** En los cuatro entrenamientos la mejor validación
+es la época 1 y empeora después mientras el entrenamiento baja; el early
+stopping guardó la época 1. (Las pérdidas de validación no son
+comparables entre generadores: cada uno valida con sus propias
+variantes.)
+
+**Subconjunto "oro"** (referencias del equipo, sin sesgo de generador):
+solo **9 entradas**, BLEU entre 0.9 y 10.5. Un valor como el 10.5 de
+DARE+TIES no se interpreta; con n=9 no permite concluir nada.
+
+## Tiempos (GPU Tesla T4)
+
+| Paso | Tiempo | Fuente |
+|---|---|---|
+| Entrenar Generador 1 (475 ejemplos) | ~20 min | `tiempos_fase3_corrida2.json` |
+| Entrenar Generador 2 (513) | ~19 min | celda de Colab, corrida 1 |
+| Entrenar Generador 3 (508) | ~18 min | celda de Colab, corrida 1 |
+| Entrenar mezcla (1496) | ~52 min | celda de Colab, corrida 1 |
+| Fusión TIES / DARE+TIES / lineal | 24 s / 15 s / 13 s | `tiempos_fase3_corrida2.json` |
+| Destilación multi-maestro | ~95 min | `tiempos_fase3_corrida2.json` |
+| Predicciones sobre el test común (174), por modelo | ~5.6 min | `tiempos_fase3_corrida2.json` |
+
+Los tiempos incluyen cargar el modelo base. Un adaptador pesa ~15 MB
+frente a ~6 GB del modelo base. Una fusión por TIES cuesta segundos y no
+requiere datos; reentrenar con la mezcla cuesta ~52 min.
 
 ## Limitaciones
 
 - 9 semillas de prueba; una sola corrida por modelo (no se midió la
   variación entre semillas aleatorias de entrenamiento).
-- Las referencias de la mayor parte del test son sintéticas (de los
-  propios LLM generadores). Sin evaluación humana todavía.
-- El Generador 3 es un modelo "lite" (más pequeño): no se puede atribuir
-  su resultado solo a "qué LLM es".
+- Referencias mayormente sintéticas; sin evaluación humana todavía.
 - BLEU/chrF miden coincidencia con una referencia, no retención de
-  matices; la evaluación humana sigue pendiente.
-
-## Qué se descartó y por qué
-
-| Resultado | Estado | Motivo |
-|---|---|---|
-| `generador1` | **inválido** | El notebook lo saltó porque el repo ya traía el adaptador viejo (Sesión 19: 189 ejemplos, otro reparto): `loss_log` idéntico al de entonces. 2 de las 9 semillas de test de hoy (`sem-012`, `sem-019`) estaban en ese entrenamiento (fuga) y 6 en validación. |
-| `fusion_ties`, `fusion_dare_ties`, `fusion_linear` | **inválidos** | Se calcularon a partir del adaptador viejo del Generador 1. |
-| `destilacion` | **sin resultado** | Falló en Colab (mensaje de error pendiente de recibir). |
-
-El notebook ya fuerza el reentrenamiento del Generador 1 y verifica que
-use 475 ejemplos. Los resultados válidos se versionan para que la
-próxima corrida los salte y solo repita lo necesario.
+  matices.
+- Un solo modelo base (Qwen2.5-3B-Instruct): no se sabe si los
+  resultados se sostienen con otro.
+- PI3 (portabilidad, competitividad frente a sistemas generales) no se
+  evaluó.

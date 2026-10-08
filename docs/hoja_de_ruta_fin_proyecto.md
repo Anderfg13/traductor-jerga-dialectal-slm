@@ -135,3 +135,5 @@ Resultados completos de la primera corrida en `docs/resultados_fase3.md`. Válid
 - [ ] **Pegarme el mensaje de error de la destilación** (solo la última línea del traceback basta) para corregirla antes de la segunda corrida.
 - [ ] Anotar la GPU que asignó Colab y el tiempo de cada entrenamiento (no queda en el zip) para llenar `finetuning/curva_final_*.md`.
 - [ ] Descargar el nuevo `resultados_fase3.zip` y avisarme.
+
+**Estado tras la segunda corrida de Colab (2026-10-08)**: hecha. Generador 1 reentrenado (475 ejemplos), fusiones y destilación completas; resultados en `docs/resultados_fase3.md`. Ya no es necesario volver a correr el notebook salvo para repetir con otra semilla. Sigue abierto: evaluación humana, PI3 (portabilidad), actualizar el paper con estos resultados, ensayo de la sustentación y la prueba de carga del Space.

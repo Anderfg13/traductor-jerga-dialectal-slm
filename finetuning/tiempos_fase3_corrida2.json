@@ -1,0 +1,13 @@
+{
+ "gpu": "Tesla T4",
+ "entrenar_generador1": 1216.5,
+ "fusion_ties": 24.2,
+ "fusion_dare_ties": 14.6,
+ "fusion_linear": 13.2,
+ "destilacion": 5697.1,
+ "predicciones_generador1": 334.2,
+ "predicciones_fusion_ties": 340.4,
+ "predicciones_fusion_dare_ties": 334.5,
+ "predicciones_fusion_linear": 345.1,
+ "predicciones_destilacion": 333.6
+}

@@ -2746,3 +2746,19 @@ Qué se hizo: el usuario reinició el entorno de Colab y perdió los tiempos de 
 Decisiones tomadas: se mide con `time.time()` por celda, igual que el tiempo de celda de Colab (incluye cargar el modelo). Se validó que las 24 celdas del notebook tienen sintaxis válida; no se ejecutó en Colab.
 
 Pendiente: confirmar en la segunda corrida que `tiempos_fase3.json` aparece en el zip.
+
+---
+
+## Sesión 44 — 2026-10-08 — Anderson García
+
+Qué se hizo: integración y análisis de la segunda corrida de `finetuning/fase3_pipeline_colab.ipynb` (zip `resultados_fase3 (1).zip`). Es la corrida completa y válida de la Fase 3. Documento: `docs/resultados_fase3.md`.
+- **Validación**: `generador1` ahora sí se reentrenó (`loss_log` con 475 ejemplos implícitos; antes 189) y G2/G3/mezcla coinciden con lo esperado (513/508/1496); los 4 adaptadores con configuración de LoRA idéntica (`verificar_config_identica.py`: OK). Los archivos de G2/G3/mezcla/baseline que reaparecían como modificados eran idénticos salvo fin de línea (comprobado con `git diff --ignore-cr-at-eol`) y se restauraron. La destilación, que había fallado en la primera corrida, terminó (el arreglo de dispositivo de la Sesión 43 (2) era la causa probable; sigue sin confirmarse con el error original). `tiempos_fase3.json` llegó en el zip (se movió a `finetuning/tiempos_fase3_corrida2.json`).
+- **Resultados** (BLEU/chrF globales, 174 entradas de 9 semillas; IC 95 % por bootstrap por semilla en `evaluation/analisis_bootstrap.md`): base 37.0/53.9; G1 42.2/57.5; G2 40.7/55.3; G3 42.3/57.9; mezcla 42.4/57.2; TIES 43.7/58.2; DARE+TIES 43.8/57.7; fusión lineal 35.3/51.5; destilación 43.9/58.3.
+- **Señales tentativas** (todas con n=9 semillas): PI1 — G1 y G3 no se distinguen; G2 queda por debajo en chrF. PI2 — TIES, DARE+TIES y destilación igualan al mejor individual y lo superan por ~1.4 BLEU, pero ese margen no se distingue del ruido; sí superan a G2 y, en BLEU, a la mezcla. La destilación no mejora a TIES (Δ −0.0 BLEU) y costó ~95 min de GPU frente a ~24 s. La fusión lineal queda por debajo del base en chrF (posible causa, no verificada: promediar A y B por separado).
+- Informe `finetuning/curva_final_generador1.md` regenerado con datos reales (el de la Sesión 19, otro reparto, se conservó como `curva_final_generador1_sesion19.md`). Los 4 entrenamientos sobreajustan rápido (mejor validación en la época 1).
+
+Decisiones tomadas:
+- Las conclusiones se redactan como señales tentativas: 9 semillas, una corrida por modelo, referencias mayormente sintéticas, sesgo de referencia visible, sin evaluación humana ni PI3. El subconjunto "oro" (9 entradas) no se interpreta.
+- El bootstrap de esta pasada usó 1000 remuestreos (la primera, 2000).
+
+Pendiente: evaluación humana (personas), PI3 (portabilidad), actualizar `paper/main.tex` con estos resultados, ensayo de la sustentación y prueba de carga del Space; ver `docs/hoja_de_ruta_fin_proyecto.md`.
