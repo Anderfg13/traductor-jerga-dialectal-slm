@@ -157,28 +157,35 @@ bueno; "gandalla" salió "really cool" con TIES, cuando significa abusivo, y
 | **TIES con mergekit (modelos completos)** | 44.0 [41.1, 47.6] | 58.0 [56.2, 60.2] |
 | Mejor adaptador individual (G3 / G1) | 42.3 / 42.2 | 57.9 / 57.5 |
 
-- **El mismo método da resultados muy distintos, y la causa tenía dos
-  partes (corrección de una explicación anterior).** Promedio simple con
-  PEFT 35.3 frente a 44.2 con `mergekit`: mergekit − PEFT = +9.2 BLEU
-  [+6.1, +13.3] y +7.0 chrF [+4.8, +9.7]. La explicación inicial ("PEFT
-  promedia A y B por separado") **era incompleta**: la corrida con PEFT
-  usó pesos 1.0 por adaptador, y PEFT `linear` con pesos 1.0 **suma** las
-  tres actualizaciones en lugar de promediarlas, mientras que `mergekit`
-  normaliza a 1/3. Dos diferencias a la vez. Un análisis directo de los
-  pesos reales (`merging/analisis_lineal_peft.md`, sin inferencia) muestra
-  que la actualización de PEFT w=1 tiene **4.74 veces la norma** del
-  promedio ideal y un coseno de solo **0.635** con él; que las matrices A
-  de adaptadores distintos son **ortogonales** (coseno 0.000), así que los
-  6 términos cruzados `B_i A_j` son ruido sin relación con ninguna tarea;
-  y que esos términos tienen **más energía (1.22 veces) que la señal**
-  (normalizar los pesos arregla la escala pero deja un error relativo de
-  1.22). Cuál de las dos partes domina la caída de calidad **no está
-  aislado todavía**: lo decide `merging/aislar_lineal_peft_colab.ipynb`
-  (PEFT `linear` normalizado, que corrige la escala pero conserva los
-  cruzados, frente a PEFT `cat` normalizado, que es el promedio exacto sin
-  cruzados). El `cat` se verificó en el espacio de pesos: reproduce el
-  promedio ideal con error relativo 2e-3, mientras que el `linear`
-  normalizado conserva el 1.21 predicho.
+- **El mismo método da resultados muy distintos; causa identificada
+  con un experimento (2026-10-08).** Promedio simple con PEFT sin
+  normalizar 35.3 frente a 44.2 con `mergekit`. Eran **dos diferencias a
+  la vez**: la corrida con PEFT usó pesos 1.0 por adaptador y PEFT
+  `linear` con pesos 1.0 **suma** las tres actualizaciones en lugar de
+  promediarlas (mientras `mergekit` normaliza a 1/3); y además PEFT
+  promedia por separado A y B, lo que mete 6 términos cruzados `B_i A_j`.
+  Un análisis de pesos (`merging/analisis_lineal_peft.md`) mostró que la
+  actualización tenía 4.74 veces la norma del promedio ideal (coseno
+  0.635) y que los términos cruzados tienen 1.22 veces la energía de la
+  señal (las matrices A de adaptadores distintos son ortogonales, coseno
+  0.000), lo que hacía sospechar de los cruzados. **El experimento
+  (`merging/aislar_lineal_peft_colab.ipynb`) refutó esa sospecha**:
+  - PEFT `linear` con pesos 1/3 (corrige la escala, **conserva** los
+    cruzados): 43.6 BLEU / 58.1 chrF.
+  - PEFT `cat` con pesos 1/3 (promedio exacto, **sin** cruzados): 43.5 /
+    58.1.
+  - Entre ambos: −0.1 BLEU [−0.7, +0.6], indistinguibles. Ambos frente al
+    `linear` original (pesos 1.0): +8.5 BLEU [+5.6, +12.4] y +6.7 chrF
+    (`evaluation/analisis_bootstrap_aislar_lineal.md`).
+  - Conclusión: **la causa era la escala (sumar en vez de promediar), un
+    error de configuración nuestro (pesos por defecto 1.0), no los
+    términos cruzados ni una limitación de PEFT.** No investigamos por qué
+    los términos cruzados, pese a su energía, no dañan.
+  - `mergekit` queda 0.7 BLEU por encima de las dos variantes (intervalo
+    [0.0, +1.4], en el límite); no se interpreta.
+  - Una explicación anterior de este documento y del paper ("promediar A y
+    B por separado") era incompleta y, en lo esencial, equivocada; se
+    corrigió.
 - **Entre las fusiones que funcionan no hay diferencias distinguibles**:
   `mergekit` lineal, `mergekit` TIES, TIES/DARE+TIES con PEFT y la
   destilación quedan todos entre 43.7 y 44.2 BLEU (diferencias de 0.3 a 0.6
@@ -249,5 +256,4 @@ el primer error esconde la causa detrás de varios errores secundarios.
 ## Pendiente
 
 - Nada pendiente de la tarea: ambas fusiones cargan y generan texto coherente.
-- Correr `merging/aislar_lineal_peft_colab.ipynb` (~20 min, T4) para aislar cuál de las
-  dos causas (escala o términos cruzados) domina el fallo del lineal con PEFT.
+- Nada pendiente de la fusión. Queda opcional entender por qué los términos cruzados no dañan.

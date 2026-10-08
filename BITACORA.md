@@ -2862,3 +2862,17 @@ Qué se hizo: dos tareas pendientes de la Fase 3: (2) evaluar PI3 y (4) aislar p
 Decisiones tomadas / limitaciones: el tamaño de `command-r` y de `gemini-3.5-flash-lite` no está verificado y se marca; faltan Google Translate/DeepL (sin clave): PI3 queda parcial; una traducción de qwen3.8-27b y alguna de los generadores fallaron (n 173/117, comparaciones sobre las mismas entradas disponibles); incidente menor: un script de portabilidad quedó con un error de sintaxis tras un reemplazo mío y se reparó antes de usarlo de nuevo.
 
 Pendiente: correr `merging/aislar_lineal_peft_colab.ipynb` (Colab, usuario); comparar contra sistemas de traducción dedicados; cuantización; evaluación humana.
+
+---
+
+## Sesión 48 (2) — 2026-10-08 — Anderson García
+
+Qué se hizo: resultado del experimento de aislamiento (`resultados_aislar_lineal.zip`, notebook `merging/aislar_lineal_peft_colab.ipynb`). **Refuta la explicación que yo había puesto en el paper y en la Sesión 48.**
+- Resultados (BLEU / chrF, test común): PEFT `linear` con pesos 1/3 (corrige la escala, conserva los términos cruzados) **43.6 / 58.1**; PEFT `cat` con pesos 1/3 (promedio exacto, sin términos cruzados) **43.5 / 58.1**; el `linear` original con pesos 1.0 35.3 / 51.5; `mergekit` lineal 44.2 / 58.4.
+- Incertidumbre (`evaluation/analisis_bootstrap_aislar_lineal.md`, bootstrap por semilla): `linear` normalizado − `linear` original = +8.5 BLEU [+5.6, +12.4], +6.7 chrF; `cat` − `linear` normalizado = −0.1 BLEU [−0.7, +0.6] (indistinguibles); `mergekit` − las dos variantes = +0.7 BLEU con intervalo [+0.0, +1.4] / [+0.1, +1.6] (en el límite, no se interpreta).
+- **Conclusión**: la causa del mal resultado era la escala (sumar tres actualizaciones en vez de promediarlas), un **error de configuración nuestro** (se usaron los pesos por defecto, 1.0), no los términos cruzados ni una limitación de PEFT. Los términos cruzados tienen 1.22 veces la energía de la señal en el espacio de pesos y las matrices A son ortogonales, pero no dañan; no se investigó por qué.
+- Corregido: paper (párrafo de PI2, tabla con dos filas nuevas y la fila original renombrada "pesos 1.0 (suma, error de configuración)", conclusiones; 20 páginas, 2 pasadas, 0 errores, 0 overfull, 0 `??`), `merging/fusion_simple.md`, `docs/resultados_fase3.md` y `merging/analisis_lineal_peft.py` (sección "resultado posterior").
+
+Decisiones tomadas: se conserva la Sesión 48 como historial (decía "no aislado"); esta entrada la corrige. Se descartó que haya que cambiar el método de fusión: con pesos normalizados PEFT funciona igual que `mergekit`. Un error mío de redacción ("y y con") se detectó y corrigió antes de compilar el PDF final.
+
+Pendiente: opcional, entender por qué los términos cruzados no dañan.

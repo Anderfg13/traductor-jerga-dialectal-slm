@@ -41,6 +41,7 @@ def main() -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--n", type=int, default=2000, help="remuestreos (default 2000)")
     p.add_argument("--semilla", type=int, default=42)
+    p.add_argument("--modelos", nargs="+", default=None, help="limitar a estos modelos (siempre se incluye baseline); por defecto, todos")
     p.add_argument("--salida", type=Path, default=EVAL / "analisis_bootstrap.md")
     a = p.parse_args()
 
@@ -50,6 +51,8 @@ def main() -> int:
     if "baseline" not in modelos or len(modelos) < 2:
         print("ERROR: hacen falta evaluation/predicciones/baseline.json y al menos otro modelo")
         return 1
+    if a.modelos:
+        modelos = {m: v for m, v in modelos.items() if m == "baseline" or m in a.modelos}
     comunes = sorted(set.intersection(*[set(v) for v in modelos.values()]))
     por_semilla = defaultdict(list)
     for t in comunes:

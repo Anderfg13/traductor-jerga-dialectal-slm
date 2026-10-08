@@ -105,6 +105,14 @@ def main() -> int:
     ]
     for tipo, lst in sorted(por_tipo.items()):
         L.append(f"| {tipo} | {media(lst, 'escala_w1'):.2f} | {media(lst, 'cos_w1'):.3f} | {media(lst, 'err_w13'):.3f} | {media(lst, 'cruz_vs_ideal'):.3f} |")
+    L += [
+        "## Resultado posterior: qué causaba el fallo (experimento con inferencia)", "",
+        "Este análisis de pesos hacía sospechar de los términos cruzados (energía 1.22 veces la de la señal). El experimento "
+        "`merging/aislar_lineal_peft_colab.ipynb` lo **refutó**: PEFT `linear` con pesos normalizados a 1/3 (conserva los cruzados) dio "
+        "43.6 BLEU / 58.1 chrF y PEFT `cat` con pesos 1/3 (promedio exacto, sin cruzados) 43.5 / 58.1, indistinguibles entre sí y +8.5 BLEU "
+        "por encima del original con pesos 1.0. **La causa era la escala (sumar en vez de promediar)**, no los términos cruzados. "
+        "Ver `merging/fusion_simple.md` y `evaluation/analisis_bootstrap_aislar_lineal.md`.", "",
+    ]
     L.append("")
     texto = "\n".join(L)
     (RAIZ / "merging" / "analisis_lineal_peft.md").write_text(texto, encoding="utf-8")

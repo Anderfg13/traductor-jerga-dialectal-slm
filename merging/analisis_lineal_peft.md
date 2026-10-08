@@ -28,3 +28,7 @@ Generado por `merging/analisis_lineal_peft.py` con los adaptadores reales de los
 | o_proj | 4.64 | 0.661 | 1.163 | 1.163 |
 | q_proj | 4.83 | 0.611 | 1.276 | 1.276 |
 | v_proj | 4.68 | 0.647 | 1.190 | 1.190 |
+## Resultado posterior: qué causaba el fallo (experimento con inferencia)
+
+Este análisis de pesos hacía sospechar de los términos cruzados (energía 1.22 veces la de la señal). El experimento `merging/aislar_lineal_peft_colab.ipynb` lo **refutó**: PEFT `linear` con pesos normalizados a 1/3 (conserva los cruzados) dio 43.6 BLEU / 58.1 chrF y PEFT `cat` con pesos 1/3 (promedio exacto, sin cruzados) 43.5 / 58.1, indistinguibles entre sí y +8.5 BLEU por encima del original con pesos 1.0. **La causa era la escala (sumar en vez de promediar)**, no los términos cruzados. Ver `merging/fusion_simple.md` y `evaluation/analisis_bootstrap_aislar_lineal.md`.
+

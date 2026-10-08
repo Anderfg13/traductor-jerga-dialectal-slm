@@ -69,8 +69,8 @@ TIES. Con estos datos no se justifica el costo extra.
 **Actualización con `mergekit` (2026-10-08, `merging/fusion_simple.md`).** Al
 fusionar los modelos completos con `mergekit`, el promedio simple da 44.2
 BLEU / 58.4 chrF (mergekit − PEFT: +9.2 BLEU [+6.1, +13.3]), es decir, el
-problema de la fusión lineal de más abajo era de la implementación con PEFT
-y no de promediar. Entre las fusiones que funcionan (mergekit lineal y TIES,
+problema de la fusión lineal de más abajo era de nuestra configuración con PEFT
+(pesos 1.0 que suman) y no de promediar. Entre las fusiones que funcionan (mergekit lineal y TIES,
 TIES y DARE+TIES con PEFT, destilación) no hay diferencias distinguibles
 (43.7 a 44.2 BLEU). `mergekit` lineal supera a los adaptadores del
 Generador 1 y 3 en BLEU (+2.0 y +2.2, intervalo sin 0), no en chrF; con
@@ -78,11 +78,12 @@ decenas de comparaciones y 9 semillas es una señal débil. Tiempo: ~130 s por
 adaptador para incorporarlos, 12 min (lineal) y 18 min (TIES) de `mergekit`.
 
 **La fusión lineal con PEFT perjudica.** Queda por debajo del base en chrF (−2.4
-[−4.4, −0.2]) y muy por debajo del resto. Fue en realidad una causa
-doble (no aislada todavía): con pesos 1.0 PEFT suma las actualizaciones en
-lugar de promediarlas, y promediar A y B por separado introduce términos
-cruzados; la actualización resultante tiene 4.7 veces la norma del promedio
-ideal y coseno 0.64 con él (`merging/analisis_lineal_peft.md`). Es un
+[−4.4, −0.2]) y muy por debajo del resto. Era una causa doble (pesos 1.0 que suman en lugar de promediar, y términos
+cruzados al promediar A y B por separado) y un experimento posterior la aisló:
+con pesos normalizados a 1/3, PEFT `linear` da 43.6 BLEU / 58.1 chrF y el
+promedio exacto (`cat`) 43.5 / 58.1, indistinguibles entre sí y +8.5 BLEU por
+encima del original. **La causa era sumar en vez de promediar** (un error de
+configuración nuestro), no los términos cruzados (`merging/fusion_simple.md`). Es un
 resultado sobre esta implementación, no sobre la fusión en general.
 
 **Sobreajuste rápido.** En los cuatro entrenamientos la mejor validación

@@ -151,3 +151,5 @@ Resultados completos de la primera corrida en `docs/resultados_fase3.md`. Válid
 
 **Partes 2 y 4 (2026-10-08)**: PI3 evaluado en parte (`docs/resultados_pi3.md`; paper de 20 páginas actualizado) y análisis del fallo del promedio simple con PEFT hecho en el espacio de pesos (`merging/analisis_lineal_peft.md`).
 - [ ] **Tuyo (Colab, ~20 min, T4)**: correr `merging/aislar_lineal_peft_colab.ipynb` para aislar cuál de las dos causas (escala o términos cruzados) domina el fallo del promedio con PEFT: https://colab.research.google.com/github/Anderfg13/traductor-jerga-dialectal-slm/blob/develop/merging/aislar_lineal_peft_colab.ipynb — descargar `resultados_aislar_lineal.zip` y avisarme.
+
+**Experimento de aislamiento del promedio con PEFT — hecho (2026-10-08)**: la causa era la escala (sumar en vez de promediar), no los términos cruzados; error de configuración nuestro. Detalle en `merging/fusion_simple.md`. Ya no hay que correr nada más de este tema.
