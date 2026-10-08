@@ -2698,3 +2698,21 @@ Decisiones tomadas:
 - Ningún cambio de código en esta sesión: el proceso del Generador 3 es exactamente el mismo que el del 2 (única variable: el dataset).
 
 Pendiente (criterios de aceptación NO cumplidos): `finetuning/checkpoints/generador3/` no existe, y por lo tanto el equipo todavía NO tiene los tres modelos individuales (SLM+A, SLM+B, SLM+C) para la comparación de la Semana 8; hoy solo existe el del Generador 1, entrenado con el reparto anterior (el notebook lo reentrena). Se cumple al correr el notebook en Colab; pasos en `docs/hoja_de_ruta_fin_proyecto.md`.
+
+---
+
+## Sesión 43 — 2026-10-07 — Anderson García
+
+Qué se hizo: integración de los resultados de la primera corrida de `finetuning/fase3_pipeline_colab.ipynb` (zip del usuario) y análisis. Documento completo en `docs/resultados_fase3.md`.
+- **Hallazgo crítico**: `generador1` NO se reentrenó. El notebook saltó el entrenamiento ("ya existe el adaptador") porque el clon de GitHub ya traía el adaptador viejo de la Sesión 19. Evidencia: su `loss_log.json` tiene 189 ejemplos implícitos (esperado 475) y pérdidas idénticas a las de entonces; y `git status` no mostró cambios en ese adaptador. Además 2 de las 9 semillas de test actuales (`sem-012`, `sem-019`) estaban en su entrenamiento (fuga) y 6 en validación. Quedan **inválidos**: `generador1` y las 3 fusiones (se calcularon a partir de él). Se quitaron del árbol de trabajo (siguen en el zip del usuario). La destilación falló en Colab (error pendiente de recibir).
+- **Válidos**: baseline, generador2 (513 ejemplos, ✓ coincide), generador3 (508 ✓), mezcla (1496 ✓). Configuración de LoRA idéntica en los 4 adaptadores (`verificar_config_identica.py`: OK).
+- **Resultados** (BLEU/chrF globales sobre 174 entradas de 9 semillas): base 37.0/53.9; G2 40.7/55.3; G3 42.3/57.9; mezcla 42.4/57.2. Nuevo `evaluation/bootstrap.py` (remuestreo por semilla, IC 95 %) → `evaluation/analisis_bootstrap.md`: los tres adaptadores superan al base en BLEU (IC sin 0); en chrF solo G3 y la mezcla; G3 supera a G2 en chrF; la mezcla no se distingue de G3.
+- **Todos sobreajustan rápido**: mejor validación en la época 1 en los cuatro; el early stopping guardó esa. Informes `finetuning/curva_final_{generador2,generador3,mezcla}.md` generados con `resumen_curva.py` (hardware y tiempo "NO REGISTRADO": Colab no los incluye en el zip).
+- **Notebook corregido**: la celda del generador1 borra el adaptador viejo para forzar el reentrenamiento y afirma que use 475 ejemplos.
+
+Decisiones tomadas:
+- Se versionan los adaptadores válidos (G2, G3, mezcla) y los resultados de evaluación válidos, para que la próxima corrida los salte; los inválidos no se versionan.
+- Las conclusiones se redactan como señales tentativas: solo 9 semillas de test, una corrida por modelo, referencias mayormente sintéticas y sesgo de referencia visible (cada generador gana en la columna de su propio LLM); el subconjunto "oro" tiene 9 entradas.
+- Este fallo se detectó porque se comparó el tamaño implícito de entrenamiento con el esperado; conviene mantener esa comprobación (ya está en el notebook).
+
+Pendiente (criterios de la Semana 8 aún sin cumplir): no existe un `generador1` válido, así que PI1 está incompleto y PI2 sin evaluar; hay que repetir en Colab generador1, fusiones y destilación (lista en `docs/hoja_de_ruta_fin_proyecto.md`). El paper sigue con los resultados de la Fase 2 hasta tener la corrida completa.

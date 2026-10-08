@@ -127,3 +127,11 @@ Marca cada casilla cuando esté hecho y pega aquí el dato que se pide.
 - [ ] Generar el informe de cada curva con los datos reales: `python finetuning/resumen_curva.py generador2 --hardware "<GPU usada>" --tiempo "<minutos>" --ejemplos-train 513 --ejemplos-val 64` (ejemplos: G2 513/64, G3 508/61, mezcla 1496/183). Crea `finetuning/curva_final_generador2.md`.
 - [ ] Prueba manual rápida de cada adaptador nuevo (3-5 frases, ver `evaluation/generar_predicciones.py`) y anotar si las traducciones son coherentes.
 - [ ] **Hito Semana 8**: confirmar que existen `finetuning/checkpoints/generador1`, `generador2` y `generador3` (los tres modelos individuales) con sus `curva_final_generadorN.md`.
+
+**Segunda corrida de Colab (2026-10-07) — lo que hay que repetir**
+Resultados completos de la primera corrida en `docs/resultados_fase3.md`. Válidos y ya versionados: base, generador2, generador3, mezcla. Hay que repetir en Colab (el notebook salta lo ya hecho y reentrena solo esto):
+- [ ] Reentrenar `generador1` (la primera vez se saltó por traer el adaptador viejo; ya está corregido en el notebook y verifica que use 475 ejemplos).
+- [ ] Rehacer las 3 fusiones (dependen del generador1).
+- [ ] **Pegarme el mensaje de error de la destilación** (solo la última línea del traceback basta) para corregirla antes de la segunda corrida.
+- [ ] Anotar la GPU que asignó Colab y el tiempo de cada entrenamiento (no queda en el zip) para llenar `finetuning/curva_final_*.md`.
+- [ ] Descargar el nuevo `resultados_fase3.zip` y avisarme.
