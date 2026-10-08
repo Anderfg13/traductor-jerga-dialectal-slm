@@ -2736,3 +2736,13 @@ Qué se hizo: se completaron los campos de hardware y tiempo de los informes `fi
 Decisiones tomadas: los tiempos son los de la celda de Colab (no solo el entrenamiento), y así se indica; el tiempo de las fusiones no se reparte por método para no inventar.
 
 Pendiente: el informe del Generador 1 (`curva_final_generador1.md`) sigue siendo el de la Sesión 19 (datos viejos) hasta que se reentrene en la segunda corrida.
+
+---
+
+## Sesión 43 (4) — 2026-10-07 — Anderson García
+
+Qué se hizo: el usuario reinició el entorno de Colab y perdió los tiempos de las celdas (ya estaban registrados en `docs/resultados_fase3.md` y en los informes de curva, así que no se perdió nada). Para que no dependa de la memoria de nadie, `finetuning/fase3_pipeline_colab.ipynb` ahora mide el tiempo de cada paso pesado (4 entrenamientos, fusiones, destilación y predicciones de cada modelo) y la GPU asignada, los guarda en `tiempos_fase3.json` y lo incluye en `resultados_fase3.zip`.
+
+Decisiones tomadas: se mide con `time.time()` por celda, igual que el tiempo de celda de Colab (incluye cargar el modelo). Se validó que las 24 celdas del notebook tienen sintaxis válida; no se ejecutó en Colab.
+
+Pendiente: confirmar en la segunda corrida que `tiempos_fase3.json` aparece en el zip.
