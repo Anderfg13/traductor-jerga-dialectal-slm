@@ -40,7 +40,7 @@ gratuita:
 |---|---|---|---|
 | Groq | `openai/gpt-oss-20b` | Gratis (capa gratuita, con límites de tasa) | https://console.groq.com/docs/models |
 | Cohere | `command-r-08-2024` | Gratis (clave "trial", 1000 llamadas/mes) | https://docs.cohere.com/docs/models |
-| Google | `gemini-3.6-flash` | Gratis (capa gratuita en AI Studio) | https://ai.google.dev/gemini-api/docs/models |
+| Google | `gemini-3.5-flash-lite` | Gratis (capa gratuita en AI Studio) | https://ai.google.dev/gemini-api/docs/models |
 
 > Estos proveedores retiran o renombran modelos con cierta frecuencia
 > (por ejemplo `command-r` fue retirado por Cohere en sept. 2025, y
@@ -175,7 +175,7 @@ pégala de nuevo en `.env` sin comillas ni espacios extra.
 **`estado: RESPUESTA VACIA` o `AttributeError: 'NoneType' object has no
 attribute 'strip'`**
 Pasa con modelos de "razonamiento" (como `openai/gpt-oss-20b` en Groq o
-`gemini-3.6-flash` en Google): gastan parte del límite de tokens
+`gemini-3.5-flash-lite` en Google): gastan parte del límite de tokens
 pensando internamente antes de responder, y si el límite es muy bajo
 no queda presupuesto para el texto final. `generation/test_apis.py` ya
 maneja esto (baja el "esfuerzo de razonamiento" en Groq con

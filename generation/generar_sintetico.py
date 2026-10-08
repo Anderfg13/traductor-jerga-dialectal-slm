@@ -19,6 +19,19 @@ generadores de forma justa; `tests/test_formato_generadores.py` lo
 verifica sobre los datos reales. Para agregar un cuarto generador solo
 hay que sumarlo a `GENERADORES` y a las dos funciones de llamada.
 
+Ajustes propios del Generador 3 (Gemini), sin bifurcar el script:
+  - Se desactiva el "razonamiento" con `thinking_level="minimal"` (los
+    Gemini 3.x usan `thinking_level`, no `thinking_budget`) y se sube
+    `max_tokens` a 3000, porque si no gasta el limite pensando.
+  - Modelo `gemini-3.5-flash-lite` y no `gemini-3.6-flash`: el nivel
+    gratuito del segundo permite solo 20 solicitudes por DIA; el lite
+    permite 15 por MINUTO, que el backoff de `llamar_con_reintentos`
+    absorbe solo.
+  - Irregularidades de formato de sus respuestas, tratadas aguas abajo
+    en `consolidar.py` (no aqui): a veces omite la comilla de apertura
+    de un valor, y a veces escribe {"informal": "informal"} en vez de
+    {"registro": "informal"}.
+
 Que hace:
   1. Lee las semillas de los lotes indicados con --lotes (default: solo
      seeds/lote_01.json), o solo las indicadas con --ids.

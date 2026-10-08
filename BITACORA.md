@@ -2635,3 +2635,19 @@ Decisiones tomadas:
 - No se tocó el umbral ni la lógica del filtro para que no descarte más a G2: la tarea pedía anotar la diferencia, no igualarla.
 
 Pendiente: las observaciones de mezcla de dialecto y de registro son candidatas para la discusión de PI1 en el paper; confirmar con la evaluación humana si la contaminación de G1 se nota en la calidad percibida. Se añade al paper cuando haya resultados de entrenamiento.
+
+---
+
+## Sesión 39 — 2026-10-07 — Anderson García
+
+Qué se hizo: cierre formal del Generador 3 (Google) con el mismo `generation/generar_sintetico.py` parametrizado (sin crear un script nuevo). La generación completa (100 semillas) ya se había corrido en la Sesión extra (4); esta sesión verificó y documentó lo que la tarea pide.
+- **Credenciales**: `GOOGLE_API_KEY` está en `.env` (ignorado por git) y declarada vacía en `.env.example`; `generation/test_apis.py` responde OK con el modelo real del generador. Ninguna clave se escribió en código ni en documentos.
+- **Prueba de aceptación** (igual que la Sesión 37, `tests/test_formato_generadores.py`, 19 tests): sobre las mismas 3 semillas (`sem-007`, `sem-018`, `sem-006`) el Generador 3 tiene el mismo registro crudo (6 campos, mismos tipos), el mismo prompt enviado, 5-8 variantes por respuesta y los mismos 4 campos por variante que los Generadores 1 y 2.
+- **Ajustes especiales de Gemini, documentados en el docstring del script** (no se bifurcó el código): `thinking_level="minimal"` con `max_tokens=3000`; modelo `gemini-3.5-flash-lite` en vez de `gemini-3.6-flash` (el segundo permite 20 solicitudes por DÍA, el lite 15 por MINUTO); y dos irregularidades de formato de sus respuestas (comilla de apertura omitida, `{"informal": "informal"}` en vez de `{"registro": ...}`) que se tratan en `consolidar.py`.
+- `generation/test_apis.py` y `README.md` apuntaban a `gemini-3.6-flash`; se actualizaron a `gemini-3.5-flash-lite` (pendiente anotado en la Sesión extra 4).
+
+Decisiones tomadas:
+- Cualquier ajuste de Gemini vive en la configuración (`GENERADORES`) o en el procesamiento posterior, no en un script aparte, para que los tres generadores sigan produciendo registros comparables.
+- `generation/probar_prompt_derivacion.py` (la prueba manual de la Sesión 6) sigue nombrando `gemini-3.6-flash`; se dejó como registro histórico de esa sesión.
+
+Pendiente: ninguno propio de esta tarea. La comparación de calidad entre los tres generadores depende del entrenamiento en Colab (`docs/hoja_de_ruta_fin_proyecto.md`).
