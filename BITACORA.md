@@ -2565,3 +2565,19 @@ Decisiones tomadas:
 - Los `\label` `sec:arquitectura-empresarial` y `sec:escenarios-calidad` no se referencian en ningún lado; se dejaron (no rompen nada).
 
 Pendiente: el criterio de aceptación "un compañero que no haya visto el documento lo lee de principio a fin sin encontrar nada roto o a medio escribir" NO se puede verificar desde aquí; solo se comprobó la parte mecánica. Está como casilla en `docs/hoja_de_ruta_fin_proyecto.md`. La sección de Resultados sigue siendo la de un solo generador hasta que se corra la Fase 3 en Colab.
+
+---
+
+## Sesión 35 (2) — 2026-10-07 — Anderson García
+
+Qué se hizo: revisión y actualización de `docs/fase2_resultados_borrador.md` (la sección de resultados preliminares que escribió Mariana en la Sesión 35), con el criterio de que cada cifra sea rastreable a un archivo.
+- Se verificaron 31 cifras (BLEU/chrF global y por dialecto, latencias, pruebas de carga) contra `reporte_metricas_generador1.md`, `reporte_metricas_baseline.md`, `BITACORA.md`, `docs/pruebas_carga.md`, `docs/despliegue.md` y `docs/evidencia_e2e.log`: todas coinciden. Las diferencias +9.03 BLEU y +11.38 chrF se recalcularon.
+- Se agregó una tabla de trazabilidad (cifra → archivo) al final del borrador.
+- Se actualizó lo que había quedado viejo: latencia con GPU real (2.5 s en el Space público), latencia en contenedor y E2E, resultados de carga (incluida la medición contra el Space y su límite de cuota), y que los datos de los generadores 2 y 3 ya existen (aunque sus modelos no).
+
+Decisiones tomadas:
+- El prompt de la tarea citaba `evaluation/resultados_humanos_ronda1.csv`, que no existe. No se creó ni se simuló: no hay evaluación humana real, y el borrador lo sigue diciendo. El piloto de 10 filas (`muestreo_manual.csv`, marcadas `[piloto IA]`) se reporta explícitamente como prueba de formato, no como evaluación.
+- Se dejó aviso de que el `test.json` del Generador 1 se regeneró (hoy 54 variantes, antes 23): las cifras de BLEU/chrF son de la corrida anterior y su fuente de verdad son los dos reportes, no el `test.json` actual. No son comparables con los resultados de la Fase 3.
+- Se mantuvo el lenguaje cauteloso ("una primera señal sugiere"); no se agregaron conclusiones nuevas.
+
+Pendiente: las cifras de calidad siguen siendo de 8 ejemplos y un solo generador; se reemplazarán con los resultados de `finetuning/fase3_pipeline_colab.ipynb` cuando se corra en Colab (casilla en `docs/hoja_de_ruta_fin_proyecto.md`). La evaluación humana real sigue sin existir.
