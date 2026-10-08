@@ -68,7 +68,7 @@ Notas:
   traducciones distintas (`opcion` A, B, C...). Califícalas por separado.
 - No sabes ni necesitas saber qué sistema produjo cada traducción.
 - No consultes a otros evaluadores mientras calificas.
-- Guarda el archivo como CSV (UTF-8) y devuélvelo con tu nombre.
+- Guarda el archivo como CSV (UTF-8) con el nombre `<Dialecto>__<tu ID>.csv` (por ejemplo `Andina__E1.csv`; usa el ID que te dieron, no tu nombre) y devuélvelo.
 """
 
 

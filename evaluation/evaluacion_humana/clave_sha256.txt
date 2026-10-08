@@ -1,0 +1,3 @@
+SHA-256 de clave_modelos.json (ronda PI1, tres modelos individuales), calculado antes de enviar nada:
+62c8975e3f8fbb2bd643e6bda7f5029cfc3aa0d4262df9c3e8cdb5295aa599b9
+Al cerrar la ronda se publica clave_modelos.json y se verifica con: python -c "import hashlib;print(hashlib.sha256(open('evaluation/evaluacion_humana/clave_modelos.json','rb').read()).hexdigest())"

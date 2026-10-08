@@ -153,3 +153,10 @@ Resultados completos de la primera corrida en `docs/resultados_fase3.md`. Válid
 - [ ] **Tuyo (Colab, ~20 min, T4)**: correr `merging/aislar_lineal_peft_colab.ipynb` para aislar cuál de las dos causas (escala o términos cruzados) domina el fallo del promedio con PEFT: https://colab.research.google.com/github/Anderfg13/traductor-jerga-dialectal-slm/blob/develop/merging/aislar_lineal_peft_colab.ipynb — descargar `resultados_aislar_lineal.zip` y avisarme.
 
 **Experimento de aislamiento del promedio con PEFT — hecho (2026-10-08)**: la causa era la escala (sumar en vez de promediar), no los términos cruzados; error de configuración nuestro. Detalle en `merging/fusion_simple.md`. Ya no hay que correr nada más de este tema.
+
+**Evaluación humana ciega de los tres modelos (PI1) — preparada, falta lo humano (2026-10-08)**: todo el material y los scripts están listos (`docs/evaluacion_humana_pi1.md`, `evaluation/mensaje_evaluadores_pi1.md`). `evaluadores.csv` está vacío.
+- [ ] Conseguir y confirmar 3 evaluadores nativos por dialecto (Caribeña, Andina, Rioplatense, Mexicana, Chilena = 15) y anotarlos en `evaluation/evaluadores.csv` con un ID (E1, E2...), no con nombre real.
+- [ ] Calibración cruzada de la rúbrica entre dos del equipo (5 ejemplos, diferencia máx. 1 punto).
+- [ ] Enviar a cada evaluador SOLO su hoja (`evaluation/evaluacion_humana/hojas/<Dialecto>.csv`) y las instrucciones, con el mensaje de `evaluation/mensaje_evaluadores_pi1.md`. **No compartir el repositorio ni la clave.** Guardar el archivo `clave_modelos.json` en un lugar seguro: no está en git; si se pierde, la ronda no se puede interpretar (solo queda su hash).
+- [ ] Decidir si se añade el modelo base como control.
+- [ ] Al recibir las hojas: guardarlas en `evaluation/evaluacion_humana/respuestas/` como `<Dialecto>__<ID>.csv` y avisarme; yo corro la consolidación y el kappa y actualizo el paper.

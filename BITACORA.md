@@ -2876,3 +2876,18 @@ Qué se hizo: resultado del experimento de aislamiento (`resultados_aislar_linea
 Decisiones tomadas: se conserva la Sesión 48 como historial (decía "no aislado"); esta entrada la corrige. Se descartó que haya que cambiar el método de fusión: con pesos normalizados PEFT funciona igual que `mergekit`. Un error mío de redacción ("y y con") se detectó y corrigió antes de compilar el PDF final.
 
 Pendiente: opcional, entender por qué los términos cruzados no dañan.
+
+---
+
+## Sesión 49 — 2026-10-08 — Anderson García
+
+Qué se hizo: preparación completa de la ronda de evaluación humana ciega de los tres modelos individuales (PI1). **No se pudo enviar ni obtener resultados**: `evaluation/evaluadores.csv` está vacío (ningún evaluador confirmado), y enviar mensajes a personas es una acción humana. No se inventó ningún dato: `evaluation/resultados_humanos_pi1.csv` **no existe**.
+- **Hojas ciegas** (`evaluation/evaluacion_humana/hojas/<Dialecto>.csv`): 60 ítems (12 por dialecto) con las traducciones de los generadores 1, 2 y 3, 28-36 filas por hoja, opciones A/B/C en orden aleatorio, traducciones idénticas fusionadas en una sola fila. Mismas entradas para los tres modelos.
+- **Clave privada y semilla secreta**: el repositorio es público y el script tenía semilla fija (42), así que cualquiera podría regenerar la clave. Las hojas se regeneraron con una semilla aleatoria que no se guardó; `clave_modelos.json` quedó fuera de git (`.gitignore`) y se versiona su SHA-256 (`clave_sha256.txt`) para demostrar después que no se alteró. Consecuencia práctica: si se pierde el archivo de la clave, la ronda no se puede interpretar.
+- **Verificación del ciego** (`evaluation/verificar_ciego.py`, informe privado): sin nombres de modelos en celdas ni identificadores, columnas correctas, los tres modelos en cada ítem; reparto de posiciones de 23 % a 42 % por posición (ninguno >50 %); longitudes medias 13.3 / 13.5 / 14.2 palabras (diferencia <7 %). No descarta que un evaluador reconozca el estilo de un modelo.
+- **Consolidación** (`evaluation/consolidar_resultados_humanos.py`): valida cada hoja devuelta (mismas filas, contenido sin alterar, calificaciones enteras 1-5, mínimo 3 evaluadores por dialecto) y se niega a escribir si algo falla. Probado con respuestas simuladas en una carpeta temporal (nunca en el repo): se niega sin respuestas, con 2 evaluadores, con texto alterado y con calificación vacía; con datos correctos escribe el formato largo (dialecto, evaluador, ítem, opción, modelo, calificación) que consume `evaluation/kappa.py` (kappa ≈ 0 con calificaciones aleatorias, como debe).
+- Material para enviar: `evaluation/mensaje_evaluadores_pi1.md` (texto del mensaje, qué mandar y qué no, checklist, pasos al recibir); documento del procedimiento: `docs/evaluacion_humana_pi1.md`. Corregida la instrucción del script que pedía devolver la hoja "con tu nombre": ahora usa un ID (privacidad).
+
+Decisiones tomadas: no se incluyó el modelo base como control (el pedido eran los tres individuales); se deja a decisión del equipo. Los evaluadores se identifican por ID, no por nombre.
+
+Pendiente (criterios de aceptación NO cumplidos): confirmar ≥3 evaluadores nativos por dialecto, enviar, recoger las hojas y calcular kappa. Pasos en `docs/hoja_de_ruta_fin_proyecto.md`.

@@ -59,3 +59,9 @@ paper/*.synctex.gz
 # Fusión con mergekit: modelos completos de ~6 GB, no van a git
 merging/modelos_completos/
 merging/salida/
+
+# Ronda de evaluación humana (PI1): la clave de qué modelo hay detrás de cada opción NO se versiona
+# hasta cerrar la ronda (el repositorio es público; evita que un evaluador la vea). Su hash sí se versiona.
+evaluation/evaluacion_humana/clave_modelos.json
+evaluation/evaluacion_humana/respuestas/
+evaluation/evaluacion_humana/*_PRIVADO.md
