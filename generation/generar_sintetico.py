@@ -1,29 +1,41 @@
 """
 generation/generar_sintetico.py
 
-Automatiza la generacion sintetica (Semana 2 del calendario) para el
-**Generador 1** (Groq, `openai/gpt-oss-20b`, capa gratuita — ver
-`.env.example` y `README.md`): aplica la plantilla de derivacion
+Automatiza la generacion sintetica aplicando la plantilla de derivacion
 (`generation/prompt_derivacion.md`, probada manualmente en la Sesion 6)
-a cada semilla de `seeds/lote_01.json`.
+a cada semilla de `seeds/lote_*.json`. UN SOLO script para los tres
+generadores del proyecto, elegidos con `--generador`:
+
+  1 = Groq    `openai/gpt-oss-20b`     (GROQ_API_KEY)    -- por defecto
+  2 = Cohere  `command-r-08-2024`      (COHERE_API_KEY)
+  3 = Google  `gemini-3.5-flash-lite`  (GOOGLE_API_KEY)
+
+Los tres usan la MISMA plantilla de prompt y las MISMAS semillas; lo
+unico que cambia es la API que se llama (`crear_cliente` y
+`_llamar_una_vez`). El registro que se guarda por semilla tiene la
+misma estructura para los tres (seed_id, generador, modelo,
+timestamp_utc, prompt, respuesta_cruda), para poder comparar
+generadores de forma justa; `tests/test_formato_generadores.py` lo
+verifica sobre los datos reales. Para agregar un cuarto generador solo
+hay que sumarlo a `GENERADORES` y a las dos funciones de llamada.
 
 Que hace:
-  1. Lee TODAS las semillas de seeds/lote_01.json (o solo las indicadas
-     con --ids, para pruebas).
+  1. Lee las semillas de los lotes indicados con --lotes (default: solo
+     seeds/lote_01.json), o solo las indicadas con --ids.
   2. Para cada semilla que todavia no tenga salida guardada, arma el
-     prompt de derivacion y lo manda a la API de Groq.
-  3. Si Groq responde con error de limite de tasa (429) u otro error
+     prompt de derivacion y lo manda a la API del generador elegido.
+  3. Si la API responde con error de limite de tasa (429) u otro error
      transitorio (conexion, timeout, error 5xx del servidor), reintenta
      con backoff exponencial (respeta el header `Retry-After` si la API
      lo manda) antes de darse por vencido con esa semilla.
   4. Guarda la respuesta CRUDA de la API (el texto tal cual lo devolvio
      el modelo, sin parsear ni validar como JSON) en
-     generation/raw/generador1/{seed_id}.json, junto con el prompt
+     generation/raw/generadorN/{seed_id}.json, junto con el prompt
      enviado y metadatos basicos — antes de cualquier procesamiento
      posterior, para no perder nada si el script se cae a mitad de
      camino.
 
-Reanudable: si generation/raw/generador1/{seed_id}.json ya existe, esa
+Reanudable: si generation/raw/generadorN/{seed_id}.json ya existe, esa
 semilla se salta (no se vuelve a llamar a la API). Correr el script de
 nuevo tras una interrupcion retoma solo las semillas pendientes. Para
 forzar regenerar una semilla ya procesada, borra su archivo de salida.
@@ -33,7 +45,7 @@ usa las semillas de lote_01 y lote_02; las salidas van a
 generation/raw/generadorN/):
     python generation/generar_sintetico.py
     python generation/generar_sintetico.py --generador 2 --lotes 1 2
-    python generation/generar_sintetico.py --ids sem-007 sem-018 sem-006
+    python generation/generar_sintetico.py --generador 2 --ids sem-007 sem-018 sem-006
     python generation/generar_sintetico.py --max-reintentos 5 --espera-base 2
 
 Variables de entorno (definidas en .env, ver .env.example):

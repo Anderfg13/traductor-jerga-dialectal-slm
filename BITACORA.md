@@ -2598,3 +2598,18 @@ Decisiones tomadas:
 - La respuesta de privacidad admite que la ventaja "no sale a una nube de terceros" aplica al contenedor propio, no al Space público de demostración.
 
 Pendiente: lo que pedía la prueba de aceptación NO se pudo hacer desde aquí y queda sin cumplir: el ensayo cronometrado con el equipo completo y que cada integrante responda una pregunta nueva sin leerla (casillas en `docs/hoja_de_ruta_fin_proyecto.md` y en el propio banco). No se inventó ningún tiempo de ensayo; el tiempo asignado por el profesor también está por completar.
+
+---
+
+## Sesión 41 (2) — 2026-10-07 — Anderson García
+
+Qué se hizo: cierre formal de la tarea "Generador 2 como parámetro del mismo script". El script ya aceptaba `--generador 1|2|3` desde la Sesión extra (4) (un solo `generar_sintetico.py`, misma plantilla, mismas semillas, solo cambia la API); esta sesión lo verificó con la prueba de aceptación pedida y corrigió lo que esa prueba encontró.
+- **Docstring** de `generation/generar_sintetico.py` reescrito: ya no habla solo del Generador 1; describe los tres generadores, la estructura común del registro y cómo agregar un cuarto.
+- **Prueba de aceptación** (`tests/test_formato_generadores.py`, 19 tests, sobre los datos reales de `generation/raw/`): con las mismas 3 semillas usadas para el Generador 1 (`sem-007`, `sem-018`, `sem-006`), el registro crudo del Generador 2 tiene los mismos campos y tipos que el del 1 (`seed_id, generador, modelo, timestamp_utc, prompt, respuesta_cruda`), y el `prompt` enviado es idéntico (comprobado además sobre las 100 semillas). Cada respuesta parseada trae 5-8 variantes con los mismos 4 campos (`texto_dialectal, traduccion, registro, contexto_uso`), todos strings no vacíos. También se verifica el dataset consolidado de los tres.
+- **Dos defectos encontrados por esa prueba y corregidos**: (1) en 2 de 625 variantes del Generador 3 (`sem-007`, `sem-043`) Gemini escribió `"informal": "informal"` en vez de `"registro": "informal"`; `consolidar.py` lo dejaba pasar con `registro` vacío — ahora lo recupera (`registro_de`) y esas dos semillas se regeneraron para que también el crudo quede limpio; (2) `consolidar.py` leía `sys.argv` al importarse, lo que rompía cualquier `import`; ahora lo lee dentro de `main()`.
+
+Decisiones tomadas:
+- Se regeneraron `sem-007` y `sem-043` del Generador 3 (2 llamadas) en vez de dejar el crudo irregular: es la forma de que el formato sea idéntico también antes de consolidar. Tamaños de los datasets sin cambio (589 / 632 / 625).
+- Los generadores sí difieren en el número de variantes por semilla dentro de lo pedido (5-8); no se fuerza a que sean iguales.
+
+Pendiente: ninguno propio de esta tarea. Nota: el comportamiento del Generador 2 sobre las 3 semillas se probó con la ejecución real que ya existía (no se volvió a llamar a la API de Cohere solo para esto).

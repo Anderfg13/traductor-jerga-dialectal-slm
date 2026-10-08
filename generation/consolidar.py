@@ -33,15 +33,22 @@ import sys
 from pathlib import Path
 
 SEEDS_DIR = Path(__file__).resolve().parent.parent / "seeds"
-NUM_GENERADOR = int(sys.argv[1]) if len(sys.argv) > 1 else 1
-RAW_DIR = Path(__file__).resolve().parent / "raw" / f"generador{NUM_GENERADOR}"
-OUT_PATH = Path(__file__).resolve().parent / f"dataset_generador{NUM_GENERADOR}.json"
+GENERATION_DIR = Path(__file__).resolve().parent
 
 
 def limpiar_json(texto: str) -> str:
     texto = texto.strip()
     match = re.search(r"```(?:json)?\s*(.*?)\s*```", texto, re.DOTALL)
     return match.group(1) if match else texto
+
+
+def registro_de(variante: dict) -> str:
+    """Valor de `registro`. Gemini escribió a veces {"informal": "informal"}
+    en vez de {"registro": "informal"} (2 de 625 variantes del Generador 3);
+    en ese caso se recupera el valor para no dejar el campo vacío."""
+    if variante.get("registro"):
+        return variante["registro"]
+    return next((k for k in ("formal", "informal", "jerga") if variante.get(k) == k), "")
 
 
 def reparar_comilla_faltante(texto: str) -> str:
@@ -54,6 +61,9 @@ def reparar_comilla_faltante(texto: str) -> str:
 
 
 def main() -> int:
+    num_generador = int(sys.argv[1]) if len(sys.argv) > 1 else 1
+    RAW_DIR = GENERATION_DIR / "raw" / f"generador{num_generador}"
+    OUT_PATH = GENERATION_DIR / f"dataset_generador{num_generador}.json"
     semillas = {}
     for lote in sorted(SEEDS_DIR.glob("lote_*.json")):
         semillas.update({s["id"]: s for s in json.loads(lote.read_text(encoding="utf-8"))})
@@ -104,7 +114,7 @@ def main() -> int:
                 "registro_original_semilla": semilla["registro"],
                 "texto_dialectal": texto,
                 "traduccion": traduccion,
-                "registro": v.get("registro", ""),
+                "registro": registro_de(v),
                 "contexto_uso": v.get("contexto_uso", ""),
                 "generador": registro.get("generador", "groq"),
                 "modelo": registro.get("modelo", ""),
