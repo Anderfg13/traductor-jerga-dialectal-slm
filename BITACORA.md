@@ -2779,3 +2779,18 @@ Decisiones tomadas:
 - Sin conclusiones fuertes: se dice explícitamente que no se puede afirmar que la fusión supere al mejor individual.
 
 Pendiente: lectura del documento por una persona que no lo haya visto; evaluación humana y PI3 (aún no existen); acuerdo de Mariana y Paula con el texto de resultados y conclusiones, que reescribe lo que ellas habían integrado en la Sesión 35.
+
+---
+
+## Sesión 46 — 2026-10-08 — Anderson García
+
+Qué se hizo: tabla de comparación automática para PI1 en el archivo pedido, `evaluation/comparacion_pi1_automatica.md`, generada por el nuevo `evaluation/comparacion_pi1.py`. Los números ya existían (Sesión 44: `evaluation/comparacion_fase3.md` y `analisis_bootstrap.md`); lo nuevo es el archivo específico, el desglose por dialecto y la verificación explícita.
+- **Mismo conjunto de evaluación, verificado en código**: el script compara, para los 4 modelos (base y los 3 adaptadores), las 174 entradas, sus referencias, semillas y fuentes, y aborta si algo difiere; también comprueba que coincide con `evaluation/test_comun.json`. Resultado: las mismas 174 entradas y las mismas 9 semillas para todos (no un test derivado de cada generador). Incluye la referencia humana del banco de semillas (fuente `oro`, 9 entradas) además de las variantes de test de los tres generadores.
+- **Cifras** (BLEU / chrF globales): base 37.0 / 53.9; G1 42.2 / 57.5; G2 40.7 / 55.3; G3 42.3 / 57.9. Solo con referencias humanas (n=9): G1 4.0 / 10.5; G2 3.2 / 10.5; G3 3.8 / 13.9. Desglose por dialecto en el archivo.
+- **Lectura**: hay diferencia medible (G2 por debajo de G1 y G3 en chrF; G1 y G3 casi iguales), pero con intervalos amplios de 9 semillas: G1−G2 +2.3 chrF [+0.2, +4.2], G3−G2 +2.7 [+0.8, +5.3], G1−G3 −0.5 [−2.4, +1.1]; en BLEU no se distingue ninguno. Los desgloses por dialecto (1-2 semillas por dialecto) se declaran anecdóticos y no se interpretan.
+
+Decisiones tomadas:
+- La tarea pedía evaluar contra "las referencias humanas del banco de semillas" con el `test.json` original. Esas referencias son solo 9 entradas (una por semilla de test), así que la tabla principal usa el test común (más grande, con referencias sintéticas de los tres generadores) y la de solo referencias humanas se muestra aparte, con la advertencia de que no permite concluir. El `test.json` original de la Fase 2 ya no existe (se regeneró con 100 semillas).
+- No se repitió el entrenamiento ni la evaluación: se reutilizaron las predicciones de la corrida de Colab.
+
+Pendiente: respuesta definitiva a PI1 requiere evaluación humana (personas) y más semillas de prueba.
