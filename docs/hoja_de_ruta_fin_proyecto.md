@@ -89,3 +89,28 @@ cards de los generadores 2 y 3 (existe solo la del 1) y actualizar
 - Entrenar/fusionar/evaluar con GPU (Colab).
 - Evaluación humana (personas).
 - `git push` al Space de Hugging Face (requiere tu token).
+
+---
+
+## Lista de verificación (lo que sigue abierto)
+
+Marca cada casilla cuando esté hecho y pega aquí el dato que se pide.
+
+**Tuyo (Colab y personas)**
+- [ ] Correr `finetuning/fase3_pipeline_colab.ipynb` completo en Colab con GPU. Pegar aquí la GPU usada y el tiempo total: ______
+- [ ] Descargar `resultados_fase3.zip`, descomprimirlo en la raíz del repo y pasarme `evaluation/comparacion_fase3.md`.
+- [ ] Revisar las curvas de `finetuning/checkpoints/*/loss_log.json` (¿sobreajuste?).
+- [ ] Si `destilacion_multimaestro.py` falla en Colab (no se corrió nunca con el modelo real), pegarme el error.
+- [ ] Calibración cruzada de la rúbrica entre dos del equipo (5 ejemplos, diferencia máx. 1 punto).
+- [ ] Reclutar mínimo 3 hablantes nativos por dialecto (5 dialectos = 15 personas): `evaluation/reclutamiento_evaluadores.md`. Anotar nombres/contacto en `evaluation/evaluadores.csv`.
+- [ ] Enviar solo `hojas/<dialecto>.csv` + `instrucciones_evaluador.md` (nunca `clave_modelos.json`) y recoger las respuestas en `evaluation/evaluacion_humana/respuestas/`.
+- [ ] Pasada 24 h después del 2026-10-07: repetir la carga del Space con 20 y 50 concurrentes (`python api/prueba_carga_space.py --niveles 5 20 50`, ver `docs/pendientes_despliegue.md`).
+- [ ] `git push` al Space si se decide bajar `duration` (requiere tu token de Hugging Face).
+- [ ] **Que un compañero que no haya visto el documento lea `paper/main.pdf` de principio a fin** y anote cualquier referencia rota, sección confusa o a medio escribir (criterio de aceptación de la integración del paper; yo solo pude verificar la parte mecánica).
+
+**Mío (cuando lleguen los resultados)**
+- [ ] Documentar los resultados de Colab y corregir lo que falle.
+- [ ] Portabilidad (PI3): tamaños, latencia, prueba sin internet.
+- [ ] Actualizar `paper/main.tex`: sección de Resultados con las tablas de la Fase 3, discusión de PI1/PI2/PI3, limitaciones; recompilar con `paper/auditar_tex.py` y dos pasadas de pdflatex.
+- [ ] Data cards de los generadores 2 y 3; actualizar `generation/test_apis.py` y README con `gemini-3.5-flash-lite`.
+- [ ] Decidir con el equipo si se portan métricas/retroalimentación al Space (`docs/pendientes_despliegue.md`, punto 4).

@@ -2550,3 +2550,18 @@ Decisiones tomadas:
 - El test común mezcla referencias humanas (oro, solo 9 entradas) con referencias de cada LLM; por eso se reporta por fuente, y el oro es la columna menos sesgada.
 
 Pendiente: no se entrenó ni evaluó ningún modelo nuevo; ninguna cifra de Fase 3 existe todavía. `destilacion_multimaestro.py` NO se corrió con el modelo real (un ejemplo con 3B en CPU pasó de 25 min sin terminar); solo su lógica está verificada con un modelo diminuto, así que es el script con más riesgo de fallar la primera vez en Colab. Los siguientes pasos y quién los hace están en `docs/hoja_de_ruta_fin_proyecto.md` (Colab, evaluadores humanos, paper). Faltan data cards de G2 y G3 y actualizar `test_apis.py`/README con el modelo de Google.
+
+---
+
+## Sesión extra (5) — 2026-10-07 — Anderson García
+
+Qué se hizo: integración y compilación final del paper (`paper/main.tex`). Las secciones de Arquitectura, Escenarios de calidad, Gobernanza, Prototipo y Resultados preliminares ya estaban integradas por Paula y Mariana (Sesiones 33 y 35); esta sesión las revisó y las dejó consistentes con el estado real.
+- **Compilación**: MiKTeX 25.12 instalado en modo usuario (no había LaTeX en la máquina). Dos pasadas de `pdflatex`: 0 errores, **0 Overfull hbox**, 0 referencias o citas indefinidas, 0 `??` en el texto del PDF extraído. Resultado: **18 páginas** (`paper/main.pdf` actualizado). Quedan 17 avisos "Underfull" (no bloquean) y avisos de que el flotante `h` pasó a `ht`.
+- **Auditoría estática** (`paper/auditar_tex.py`): las 7 figuras/tablas tienen `\caption` y `\label`; todo `\ref` tiene su `\label`; todo `\cite` tiene `\bibitem` y viceversa; sin marcas de texto sin terminar.
+- **Texto desactualizado corregido** (el paper decía que el despliegue estaba "bloqueado"): despliegue público en Hugging Face Spaces (2.5 s por solicitud, probado desde un celular con datos móviles), el fallo y arreglo de la carga del adaptador bajo ZeroGPU, prueba de integración de 6 etapas, resultado de la carga contra el Space (cuota diaria de GPU agotada tras ~4 traducciones; 20 y 50 concurrentes no medibles), datos de los generadores 2 y 3 ya generados, fusión con PEFT en vez de `mergekit`, y hoja de ruta y conclusiones coherentes con eso.
+
+Decisiones tomadas:
+- No se tocaron las cifras de la Tabla de BLEU/chrF (8 de 23 ejemplos del reparto anterior): siguen siendo ciertas para esa corrida, y el paper ya las declara preliminares. Se reemplazarán con los resultados de la Fase 3 cuando existan.
+- Los `\label` `sec:arquitectura-empresarial` y `sec:escenarios-calidad` no se referencian en ningún lado; se dejaron (no rompen nada).
+
+Pendiente: el criterio de aceptación "un compañero que no haya visto el documento lo lee de principio a fin sin encontrar nada roto o a medio escribir" NO se puede verificar desde aquí; solo se comprobó la parte mecánica. Está como casilla en `docs/hoja_de_ruta_fin_proyecto.md`. La sección de Resultados sigue siendo la de un solo generador hasta que se corra la Fase 3 en Colab.
