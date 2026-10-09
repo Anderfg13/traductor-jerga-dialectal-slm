@@ -2947,3 +2947,13 @@ Errores míos corregidos antes de subir: afirmé que los maestros estaban "cerca
 Limitaciones anotadas en el documento: una corrida, sin ablaciones (el estudiante parte de TIES, así que no se separa inicialización de destilación; no se probó desde el modelo base ni desde el promedio simple: el de PEFT estaba mal configurado entonces y el de mergekit es un modelo completo, no un LoRA); no se guardaron las curvas de KL y CE; los maestros se consultan sobre datos que vieron; 9 semillas.
 
 Pendiente: opcional, repetir desde el modelo base y con otros `alfa`/`lr` para una ablación; guardar la salida del loop en la próxima corrida.
+
+---
+
+## Sesión extra (7) — 2026-10-08 — Anderson García
+
+Qué se hizo: se agregaron a la lista vigente de pendientes (`docs/hoja_de_ruta_fin_proyecto.md`, sección "PENDIENTES ACTUALES", subsección "Tareas del calendario que siguen abiertas") las dos tareas que pidió el usuario dejar anotadas, con su prompt completo y su estado real: (1) kappa de Fleiss y análisis consolidado de PI1 — la parte automática está hecha, el kappa NO se pudo calcular por falta de `resultados_humanos_pi1.csv`; (2) "Sesión 48 (Mariana)": borrador de resultados de PI1 y primera mitad de PI2 para el paper — no iniciada.
+
+Decisiones tomadas: no se ejecutó ninguna de las dos (el usuario pidió dejarlas en la lista). Se anotó que el paper ya contiene versiones de las secciones de PI1 y PI2 (escritas en las Sesiones 44-51), por lo que el borrador de Mariana debe partir de ellas, y que la confirmación del equipo de que la interpretación no exagera es una acción humana. Se detectó y anotó un conflicto de numeración: la "Sesión 48" de Mariana choca con mis entradas "Sesión 48" y "48 (2)".
+
+Pendiente: lo que consta en esa subsección.
