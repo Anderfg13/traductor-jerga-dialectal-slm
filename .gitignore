@@ -65,3 +65,6 @@ merging/salida/
 evaluation/evaluacion_humana/clave_modelos.json
 evaluation/evaluacion_humana/respuestas/
 evaluation/evaluacion_humana/*_PRIVADO.md
+
+# Resultado de la destilación multi-maestro (14.8 MB): se versiona para poder reproducir sin reentrenar (95 min en T4)
+!finetuning/checkpoints/destilacion/estudiante/*.safetensors

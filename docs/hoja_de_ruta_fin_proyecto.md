@@ -40,7 +40,7 @@ contradice esta sección, manda esta.
 - [ ] Decidir con el equipo si se portan métricas y retroalimentación al Space (hoy solo traducir/salud).
 
 **Entrega**
-- [ ] **Confirmar la numeración de sesiones de la bitácora.** Muchas entradas mías se numeraron por inferencia, porque los prompts no traían número: `Sesión 26` (2026-10-07), `30 (2)`, `31 (2)`, `35 (2)`, `36 (2)`, `37` a `51` (con subíndices en la 43, 47 y 48), `extra (4)`, `extra (5)` y la `extra (6)`. Renombrar las que el calendario del curso asigne distinto.
+- [ ] **Confirmar la numeración de sesiones de la bitácora.** Muchas entradas mías se numeraron por inferencia, porque los prompts no traían número: `Sesión 26` (2026-10-07), `30 (2)`, `31 (2)`, `35 (2)`, `36 (2)`, `37` a `52` (con subíndices en la 43, 47 y 48), `extra (4)`, `extra (5)` y la `extra (6)`. Renombrar las que el calendario del curso asigne distinto.
 - [ ] Decidir qué se entrega y si hay que hacer el merge o PR de `develop` a `main` (no se ha hecho).
 - [ ] (Opcional, PI3) Conseguir claves de Google Translate y DeepL para comparar contra sistemas de traducción dedicados; sin ellas esa comparación no se puede hacer.
 

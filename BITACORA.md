@@ -2930,3 +2930,20 @@ Pendientes que faltaban y ahora constan: confirmar la numeración de sesiones de
 Decisiones tomadas: no se reescribió el historial de la lista; solo se antepuso la sección vigente y se renombró el encabezado antiguo. Esta entrada se numeró "extra (6)" para no inventar otro número de sesión.
 
 Pendiente: lo que consta en esa sección.
+
+---
+
+## Sesión 52 — 2026-10-08 — Anderson García
+
+Qué se hizo: documentación y verificación de la fusión por destilación multi-maestro en `merging/fusion_destilacion.md`. El loop (`merging/destilacion_multimaestro.py`) ya estaba implementado (Sesión 43) y ejecutado en Colab; faltaban el documento, la comparación de costo, la prueba manual de 5 ejemplos y versionar el modelo.
+- **Proceso e hiperparámetros** (tomados del código y del notebook, una sola configuración sin ajustar): 3 maestros congelados + estudiante LoRA (r=8, alpha=16) en un solo modelo base; estudiante inicializado desde la fusión TIES con PEFT; datos `dataset_mezcla` (1,496 train / 183 val); pérdida `0.7·KL(promedio de maestros ‖ estudiante) + 0.3·CE`; AdamW lr 5e-5, lote 1 con acumulación 8, 2 épocas, modo eval, mejor CE de validación.
+- **Tiempo de cómputo** (T4): destilación 5,697 s (95 min) frente a 24 s de TIES con PEFT (~235×), 1,205 s del promedio con mergekit y 1,535 s de TIES con mergekit (contando la incorporación de adaptadores; 3.7-4.7×); equivale a entrenar ~5 adaptadores. La estimación de la celda de Colab (20-40 min) era incorrecta.
+- **Resultado**: 43.9 BLEU / 58.3 chrF; frente a TIES con PEFT −0.0 BLEU [−1.3, +1.3] y +0.1 chrF; frente al mejor individual +1.5 BLEU [−0.9, +4.5], no distinguible. Con estos datos el costo extra no se justifica.
+- **Prueba manual (aceptación)**: el modelo destilado carga sin errores y las 5 frases salen coherentes (5/5; "qué chimba de parche" → "What a mess" es un error que ya tenían los individuales y las otras fusiones).
+- **Versionado**: `.gitignore` excluía todo `*.safetensors`, así que el modelo destilado (14.8 MB) no estaba en git; se agregó una excepción y se versiona para reproducir sin repetir los 95 min. Las demás fusiones (PEFT y mergekit) siguen sin versionarse; se regeneran en segundos con `merging/fusionar_adaptadores.py`.
+
+Errores míos corregidos antes de subir: afirmé que los maestros estaban "cerca de memorizados" con pérdida de entrenamiento 0.14-0.30, pero esos valores son de la época 3 y los adaptadores guardados son los de la época 1 (pérdida media de entrenamiento 0.71, 0.54 y 0.84, verificada en los `loss_log.json`); y una frase mal redactada.
+
+Limitaciones anotadas en el documento: una corrida, sin ablaciones (el estudiante parte de TIES, así que no se separa inicialización de destilación; no se probó desde el modelo base ni desde el promedio simple: el de PEFT estaba mal configurado entonces y el de mergekit es un modelo completo, no un LoRA); no se guardaron las curvas de KL y CE; los maestros se consultan sobre datos que vieron; 9 semillas.
+
+Pendiente: opcional, repetir desde el modelo base y con otros `alfa`/`lr` para una ablación; guardar la salida del loop en la próxima corrida.
