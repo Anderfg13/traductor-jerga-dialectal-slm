@@ -29,6 +29,8 @@ pendientes del despliegue). Cada paso dice **quién/dónde** lo hace, el
 
 ---
 
+**Extra, después de cerrar esta hoja:** seguir afinando el modelo fusionado y medir contra la fusión simple (plan en `docs/extra_finetuning_continuo.md`).
+
 ## PENDIENTES ACTUALES (lista consolidada, 2026-10-08)
 
 **Esta sección es la única que vale.** Las casillas de más abajo son un registro

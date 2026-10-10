@@ -3000,3 +3000,14 @@ Qué se hizo: prueba exploratoria de Jev (TypeSafe AI, modelo de decisión que n
 Decisiones tomadas: es señal automática exploratoria, no evaluación humana; no se integró al paper. Discrepa con BLEU en DeepL (empate en BLEU, ventaja clara de DeepL con este juez), lo que podría reflejar que premia fluidez más que fidelidad dialectal; no se verificó. La clave está solo en `.env` (`TYPESAFE_API_KEY`).
 
 Pendiente: decidir si se menciona en el paper; validación humana del juez cuando existan evaluadores.
+
+
+---
+
+## Sesión extra (10) — 2026-10-10 — Anderson García
+
+Qué se hizo: se documentó, sin ejecutarlo, el plan de un extra posterior al cierre del proyecto: seguir afinando el modelo fusionado y medir contra la fusión simple (`docs/extra_finetuning_continuo.md`, enlazado desde `docs/hoja_de_ruta_fin_proyecto.md`). Se registró que el servicio desplegado usa hoy el adaptador del Generador 1 y no el fusionado.
+
+Decisiones tomadas: la investigación se da por cerrada y el orden es primero la hoja de ruta y después este extra. Se advirtió que más pasos con los mismos datos probablemente sobreajustan y que hacen falta datos nuevos; no se prometió una mejora.
+
+Pendiente: confirmar la fuente de datos del extra; todo lo demás de la hoja de ruta.
