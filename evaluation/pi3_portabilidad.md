@@ -38,4 +38,28 @@ Cambiar de "especialización" cuesta 14.8 MB (un adaptador) y no otros 6 GB, por
 | GPU T4 (Colab), modelo ajustado, una a una sobre 174 entradas | ~1.9 s por entrada (5.6 min / 174) | `finetuning/tiempos_fase3_corrida2.json` |
 | GPU compartida (ZeroGPU, Space público), una solicitud | 2.5 s | `docs/despliegue.md` |
 
-Sin GPU el modelo de 3B no es interactivo; con una GPU modesta sí. No se evaluó cuantización (int8/int4) ni formatos ligeros (GGUF), que probablemente acercarían el uso en CPU a algo utilizable: queda como trabajo futuro, no como resultado.
+Sin GPU el modelo de 3B no es interactivo; con una GPU modesta sí.
+
+## Cuantización int8 en CPU (prueba preliminar, 3 frases)
+
+Generado por `evaluation/pi3_cuantizacion.py --variante int8 --n 3 --bloquear-red --medir-tam`
+(cuantización dinámica de PyTorch sobre las capas lineales; se parte del modelo fusionado `peft_cat_norm`).
+
+| Medida | bfloat16 (tabla anterior) | int8 dinámico |
+|---|---|---|
+| Tamaño del modelo | 6.17 GB | **4.33 GB** (−30 %, medido en disco) |
+| Latencia por traducción (mediana) | 46.0-64.8 s | **28.0 s** (13.3-31.0 s) |
+| Intentos de conexión con sockets bloqueados | 0 | 0 |
+| RAM pico | 6.69 GB | **12.48 GB** (durante la carga y la cuantización) |
+| Carga + cuantización | 1.5 s | 363.7 s (una sola vez) |
+
+Lo que sí muestra: la latencia en CPU baja a ~la mitad, aunque sigue sin ser interactiva (13-31 s), y el modelo ocupa menos en disco.
+Lo que **no** se puede concluir:
+
+- **Calidad.** Solo se tradujeron 3 frases, y ninguno de los tres resultados acierta el sentido de la referencia
+  ("Estar salado" → "I'm broke"; "Estar mosca" → "I'm stuck"; "Neta" → una respuesta con prefacio, "Sure, here's the translation..."),
+  pero esa comparación **no es limpia** (el modelo de referencia de esas frases en `predicciones/` es otro, `mergekit_linear`) y 3 frases no
+  son una medición. La calidad sobre las 174 entradas no se midió: según `CLAUDE.md` una evaluación completa va a Colab, y 174 × 28 s ≈ 81 min en esta máquina.
+- **RAM.** La cuantización dinámica exige cargar primero el modelo completo: el pico fue casi el doble. Quien solo ejecute la versión cuantizada
+  necesitaría guardarla ya cuantizada (no se hizo).
+- **4 bits** (bitsandbytes/GGUF) no se probó: requiere GPU o herramientas que no están en esta máquina. Queda como trabajo futuro, no como resultado.

@@ -2957,3 +2957,24 @@ Qué se hizo: se agregaron a la lista vigente de pendientes (`docs/hoja_de_ruta_
 Decisiones tomadas: no se ejecutó ninguna de las dos (el usuario pidió dejarlas en la lista). Se anotó que el paper ya contiene versiones de las secciones de PI1 y PI2 (escritas en las Sesiones 44-51), por lo que el borrador de Mariana debe partir de ellas, y que la confirmación del equipo de que la interpretación no exagera es una acción humana. Se detectó y anotó un conflicto de numeración: la "Sesión 48" de Mariana choca con mis entradas "Sesión 48" y "48 (2)".
 
 Pendiente: lo que consta en esa subsección.
+
+---
+
+## Sesiones 53-60 (cierre de la Semana 8-10, numeración inferida) — 2026-10-10 — Anderson García
+
+Qué se hizo: se completó lo que podía hacerse sin evaluadores humanos ni claves externas del calendario de las semanas 8-10.
+- **Comparación completa de PI2** (`evaluation/comparacion_completa_pi2.py/.md`): todas las variantes con intervalos y las cinco opciones; destilación − fusión simple = −0.6 BLEU [−2.5, +1.0], −0.1 chrF (marginal, a 95 min frente a 13 s-~20 min).
+- **Balance de la mezcla** (`finetuning/resumen_curva.py`, `curva_final_mezcla.md`): 513/475/508 ejemplos por generador; no se recortó, explicado.
+- **PI3, cuantización** (`evaluation/pi3_cuantizacion.py`, sección nueva en `evaluation/pi3_portabilidad.md`): int8 dinámico en CPU, 3 frases: 4.33 GB (−30 %), 28 s de mediana (vs 46-65 s), 0 conexiones con red bloqueada, pero RAM pico de 12.48 GB y calidad **sin medir** (las 3 frases no aciertan el sentido de la referencia; comparación no limpia). 4 bits no probado (requiere GPU/bitsandbytes). La medición sobre las 174 entradas no se corrió local (regla de cómputo pesado en Colab; ~81 min en esta máquina).
+- **Análisis cualitativo preliminar** (`evaluation/analisis_cualitativo.md`): 34 peores casos por chrF de la fusión simple, clasificados a mano por un solo lector no nativo (47 % errores de significado, 24 % pierden matiz, 29 % aceptables penalizados por la métrica); tablas por dialecto y por expresión. No hay comentarios de evaluadores: así se dice.
+- **Borradores**: `docs/fase3_resultados_pi1_borrador.md`, `docs/fase3_resultados_completos_borrador.md`, `docs/fase3_limitaciones_borrador.md` (datos, diseño, errores propios, riesgos, gobernanza), `docs/fase3_costos_y_futuro_borrador.md` (tiempos reales de T4, $0, trabajo futuro).
+- **Sustentación**: `docs/guion_sustentacion_final.md`, `docs/banco_preguntas_final.md`, y tres figuras generadas con `evaluation/figuras_sustentacion.py` en `docs/figuras/` (matplotlib se instaló en el venv).
+- **Comparación con traductores comerciales**: `evaluation/comparar_comerciales.py` (Google Translate v2 y DeepL), probado solo con respuestas simuladas; sin claves no hay resultado y el informe lo dice.
+- **Paper** (`paper/main.tex`, 20 páginas): párrafo cualitativo, resultado de la cuantización, riesgos y costos, trabajo futuro; compilado 2 pasadas sin errores ni overfull, `auditar_tex.py` sin problemas.
+- **`docs/hoja_de_ruta_fin_proyecto.md`**: nueva sección "Cuando me pases X, yo hago Y".
+
+Decisiones tomadas: no se simuló ningún dato humano ni se rellenó nada del kappa; la cuantización queda como resultado parcial; las fusiones se reportan sin contar el entrenamiento previo de los adaptadores (se aclara en costos y en la figura).
+
+Errores míos corregidos antes de subir: en el borrador de limitaciones escribí "576 de las 585 referencias" (cifra sin respaldo); la correcta es 165 de 174 en el test común. Escribí también que el Space "no guarda textos" sin verificarlo; ahora dice que no está verificado. Afirmé que los intervalos de los modelos ajustados no se solapan; se corrigió (sí se solapan).
+
+Pendiente: evaluación humana y kappa, claves de traductores comerciales, medir en Colab la calidad cuantizada, revisión del equipo, ensayo y video, numeración de sesiones, merge a `main` (todo en la nueva sección de la hoja de ruta).

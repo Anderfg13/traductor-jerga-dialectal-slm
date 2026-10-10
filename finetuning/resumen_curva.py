@@ -77,6 +77,22 @@ def main() -> int:
             "",
         ]
     )
+    if a.nombre == "mezcla":
+        import collections
+
+        dd = json.loads((FT.parent / "generation" / "splits" / "dataset_mezcla" / "train.json").read_text(encoding="utf-8"))
+        c = collections.Counter(x["generador"] for x in dd)
+        tot = sum(c.values())
+        sem = {g: len({x["seed_id"] for x in dd if x["generador"] == g}) for g in c}
+        texto += "\n".join([
+            "", "## Balance de la mezcla entre generadores", "",
+            "Criterio de calidad: que ningún generador domine solo por tener más ejemplos limpios.", "",
+            "| Generador | Ejemplos de entrenamiento | % | Semillas distintas |", "|---|---|---|---|",
+            *[f"| {g} | {n} | {100 * n / tot:.1f} % | {sem[g]} |" for g, n in sorted(c.items())],
+            "", f"Diferencia máxima entre generadores: {100 * (max(c.values()) - min(c.values())) / tot:.1f} puntos porcentuales ({max(c.values()) - min(c.values())} ejemplos). "
+            "**No se recortó para igualar**: los tres generadores cubren exactamente las mismas semillas de entrenamiento y cada uno generó 5-8 variantes por semilla, así que la "
+            "mezcla ya sale casi equilibrada; igualar al mínimo habría descartado ejemplos válidos sin que ningún generador dominara. Los splits son por semilla y usan el mismo reparto "
+            "fijo que los demás (`seeds/split_semillas.json`), igual que en la Sesión 12.", ""])
     salida = FT / f"curva_final_{a.nombre}.md"
     if salida.exists() and not a.forzar:
         print(f"ERROR: {salida.name} ya existe; usa --forzar para sobrescribirlo")

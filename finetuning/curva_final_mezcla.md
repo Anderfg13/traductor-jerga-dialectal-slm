@@ -19,3 +19,15 @@ Generado por `finetuning/resumen_curva.py` a partir de `finetuning/checkpoints/m
 
 - Mejor época por validación: **1** (pérdida 0.6902). Se guardó el adaptador de esa época (`load_best_model_at_end`), no el de la última (3).
 - Sobreajuste: **sí** — la validación de la última época es peor que la mejor mientras el entrenamiento sigue bajando.
+
+## Balance de la mezcla entre generadores
+
+Criterio de calidad: que ningún generador domine solo por tener más ejemplos limpios.
+
+| Generador | Ejemplos de entrenamiento | % | Semillas distintas |
+|---|---|---|---|
+| cohere | 513 | 34.3 % | 81 |
+| google | 508 | 34.0 % | 81 |
+| groq | 475 | 31.8 % | 81 |
+
+Diferencia máxima entre generadores: 2.5 puntos porcentuales (38 ejemplos). **No se recortó para igualar**: los tres generadores cubren exactamente las mismas semillas de entrenamiento y cada uno generó 5-8 variantes por semilla, así que la mezcla ya sale casi equilibrada; igualar al mínimo habría descartado ejemplos válidos sin que ningún generador dominara. Los splits son por semilla y usan el mismo reparto fijo que los demás (`seeds/split_semillas.json`), igual que en la Sesión 12.

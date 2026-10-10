@@ -5,6 +5,30 @@
 pendientes del despliegue). Cada paso dice **quién/dónde** lo hace, el
 **comando** y **dónde se anota el resultado**.
 
+## CUANDO ME PASES X, YO HAGO Y (mapa para retomar sin contexto)
+
+Última actualización: 2026-10-10. Si me das lo de la columna izquierda, esto es lo que hago yo, en orden.
+
+| Cuando me pases... | Yo hago... |
+|---|---|
+| Las hojas de evaluación respondidas, guardadas en `evaluation/evaluacion_humana/respuestas/<Dialecto>__<ID>.csv` | 1) `python evaluation/verificar_ciego.py`; 2) `python evaluation/consolidar_resultados_humanos.py` (genera `resultados_humanos_pi1.csv`); 3) `python evaluation/analisis_pi1.py` (kappa de Fleiss/Cohen, puntaje humano por modelo, si coincide con las métricas); 4) publicar `clave_modelos.json` y verificar su hash (pídemela solo después de que todas las hojas estén devueltas); 5) rehacer `evaluation/analisis_cualitativo.md` con los comentarios de los evaluadores y los números humanos; 6) actualizar `docs/fase3_resultados_pi1_borrador.md`, `docs/fase3_resultados_completos_borrador.md` y `paper/main.tex` (PI1, Conclusiones), recompilar y auditar; 7) bitácora y push. |
+| Claves `DEEPL_API_KEY` y/o `GOOGLE_TRANSLATE_API_KEY` en tu `.env` (solo dime que ya están; no me las pegues en el chat) | `python evaluation/comparar_comerciales.py --probar`, luego completo; leo `evaluation/comparacion_pi3_comerciales.md`, lo integro al paper (PI3) y a `docs/resultados_pi3.md`, bitácora y push. |
+| El zip de una corrida de Colab (por ejemplo, la evaluación de calidad del modelo cuantizado, si me pides el cuaderno) | Descomprimo en carpeta aparte, reviso que sea válido (mismo test, 174 entradas, sin adaptador viejo), copio los resultados al repo, actualizo `evaluation/pi3_portabilidad.md` y el paper, bitácora y push. |
+| El tiempo asignado a la sustentación | Ajusto `docs/guion_sustentacion_final.md` (columna "prescindible") y lo anoto en `docs/banco_preguntas_final.md`. |
+| Los tiempos del ensayo cronometrado | Los anoto en el guion y recorto bloques si hace falta. |
+| La numeración oficial de sesiones del curso | Renombro las entradas de `BITACORA.md` marcadas como inferidas y los textos que las citan. |
+| Comentarios de Mariana, Paula o un lector nuevo sobre el paper o los borradores | Los aplico en `paper/main.tex` y en `docs/fase3_*_borrador.md`, recompilo, auditoría y push. Si algo exagera o minimiza, lo ajusto contra las fuentes. |
+| La decisión de hacer merge o PR de `develop` a `main` | Verifico que todo esté subido y limpio, abro el PR (o hago el merge si lo pides explícitamente). |
+| Un HF token para el Space | Cambio `duration` de `@spaces.GPU` y hago el push al Space (solo si lo pides). |
+
+**Qué quedó hecho de las Sesiones 43-60 (hasta 2026-10-10) y qué no:**
+
+- Hecho con datos reales: comparación automática PI1, fusión simple (mergekit), comparación completa de PI2 (incl. destilación), PI3 (portabilidad, int8 preliminar, comparación contra LLMs generales), balance de la mezcla, análisis cualitativo preliminar (un lector), borradores de resultados (PI1/PI2 y completos), limitaciones/riesgos/gobernanza, costos y trabajo futuro, guion y figuras de sustentación, banco de preguntas final, paper compilado.
+- **No se puede hacer sin ti**: evaluación humana (comparativa y kappa), traductores comerciales (claves), ensayo, video Plan B, revisión del equipo, numeración, merge a `main`.
+- **Pendiente técnico mío si lo pides**: cuaderno de Colab para medir la calidad del modelo cuantizado sobre las 174 entradas (no se corrió local por la regla de cómputo pesado), `.pptx` con las figuras (requiere instalar `python-pptx`), data cards de G2 y G3.
+
+---
+
 ## PENDIENTES ACTUALES (lista consolidada, 2026-10-08)
 
 **Esta sección es la única que vale.** Las casillas de más abajo son un registro
@@ -64,7 +88,7 @@ contradice esta sección, manda esta.
 ### C. Lo puedo hacer yo ya, sin depender de nadie (pídemelo)
 - [ ] **Data cards** de los generadores 2 y 3 (existe solo la del 1).
 - [ ] **Actualizar `README.md`** con la estructura nueva (`merging/`, `tests/`, scripts de evaluación); el hook de commit lo viene avisando.
-- [ ] PI3: probar cuantización (int8/int4) para ver si el uso en CPU se vuelve interactivo.
+- [ ] PI3: int8 probado de forma preliminar (3 frases: 28 s, 4.33 GB; calidad sin medir, ver `evaluation/pi3_portabilidad.md`); falta medir la calidad en Colab y probar 4 bits.
 - [ ] Ampliar el conjunto de prueba (hoy 9 semillas): es la mayor limitación estadística de todos los resultados.
 - [ ] Entender por qué los términos cruzados de PEFT no dañan el promedio (opcional).
 
