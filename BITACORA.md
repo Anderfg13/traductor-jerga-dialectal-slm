@@ -3011,3 +3011,14 @@ Qué se hizo: se documentó, sin ejecutarlo, el plan de un extra posterior al ci
 Decisiones tomadas: la investigación se da por cerrada y el orden es primero la hoja de ruta y después este extra. Se advirtió que más pasos con los mismos datos probablemente sobreajustan y que hacen falta datos nuevos; no se prometió una mejora.
 
 Pendiente: confirmar la fuente de datos del extra; todo lo demás de la hoja de ruta.
+
+
+---
+
+## Sesión extra (11) — 2026-10-10 — Anderson García
+
+Qué se hizo: búsqueda web (sin descargar nada) de datasets existentes de jerga latinoamericana con traducción al inglés, para alimentar el extra de seguir afinando; resultado en `docs/extra_finetuning_continuo.md`. No se encontró un dataset listo; el candidato más prometedor es Wiktionary vía kaikki.org (expresiones con etiquetas regionales y glosas en inglés).
+
+Decisiones tomadas: no se descargó ni se usó ningún dato; todos los candidatos quedan marcados como por verificar (licencia, tamaño, cobertura de América). Se advirtió que las oraciones y traducciones seguirían siendo sintéticas.
+
+Pendiente: decidir si se explora kaikki.org (requiere descargar un archivo grande; se pedirá permiso antes) y revisar licencias.

@@ -27,3 +27,18 @@ Mismo test común (174 entradas), mismas métricas y el mismo bootstrap; compara
 
 - Confirmar la fuente de datos (1 por defecto, solo con las 100 semillas actuales).
 - Que corras en Colab los cuadernos que yo prepare y me pases el zip de resultados.
+
+## Búsqueda de datasets existentes (2026-10-10, búsqueda web, sin descargar nada)
+
+No se encontró un dataset listo de jerga latinoamericana con traducción al inglés. Candidatos, todos por verificar (licencia, tamaño, cobertura):
+
+| Recurso | Qué es | Sirve para |
+|---|---|---|
+| Wiktionary vía kaikki.org (wiktextract, JSONL) | Entradas del español con etiquetas regionales/jerga y definiciones en inglés | **El más prometedor**: fuente de expresiones nuevas con glosa en inglés (cobertura de América por comprobar; Wiktionary suele ser CC BY-SA, por confirmar) |
+| Corpus multidialectal de las Américas (SIGUL 2026, aclanthology.org/2026.sigul-1.16) | Frases paralelas entre dialectos del español, con etiquetas pragmáticas | Texto dialectal; no trae inglés ni es de jerga; no se confirmó que esté publicado |
+| Expresiones multipalabra en español de Costa Rica, Colombia, México y Perú (LREC 2016) | Estudio piloto | Ideas de expresiones; no se vio si los datos son públicos |
+| COLA | Conversaciones de adolescentes (Madrid, Buenos Aires, Santiago) con jerga | Solo español; licencia sin verificar |
+| SlangDIT (arXiv 2505.14181) | Benchmark de traducción de jerga inglés-chino | Solo como diseño de tarea, no como datos |
+| Dictionary of Spanish Slang and Colloquial Expressions (libro) | Referencia impresa | No es dataset; tendría derechos de autor |
+
+Conclusión: cualquier fuente aportaría **expresiones o glosas**, no pares de oraciones con traducción de calidad; las oraciones y su traducción habría que generarlas (con los mismos LLM o DeepL) y seguirían siendo referencias sintéticas. Antes de usar cualquiera: revisar licencia, y decidir con el equipo.
