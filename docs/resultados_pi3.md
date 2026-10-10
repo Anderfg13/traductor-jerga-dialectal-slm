@@ -60,3 +60,7 @@ ellos (48.0): 7.2 de 11.0 puntos.
 - Cuantización (int8/int4) y formatos ligeros (GGUF) para CPU: probablemente
   acerquen el uso interactivo, no medido.
 - Evaluación humana (retención de matices), que es lo que BLEU/chrF no miden.
+
+## Frente a DeepL
+
+Ver `evaluation/comparacion_pi3_comerciales.md` (generado por `evaluation/comparar_comerciales.py`): BLEU 44.4 (DeepL) vs 44.2 (fusion simple), diferencia +0.0 [-3.9, +3.9]; chrF 61.4 vs 58.4, diferencia -3.1 [-6.5, -0.2]. Google Translate no se evaluo (sin clave).

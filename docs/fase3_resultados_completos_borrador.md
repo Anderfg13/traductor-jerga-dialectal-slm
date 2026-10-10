@@ -25,7 +25,7 @@ Destilación − fusión simple: −0.6 BLEU [−2.5, +1.0], −0.1 chrF: margin
 ## PI3 — modelo pequeño frente a otros sistemas y portabilidad
 - Frente a LLMs generales (`docs/resultados_pi3.md`): −3.4 a −3.9 BLEU frente a gpt-oss-120b y qwen3.8-27b
   (significativo); no distinguible de command-r y gemini-lite; +3.5 sobre gpt-oss-20b, con sesgo de circularidad.
-- Frente a Google Translate/DeepL: **No disponible** (sin claves; el script `evaluation/comparar_comerciales.py` está listo).
+- Frente a DeepL (`evaluation/comparacion_pi3_comerciales.md`): BLEU 44.4 vs 44.2 (no distinguible), chrF 61.4 vs 58.4 (−3.1 [−6.5, −0.2]). Google Translate: **No disponible** (sin clave).
 - Portabilidad (`evaluation/pi3_portabilidad.md`): adaptador de 14.8 MB sobre base de 6.17 GB; 0 conexiones; CPU 46-65 s,
   int8 28 s (3 frases, sin calidad medida), GPU ~2 s.
 

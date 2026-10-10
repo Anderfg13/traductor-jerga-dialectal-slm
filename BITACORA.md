@@ -2978,3 +2978,14 @@ Decisiones tomadas: no se simuló ningún dato humano ni se rellenó nada del ka
 Errores míos corregidos antes de subir: en el borrador de limitaciones escribí "576 de las 585 referencias" (cifra sin respaldo); la correcta es 165 de 174 en el test común. Escribí también que el Space "no guarda textos" sin verificarlo; ahora dice que no está verificado. Afirmé que los intervalos de los modelos ajustados no se solapan; se corrigió (sí se solapan).
 
 Pendiente: evaluación humana y kappa, claves de traductores comerciales, medir en Colab la calidad cuantizada, revisión del equipo, ensayo y video, numeración de sesiones, merge a `main` (todo en la nueva sección de la hoja de ruta).
+
+
+---
+
+## Sesión extra (8) — 2026-10-10 — Anderson García
+
+Qué se hizo: se corrió `evaluation/comparar_comerciales.py` con la clave gratuita de DeepL (guardada en `.env`, no en git; `.env.example` ahora lista `DEEPL_API_KEY` y `GOOGLE_TRANSLATE_API_KEY`). Resultado sobre el test común (174 entradas): DeepL 44.4 BLEU / 61.4 chrF frente a 44.2 / 58.4 de la fusión simple; diferencia +0.0 BLEU [-3.9, +3.9] (no distinguible) y -3.1 chrF [-6.5, -0.2] (el intervalo apenas excluye 0). Con las 9 referencias humanas DeepL saca 16.1 BLEU vs 4.9 (n=9, no concluyente). Casos mixtos: DeepL acierta "estar bien pedo" y "hacerse humo", falla "neta" (la deja sin traducir) y "coger la caña" (literal). Se añadió al script un bootstrap por semilla de la diferencia con el modelo pequeño. Se integró al paper (sección de PI3), a `docs/resultados_pi3.md`, al banco de preguntas y al borrador de resultados completos.
+
+Decisiones tomadas: Google Translate no se evalúa (exige cuenta de facturación y se prefirió no usarla); queda como limitación explícita. Las traducciones de DeepL quedan en `evaluation/predicciones_comerciales/deepl.json`.
+
+Pendiente: Google Translate (opcional); el resto sigue como en la hoja de ruta.

@@ -100,6 +100,42 @@ def metricas(pares):
     return sacrebleu.corpus_bleu(hip, ref).score, sacrebleu.corpus_chrf(hip, ref).score
 
 
+def bootstrap_vs_mejor(test, sistemas, n_boot=1000):
+    """Diferencia (modelo pequeño − traductor) con IC 95 % por remuestreo de semillas, como en bootstrap_pi3.py."""
+    import random
+    from collections import defaultdict
+
+    r = EVAL / "predicciones" / "mergekit_linear.json"
+    if not r.exists():
+        return []
+    peq = {x["texto_dialectal"]: x["traduccion_modelo"] for x in json.loads(r.read_text(encoding="utf-8"))}
+    ref = {t["texto_dialectal"]: t["traduccion"] for t in test}
+    sem = {t["texto_dialectal"]: t["seed_id"] for t in test}
+    L = ["## Incertidumbre: fusión lineal (mergekit) − traductor", "",
+         f"{n_boot} remuestreos de semillas con reemplazo, IC 95 %; `*` = el intervalo no incluye 0.", "",
+         "| Traductor | ΔBLEU | ΔchrF |", "|---|---|---|"]
+    for nombre, pred in sistemas.items():
+        textos = [t for t in ref if t in pred and t in peq]
+        por = defaultdict(list)
+        for t in textos:
+            por[sem[t]].append(t)
+        ss = sorted(por)
+        rng = random.Random(42)
+        d = ([], [])
+        for _ in range(n_boot):
+            items = [t for s in [rng.choice(ss) for _ in ss] for t in por[s]]
+            rr = [[ref[t] for t in items]]
+            for k, f in enumerate((sacrebleu.corpus_bleu, sacrebleu.corpus_chrf)):
+                d[k].append(f([peq[t] for t in items], rr).score - f([pred[t] for t in items], rr).score)
+        celdas = []
+        for v in d:
+            v = sorted(v)
+            lo, hi = v[int(0.025 * n_boot)], v[int(0.975 * n_boot) - 1]
+            celdas.append(f"{sum(v) / n_boot:+.1f} [{lo:+.1f}, {hi:+.1f}]" + ("" if lo <= 0 <= hi else " *"))
+        L.append(f"| {nombre} | {celdas[0]} | {celdas[1]} |")
+    return L + [""]
+
+
 def informe(test):
     sistemas = {}
     for n in SISTEMAS:
@@ -129,6 +165,7 @@ def informe(test):
                     b, c = metricas(pares)
                     L.append(f"| {n} ({len(pares)}) | {b:.1f} | {c:.1f} |")
             L.append("")
+        L += bootstrap_vs_mejor(test, sistemas)
         L += ["Un traductor dedicado no usa el prompt de sistema del proyecto ni conoce el dialecto: si queda por debajo, es información sobre "
               "la jerga dialectal, no un juicio general de calidad.", ""]
     texto = "\n".join(L)

@@ -66,7 +66,7 @@ contradice esta sección, manda esta.
 **Entrega**
 - [ ] **Confirmar la numeración de sesiones de la bitácora.** (Conflicto conocido: la "Sesión 48" de Mariana choca con las mías, "48" y "48 (2)".) Muchas entradas mías se numeraron por inferencia, porque los prompts no traían número: `Sesión 26` (2026-10-07), `30 (2)`, `31 (2)`, `35 (2)`, `36 (2)`, `37` a `52` (con subíndices en la 43, 47 y 48), `extra (4)`, `extra (5)` y la `extra (6)`. Renombrar las que el calendario del curso asigne distinto.
 - [ ] Decidir qué se entrega y si hay que hacer el merge o PR de `develop` a `main` (no se ha hecho).
-- [ ] (Opcional, PI3) Conseguir claves de Google Translate y DeepL para comparar contra sistemas de traducción dedicados; sin ellas esa comparación no se puede hacer.
+- [x] DeepL comparado (2026-10-10, ver `evaluation/comparacion_pi3_comerciales.md`). Google Translate: opcional, requiere cuenta de facturación; se decidió no usarlo.
 
 **Tareas del calendario que siguen abiertas** (guardadas tal cual las pasaste)
 

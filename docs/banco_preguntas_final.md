@@ -61,7 +61,7 @@ nada más; "no lo medimos" es una respuesta válida. Cada respuesta cita la fuen
 > No lo medimos: solo 3 frases, sin comparación limpia. La medición completa va a Colab. Respuesta honesta: no sabemos.
 
 **"¿Cómo se compara con un modelo grande o con Google Translate?"**
-> Frente a LLMs grandes: significativamente por debajo de gpt-oss-120b y qwen3.8-27b (−3.4 a −3.9 BLEU), no distinguible de command-r y gemini-lite, por encima de gpt-oss-20b; con sesgo de circularidad. Google Translate/DeepL **no se comparó** (faltan claves). (`docs/resultados_pi3.md`.)
+> Frente a LLMs grandes: significativamente por debajo de gpt-oss-120b y qwen3.8-27b (−3.4 a −3.9 BLEU), no distinguible de command-r y gemini-lite, por encima de gpt-oss-20b; con sesgo de circularidad. Frente a DeepL: BLEU no distinguible (44.2 vs 44.4) y −3.1 chrF [−6.5, −0.2]; Google Translate **no se comparó** (sin clave, para no pagar). (`docs/resultados_pi3.md`, `evaluation/comparacion_pi3_comerciales.md`.)
 
 **"¿Cuánto costó?"**
 > $0 en dinero. Tiempo de GPU en Colab T4: ~20/19/18 min por individual, ~52 min la mezcla, 13 s-20 min fusionar, 95 min destilar. (`docs/fase3_costos_y_futuro_borrador.md`.)
