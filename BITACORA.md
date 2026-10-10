@@ -3022,3 +3022,17 @@ Qué se hizo: búsqueda web (sin descargar nada) de datasets existentes de jerga
 Decisiones tomadas: no se descargó ni se usó ningún dato; todos los candidatos quedan marcados como por verificar (licencia, tamaño, cobertura de América). Se advirtió que las oraciones y traducciones seguirían siendo sintéticas.
 
 Pendiente: decidir si se explora kaikki.org (requiere descargar un archivo grande; se pedirá permiso antes) y revisar licencias.
+
+
+---
+
+## Sesión extra (12) — 2026-10-10 — Anderson García
+
+Qué se hizo: bloque C de la hoja de ruta (lo que no dependía de nadie).
+- **Data cards** de los generadores 2 y 3 (`generation/data_card_generador2.md`, `data_card_generador3.md`) con cifras recalculadas de los datasets (632 y 625 variantes, 0 descartadas; registro: G2 61 % informal / 20 % formal / 19 % jerga, G3 59 % / 7 % / 33 %; splits 513/64/55 y 508/61/56). La ficha del Generador 1 estaba desactualizada (solo `lote_01`); se le añadió una nota de actualización sin reescribir su historial.
+- **README.md**: estructura (`tests/`, `docs/`, `paper/`, `.githooks/`), mapa de dónde está cada cosa de `merging/` y `evaluation/`, y las claves opcionales nuevas (`.env.example` ahora incluye `TYPESAFE_API_KEY`). Las 29 pruebas de `tests/` pasan.
+- **Cuantización, calidad**: `evaluation/pi3_cuantizacion_gpu.py` (fp16, 8 bits y 4 bits con bitsandbytes, en la misma sesión, con informe y bootstrap por semilla) y `merging/cuantizacion_colab.ipynb`. No se corrió: requiere GPU de Colab. El cálculo del informe se probó con predicciones de otros modelos solo para verificar que funciona (no se guardó nada de eso). Ojo: es cuantización de bitsandbytes en GPU, no la dinámica de PyTorch en CPU de la prueba preliminar.
+
+Decisiones tomadas: "ampliar el test" queda bloqueado por semillas nuevas verificadas por humanos; lo de los términos cruzados de PEFT se deja sin hacer (opcional).
+
+Pendiente: correr el cuaderno de cuantización en Colab y pasar el zip; semillas nuevas (checkpoint de `seeds/lote_03.json`).

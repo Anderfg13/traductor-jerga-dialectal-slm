@@ -21,7 +21,35 @@ evaluation/   Métricas de calidad (BLEU, chrF, evaluación humana, kappa)
 api/          Servicio de traducción expuesto como API REST (ver
               api/README.md para levantarlo local, en contenedor, o
               api/space/ para la variante desplegada en HF Spaces)
+tests/        Pruebas automáticas (formato de los generadores, kappa,
+              destilación, integración E2E): `python -m pytest tests`
+docs/         Documentación del proyecto: resultados, borradores del paper,
+              limitaciones, costos, guion y banco de preguntas de la
+              sustentación, hoja de ruta (docs/hoja_de_ruta_fin_proyecto.md,
+              el punto de partida para retomar el trabajo)
+paper/        Fuente LaTeX del paper (main.tex), PDF y auditor de referencias
+.githooks/    Hook de pre-commit que exige una entrada nueva en BITACORA.md
 ```
+
+### Dónde está cada cosa de la evaluación y la fusión
+
+- `merging/`: fusión de adaptadores (`fusionar_adaptadores.py` con PEFT;
+  `incorporar_adaptadores.py` y cuadernos de Colab para `mergekit`), análisis
+  del promedio lineal (`analisis_lineal_peft.py`) y destilación multi-maestro
+  (`destilacion_multimaestro.py`, documentada en `merging/fusion_destilacion.md`).
+- `evaluation/`:
+  - métricas y comparaciones: `comparacion_pi1.py`, `comparacion_fusion.py`,
+    `comparacion_completa_pi2.py`, `analisis_pi1.py`, bootstrap por semilla;
+  - PI3: `pi3_portabilidad.py`, `pi3_cuantizacion.py`,
+    `comparar_sistemas_generales.py` (LLMs grandes), `comparar_comerciales.py`
+    (DeepL / Google Translate) y `juez_jev.py` (juez automático exploratorio);
+  - evaluación humana: `evaluacion_humana/` (hojas ciegas), `consolidar_resultados_humanos.py`,
+    `verificar_ciego.py`;
+  - resultados en los `.md` de la misma carpeta; `test_comun.json` es el
+    conjunto de prueba común (174 entradas, 9 semillas).
+- Las data cards de los tres generadores están en `generation/data_card_generador{1,2,3}.md`.
+- El cómputo pesado (entrenar, fusionar con mergekit, evaluar todo el test) va
+  en Google Colab; los cuadernos están en `finetuning/` y `merging/`.
 
 `Dockerfile`, `docker-compose.yml` y `.dockerignore` viven en la raíz
 del repo (no dentro de `api/`) — ver `api/README.md`, sección
@@ -120,6 +148,10 @@ repositorio (`.env` está en `.gitignore`).
    - `GROQ_API_KEY` → https://console.groq.com/keys
    - `COHERE_API_KEY` → https://dashboard.cohere.com/api-keys
    - `GOOGLE_API_KEY` → https://aistudio.google.com/apikey
+3. (Opcional, solo para la comparación de PI3) `DEEPL_API_KEY`,
+   `GOOGLE_TRANSLATE_API_KEY` (esta última exige cuenta de facturación) y
+   `TYPESAFE_API_KEY` (juez exploratorio `evaluation/juez_jev.py`). Sin ellas
+   esos scripts se omiten o avisan; nada más depende de ellas.
 
 ## Prueba de conectividad
 

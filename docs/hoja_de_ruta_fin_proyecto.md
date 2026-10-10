@@ -88,11 +88,11 @@ contradice esta sección, manda esta.
 - [ ] Publicar `clave_modelos.json` y verificar su hash con `clave_sha256.txt`.
 
 ### C. Lo puedo hacer yo ya, sin depender de nadie (pídemelo)
-- [ ] **Data cards** de los generadores 2 y 3 (existe solo la del 1).
-- [ ] **Actualizar `README.md`** con la estructura nueva (`merging/`, `tests/`, scripts de evaluación); el hook de commit lo viene avisando.
-- [ ] PI3: int8 probado de forma preliminar (3 frases: 28 s, 4.33 GB; calidad sin medir, ver `evaluation/pi3_portabilidad.md`); falta medir la calidad en Colab y probar 4 bits.
-- [ ] Ampliar el conjunto de prueba (hoy 9 semillas): es la mayor limitación estadística de todos los resultados.
-- [ ] Entender por qué los términos cruzados de PEFT no dañan el promedio (opcional).
+- [x] **Data cards** de los generadores 2 y 3 (`generation/data_card_generador2.md` y `3.md`; la del 1 lleva una nota de actualización).
+- [x] **Actualizar `README.md`** con la estructura nueva (hecho 2026-10-10: `tests/`, `docs/`, `paper/`, `.githooks/` y mapa de `merging/` y `evaluation/`).
+- [ ] PI3: int8 probado de forma preliminar (3 frases: 28 s, 4.33 GB; calidad sin medir, ver `evaluation/pi3_portabilidad.md`); **preparado**: cuaderno `merging/cuantizacion_colab.ipynb` (+ `evaluation/pi3_cuantizacion_gpu.py`) mide calidad con fp16/8 bits/4 bits en la misma sesión. **Te toca correrlo en Colab (T4, ~20 min) y pasarme `resultados_cuantizacion.zip`**; con eso yo reviso, escribo `evaluation/pi3_cuantizacion_calidad.md` en `pi3_portabilidad.md` y el paper, y subo.
+- [ ] Ampliar el conjunto de prueba (hoy 9 semillas): es la mayor limitación estadística de todos los resultados. **Bloqueado: requiere semillas nuevas verificadas por humanos** (ver el checkpoint de `seeds/lote_03.json`); sugerencia: reservar un tercio de las nuevas como segundo conjunto de prueba, generar sus variantes con los 3 generadores y evaluar todos los modelos ya entrenados en él (Colab).
+- [ ] Entender por qué los términos cruzados de PEFT no dañan el promedio (opcional; no se hizo: no afecta ninguna conclusión y el paper ya lo declara como no investigado).
 
 ---
 
