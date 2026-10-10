@@ -2989,3 +2989,14 @@ Qué se hizo: se corrió `evaluation/comparar_comerciales.py` con la clave gratu
 Decisiones tomadas: Google Translate no se evalúa (exige cuenta de facturación y se prefirió no usarla); queda como limitación explícita. Las traducciones de DeepL quedan en `evaluation/predicciones_comerciales/deepl.json`.
 
 Pendiente: Google Translate (opcional); el resto sigue como en la hoja de ruta.
+
+
+---
+
+## Sesión extra (9) — 2026-10-10 — Anderson García
+
+Qué se hizo: prueba exploratoria de Jev (TypeSafe AI, modelo de decisión que no genera texto) como juez automático adicional (`evaluation/juez_jev.py`, resultados en `evaluation/juez_jev.md`, caché en `evaluation/predicciones_jev/`). Validación con las 9 entradas con referencia humana: orden esperado (control malo 1.35 < base 2.40 < mezcla 2.68 < fusión 2.88 < DeepL 3.14 < referencia 3.43). Sobre las 174 entradas: base 3.00, mezcla 3.22, fusión simple 3.37, referencia 3.71, DeepL 3.78; fusión − DeepL = −0.41 [−0.56, −0.26], fusión − mezcla = +0.15 [+0.08, +0.22].
+
+Decisiones tomadas: es señal automática exploratoria, no evaluación humana; no se integró al paper. Discrepa con BLEU en DeepL (empate en BLEU, ventaja clara de DeepL con este juez), lo que podría reflejar que premia fluidez más que fidelidad dialectal; no se verificó. La clave está solo en `.env` (`TYPESAFE_API_KEY`).
+
+Pendiente: decidir si se menciona en el paper; validación humana del juez cuando existan evaluadores.
