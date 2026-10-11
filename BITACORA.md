@@ -3036,3 +3036,14 @@ Qué se hizo: bloque C de la hoja de ruta (lo que no dependía de nadie).
 Decisiones tomadas: "ampliar el test" queda bloqueado por semillas nuevas verificadas por humanos; lo de los términos cruzados de PEFT se deja sin hacer (opcional).
 
 Pendiente: correr el cuaderno de cuantización en Colab y pasar el zip; semillas nuevas (checkpoint de `seeds/lote_03.json`).
+
+
+---
+
+## Sesión extra (13) — 2026-10-10 — Anderson García
+
+Qué se hizo: se escribió `docs/LEEME_ESTADO_Y_PENDIENTES.md`, una hoja de ponerse al día para el equipo (qué es el proyecto, qué está hecho, resultados en cinco líneas con sus cautelas, qué falta en orden de importancia —evaluación humana, revisión del paper, sustentación, corrida de cuantización en Colab, entrega— extras, reglas del repo y mapa de dónde está cada cosa). Se enlazó desde `README.md` y desde `docs/hoja_de_ruta_fin_proyecto.md`.
+
+Decisiones tomadas: es un resumen, no una lista nueva; la lista con comandos sigue siendo la hoja de ruta. No se asignaron tareas a personas concretas, para que el equipo las reparta.
+
+Pendiente: lo que consta en ese archivo.

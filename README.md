@@ -10,6 +10,8 @@ atributos de calidad).
 **Equipo:** Anderson García, Paula Lozano, Mariana Malagón.
 **Curso:** TDSE — Transformación Digital y Sistemas Empresariales.
 
+> **¿Llegas nueva al proyecto? Empieza por [`docs/LEEME_ESTADO_Y_PENDIENTES.md`](./docs/LEEME_ESTADO_Y_PENDIENTES.md):** qué está hecho, qué falta y quién lo desbloquea.
+
 ## Estructura del repositorio
 
 ```

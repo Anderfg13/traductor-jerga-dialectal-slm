@@ -5,6 +5,8 @@
 pendientes del despliegue). Cada paso dice **quién/dónde** lo hace, el
 **comando** y **dónde se anota el resultado**.
 
+Resumen para leer primero, pensado para el equipo: [`LEEME_ESTADO_Y_PENDIENTES.md`](./LEEME_ESTADO_Y_PENDIENTES.md).
+
 ## CUANDO ME PASES X, YO HAGO Y (mapa para retomar sin contexto)
 
 Última actualización: 2026-10-10. Si me das lo de la columna izquierda, esto es lo que hago yo, en orden.
