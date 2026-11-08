@@ -1,5 +1,7 @@
 # Data card — dataset del Generador 1
 
+> **Actualización 2026-10-10:** esta ficha describe la primera pasada (Sesiones 7-12, solo `lote_01`). El dataset vigente del Generador 1 se regeneró sobre las 100 semillas: 589 variantes crudas, 587 tras el filtro (2 descartadas), 81/10/9 semillas en train/val/test (`generation/reporte_filtrado.md`, `seeds/split_semillas.json`). Las cifras de abajo son históricas. Fichas de los otros generadores: `data_card_generador2.md` y `data_card_generador3.md`.
+
 ## Qué es
 
 Dataset de entrenamiento español-inglés para jerga/dialectos,

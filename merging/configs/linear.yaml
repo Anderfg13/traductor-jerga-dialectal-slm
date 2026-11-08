@@ -1,0 +1,19 @@
+# Promedio simple de pesos (merge_method: linear) de los tres modelos completos.
+# Cada modelo es el base + el adaptador de un generador YA incorporado
+# (merging/incorporar_adaptadores.py). Promediar los modelos completos equivale a
+# base + promedio de las tres actualizaciones, que es lo que se busca (a diferencia
+# de promediar por separado las matrices A y B de cada adaptador LoRA).
+models:
+  - model: merging/modelos_completos/generador1
+    parameters:
+      weight: 1.0
+  - model: merging/modelos_completos/generador2
+    parameters:
+      weight: 1.0
+  - model: merging/modelos_completos/generador3
+    parameters:
+      weight: 1.0
+merge_method: linear
+parameters:
+  normalize: true   # pesos 1/1/1 normalizados a 1/3 cada uno
+dtype: float16

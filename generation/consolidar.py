@@ -22,8 +22,9 @@ Semillas cuya salida cruda no parsea como JSON válido (o no aportan
 ninguna variante tras el filtrado) se reportan como falladas por
 consola y se excluyen del dataset — no tumban el script.
 
-Uso:
-    python generation/consolidar.py
+Uso (el argumento es el número de generador, 1 por defecto; lee todas
+las semillas de seeds/lote_*.json):
+    python generation/consolidar.py [1|2|3]
 """
 
 import json
@@ -31,9 +32,8 @@ import re
 import sys
 from pathlib import Path
 
-RAW_DIR = Path(__file__).resolve().parent / "raw" / "generador1"
-SEEDS_PATH = Path(__file__).resolve().parent.parent / "seeds" / "lote_01.json"
-OUT_PATH = Path(__file__).resolve().parent / "dataset_generador1.json"
+SEEDS_DIR = Path(__file__).resolve().parent.parent / "seeds"
+GENERATION_DIR = Path(__file__).resolve().parent
 
 
 def limpiar_json(texto: str) -> str:
@@ -42,8 +42,31 @@ def limpiar_json(texto: str) -> str:
     return match.group(1) if match else texto
 
 
+def registro_de(variante: dict) -> str:
+    """Valor de `registro`. Gemini escribió a veces {"informal": "informal"}
+    en vez de {"registro": "informal"} (2 de 625 variantes del Generador 3);
+    en ese caso se recupera el valor para no dejar el campo vacío."""
+    if variante.get("registro"):
+        return variante["registro"]
+    return next((k for k in ("formal", "informal", "jerga") if variante.get(k) == k), "")
+
+
+def reparar_comilla_faltante(texto: str) -> str:
+    """Reparación mínima para un fallo observado en Gemini: omite la
+    comilla de APERTURA de un valor string (`"texto_dialectal": Llamé a
+    ...",`). Solo se aplica si el parseo normal falla; no cambia el
+    contenido, solo repone la comilla."""
+    patron = r'(?m)^(\s*"[A-Za-z_]+":\s*)([^"\s\[\{\d\-tfn][^\n]*?")(,?)\s*$'
+    return re.sub(patron, r'\1"\2\3', texto)
+
+
 def main() -> int:
-    semillas = {s["id"]: s for s in json.loads(SEEDS_PATH.read_text(encoding="utf-8"))}
+    num_generador = int(sys.argv[1]) if len(sys.argv) > 1 else 1
+    RAW_DIR = GENERATION_DIR / "raw" / f"generador{num_generador}"
+    OUT_PATH = GENERATION_DIR / f"dataset_generador{num_generador}.json"
+    semillas = {}
+    for lote in sorted(SEEDS_DIR.glob("lote_*.json")):
+        semillas.update({s["id"]: s for s in json.loads(lote.read_text(encoding="utf-8"))})
 
     dataset = []
     vistos = set()
@@ -57,11 +80,15 @@ def main() -> int:
         seed_id = registro["seed_id"]
         semilla = semillas.get(seed_id)
         if semilla is None:
-            semillas_falladas.append((seed_id, "semilla no encontrada en seeds/lote_01.json"))
+            semillas_falladas.append((seed_id, "semilla no encontrada en seeds/lote_*.json"))
             continue
 
         try:
-            salida = json.loads(limpiar_json(registro["respuesta_cruda"]))
+            crudo = limpiar_json(registro["respuesta_cruda"])
+            try:
+                salida = json.loads(crudo, strict=False)  # tolera saltos de línea sin escapar dentro de strings
+            except json.JSONDecodeError:
+                salida = json.loads(reparar_comilla_faltante(crudo), strict=False)
             variantes = salida["variantes"]
             if not isinstance(variantes, list):
                 raise ValueError("'variantes' no es una lista")
@@ -87,7 +114,7 @@ def main() -> int:
                 "registro_original_semilla": semilla["registro"],
                 "texto_dialectal": texto,
                 "traduccion": traduccion,
-                "registro": v.get("registro", ""),
+                "registro": registro_de(v),
                 "contexto_uso": v.get("contexto_uso", ""),
                 "generador": registro.get("generador", "groq"),
                 "modelo": registro.get("modelo", ""),

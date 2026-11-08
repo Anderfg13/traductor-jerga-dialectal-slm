@@ -186,7 +186,10 @@ def main() -> int:
     razones = Counter(razon.split(" (")[0] for _, razon in descartadas)
 
     out_path = GENERATION_DIR / f"{dataset_path.stem}_limpio.json"
-    reporte_path = GENERATION_DIR / "reporte_filtrado.md"
+    # El reporte del Generador 1 conserva su nombre histórico; los demás
+    # llevan el nombre del dataset para no pisarse entre sí.
+    nombre_reporte = "reporte_filtrado.md" if dataset_path.stem == "dataset_generador1" else f"reporte_filtrado_{dataset_path.stem}.md"
+    reporte_path = GENERATION_DIR / nombre_reporte
 
     alerta = porcentaje_descartado > DESCARTE_MAX_PORC
 

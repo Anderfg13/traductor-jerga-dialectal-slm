@@ -8,7 +8,7 @@ Generadores usados (los 3 con capa gratuita, a la fecha de escritura
 de este script):
   1. Groq    -> openai/gpt-oss-20b (capa gratuita)
   2. Cohere  -> command-r-08-2024 (capa gratuita "trial", 1000 llamadas/mes)
-  3. Google  -> gemini-3.6-flash (capa gratuita, via el SDK `google-genai`)
+  3. Google  -> gemini-3.5-flash-lite (capa gratuita, via el SDK `google-genai`)
 
 Los proveedores retiran/renombran modelos con cierta frecuencia. Si
 alguno de estos IDs deja de existir, revisa la lista vigente de
@@ -30,7 +30,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 PROMPT = "Responde en una sola frase corta: ¿qué es una jerga dialectal?"
-# openai/gpt-oss-20b y gemini-3.6-flash son modelos de "razonamiento":
+# openai/gpt-oss-20b y gemini-3.5-flash-lite son modelos de "razonamiento":
 # gastan una parte del presupuesto de tokens pensando antes de responder,
 # por eso el limite es mas alto que una llamada normal (se desactiva el
 # razonamiento explicitamente donde el proveedor lo permite, ver abajo).
@@ -73,7 +73,7 @@ def test_google() -> tuple[str, str]:
 
     api_key = os.environ["GOOGLE_API_KEY"]
     client = genai.Client(api_key=api_key)
-    model_name = "gemini-3.6-flash"
+    model_name = "gemini-3.5-flash-lite"
     resp = client.models.generate_content(
         model=model_name,
         contents=PROMPT,

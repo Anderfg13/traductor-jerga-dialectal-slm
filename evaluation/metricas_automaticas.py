@@ -70,6 +70,7 @@ def emparejar(predicciones: list[dict], referencias: list[dict], campo_prediccio
             {
                 "texto_dialectal": pred["texto_dialectal"],
                 "dialecto_region": pred.get("dialecto_region", ref.get("dialecto_region", "desconocido")),
+                "fuente": pred.get("fuente", ref.get("fuente")),
                 "prediccion": pred[campo_prediccion],
                 "referencia": ref["traduccion"],
             }
@@ -85,7 +86,7 @@ def calcular_metricas(ejemplos: list[dict]) -> dict:
     return {"n": len(ejemplos), "bleu": bleu.score, "chrf": chrf.score}
 
 
-def generar_reporte(global_: dict, por_dialecto: dict[str, dict], sin_referencia: int) -> str:
+def generar_reporte(global_: dict, por_dialecto: dict[str, dict], sin_referencia: int, por_fuente: dict[str, dict] | None = None) -> str:
     lineas = [
         "# Reporte de métricas automáticas (BLEU / chrF)",
         "",
@@ -105,6 +106,20 @@ def generar_reporte(global_: dict, por_dialecto: dict[str, dict], sin_referencia
     for dialecto in sorted(por_dialecto):
         m = por_dialecto[dialecto]
         lineas.append(f"| {dialecto} | {m['n']} | {m['bleu']:.2f} | {m['chrf']:.2f} |")
+    if por_fuente:
+        lineas += [
+            "",
+            "## Por fuente de la referencia",
+            "",
+            "`oro` = traducción escrita por el equipo (sin sesgo hacia ningún generador); "
+            "`generadorN` = traducción del LLM generador N.",
+            "",
+            "| Fuente | n | BLEU | chrF |",
+            "|---|---|---|---|",
+        ]
+        for fuente in sorted(por_fuente):
+            m = por_fuente[fuente]
+            lineas.append(f"| {fuente} | {m['n']} | {m['bleu']:.2f} | {m['chrf']:.2f} |")
     lineas.append("")
     return "\n".join(lineas)
 
@@ -119,6 +134,7 @@ def main() -> int:
         help="Nombre del campo en --predicciones que trae la traducción del modelo (default: %(default)s)",
     )
     parser.add_argument("--salida", type=Path, default=None, help="Si se da, escribe el reporte en este archivo .md además de imprimirlo")
+    parser.add_argument("--salida-json", type=Path, default=None, help="Si se da, guarda también las cifras (global, por dialecto, por fuente) en JSON para armar tablas comparativas")
     args = parser.parse_args()
 
     if not args.predicciones.exists():
@@ -143,8 +159,21 @@ def main() -> int:
         por_texto_dialecto[e["dialecto_region"]].append(e)
     por_dialecto = {dialecto: calcular_metricas(ejs) for dialecto, ejs in por_texto_dialecto.items()}
 
-    reporte = generar_reporte(global_, por_dialecto, sin_referencia)
+    por_texto_fuente = defaultdict(list)
+    for e in emparejados:
+        if e.get("fuente"):
+            por_texto_fuente[e["fuente"]].append(e)
+    por_fuente = {f: calcular_metricas(ejs) for f, ejs in por_texto_fuente.items()}
+
+    reporte = generar_reporte(global_, por_dialecto, sin_referencia, por_fuente)
     print(reporte)
+
+    if args.salida_json:
+        args.salida_json.parent.mkdir(parents=True, exist_ok=True)
+        args.salida_json.write_text(
+            json.dumps({"global": global_, "por_dialecto": por_dialecto, "por_fuente": por_fuente}, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
 
     if args.salida:
         args.salida.parent.mkdir(parents=True, exist_ok=True)

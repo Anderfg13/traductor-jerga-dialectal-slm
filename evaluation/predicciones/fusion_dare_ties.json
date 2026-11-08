@@ -1,0 +1,1394 @@
+[
+  {
+    "texto_dialectal": "Estar salado",
+    "traduccion": "To be having a run of bad luck",
+    "dialecto_region": "Caribeña",
+    "fuente": "oro",
+    "seed_id": "sem-012",
+    "traduccion_modelo": "Being snarky"
+  },
+  {
+    "texto_dialectal": "Estar mosca",
+    "traduccion": "To be on the alert / on guard",
+    "dialecto_region": "Andina",
+    "fuente": "oro",
+    "seed_id": "sem-019",
+    "traduccion_modelo": "Be on edge"
+  },
+  {
+    "texto_dialectal": "Neta",
+    "traduccion": "Seriously / for real",
+    "dialecto_region": "Mexicana",
+    "fuente": "oro",
+    "seed_id": "sem-042",
+    "traduccion_modelo": "Damn it!"
+  },
+  {
+    "texto_dialectal": "Hacer el bulto",
+    "traduccion": "To just be there without really helping",
+    "dialecto_region": "Caribeña",
+    "fuente": "oro",
+    "seed_id": "sem-053",
+    "traduccion_modelo": "Pulling a prank"
+  },
+  {
+    "texto_dialectal": "Coger la caña",
+    "traduccion": "To fall for a joke / take the bait",
+    "dialecto_region": "Andina",
+    "fuente": "oro",
+    "seed_id": "sem-067",
+    "traduccion_modelo": "Get your act together"
+  },
+  {
+    "texto_dialectal": "Tener mala leche",
+    "traduccion": "To have bad luck / be in a foul mood",
+    "dialecto_region": "Rioplatense",
+    "fuente": "oro",
+    "seed_id": "sem-078",
+    "traduccion_modelo": "To be in a foul mood"
+  },
+  {
+    "texto_dialectal": "Hacerse humo",
+    "traduccion": "To vanish / take off quickly",
+    "dialecto_region": "Rioplatense",
+    "fuente": "oro",
+    "seed_id": "sem-079",
+    "traduccion_modelo": "To get into trouble"
+  },
+  {
+    "texto_dialectal": "Estar bien pedo",
+    "traduccion": "To be really drunk",
+    "dialecto_region": "Mexicana",
+    "fuente": "oro",
+    "seed_id": "sem-088",
+    "traduccion_modelo": "Be cool, man"
+  },
+  {
+    "texto_dialectal": "Al tiro",
+    "traduccion": "Right away",
+    "dialecto_region": "Chilena",
+    "fuente": "oro",
+    "seed_id": "sem-092",
+    "traduccion_modelo": "On the spot"
+  },
+  {
+    "texto_dialectal": "¡Caramba, mi hermano, me tengo que ver que ando súper salado con la lotería este mes!",
+    "traduccion": "Wow, bro, I gotta admit I'm just unlucky with the lottery this month!",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador1",
+    "seed_id": "sem-012",
+    "traduccion_modelo": "Damn, my brother, I have to see how I'm doing super well with the lottery this month!"
+  },
+  {
+    "texto_dialectal": "Señora, me temo que he estado salado con los impuestos y no pude pagar la factura a tiempo.",
+    "traduccion": "Ma'am, I'm afraid I've been unlucky with taxes and couldn't pay the bill on time.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador1",
+    "seed_id": "sem-012",
+    "traduccion_modelo": "Ma'am, I'm afraid I've been dodging taxes and couldn't pay the bill on time."
+  },
+  {
+    "texto_dialectal": "Mira, chamo, el jefe me puso a mi por esa reunión y yo estoy salado de haberme perdido el vuelo.",
+    "traduccion": "Look, bro, the boss put me on that meeting and I'm just unlucky for missing the flight.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador1",
+    "seed_id": "sem-012",
+    "traduccion_modelo": "Look, bro, the boss put me on for that meeting and I'm totally bummed out about missing the flight."
+  },
+  {
+    "texto_dialectal": "Oye, y tú, ¿cómo te ha ido? Yo, pues, estoy salado y mi coche se quedó sin gasolina en el camino a la playa.",
+    "traduccion": "Hey, how's it going? Well, I'm unlucky and my car ran out of gas on the way to the beach.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador1",
+    "seed_id": "sem-012",
+    "traduccion_modelo": "Hey, how's it going? I'm broke and my car ran out of gas on the way to the beach."
+  },
+  {
+    "texto_dialectal": "Amigo, no te preocupes, estoy salado hoy pero mañana seguro que cambia las cosas.",
+    "traduccion": "Friend, don't worry, I'm unlucky today but tomorrow things will definitely change.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador1",
+    "seed_id": "sem-012",
+    "traduccion_modelo": "Buddy, don't worry, I'm in a bit of a mood today but tomorrow things will definitely change."
+  },
+  {
+    "texto_dialectal": "La verdad es que estoy salado, la tormenta me dejó sin luz en casa y no pude terminar el proyecto.",
+    "traduccion": "The truth is I'm unlucky, the storm left me without power at home and I couldn't finish the project.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador1",
+    "seed_id": "sem-012",
+    "traduccion_modelo": "Honestly, I'm hungover, the storm left me without power at home and I couldn't finish the project."
+  },
+  {
+    "texto_dialectal": "Oye, que el guardia del caserío se quedó con la mochila, así que mejor estemos mosca cuando llegue la noche.",
+    "traduccion": "Hey, the guard of the village took the backpack, so let's stay on the alert when night falls.",
+    "dialecto_region": "Andina",
+    "fuente": "generador1",
+    "seed_id": "sem-019",
+    "traduccion_modelo": "Hey, the neighborhood watch guy took my backpack, so let's be on high alert when he arrives at night."
+  },
+  {
+    "texto_dialectal": "Antes de entrar al mercado, la señora Lidia dijo: \"Estén mosca, que el contrabandista puede pasar entre los puestos.\"",
+    "traduccion": "Before going into the market, Mrs. Lidia said, \"Be on guard, the smuggler might slip between the stalls.\"",
+    "dialecto_region": "Andina",
+    "fuente": "generador1",
+    "seed_id": "sem-019",
+    "traduccion_modelo": "Before entering the market, Mrs. Lidia said, \"Be on your guard, the smuggler could slip through between the stalls.\""
+  },
+  {
+    "texto_dialectal": "El capitán del grupo de ciclistas, con tono de broma, exclamó: \"¡Estén mosca! Si el rival lanza una broma, no nos engañen.\"",
+    "traduccion": "The cycling squad captain, joking, shouted, \"Stay alert! If the rival throws a joke, don't fall for it.\"",
+    "dialecto_region": "Andina",
+    "fuente": "generador1",
+    "seed_id": "sem-019",
+    "traduccion_modelo": "The group's captain, in a joking tone, exclaimed: \"Be on your guard! If the rival pulls a prank, don't fall for it.\""
+  },
+  {
+    "texto_dialectal": "Cuando la familia se quedó en el refugio, el abuelo recordó: \"No nos quedemos mosca, porque la tormenta puede llegar de repente.\"",
+    "traduccion": "When the family stayed in the shelter, the grandfather remembered: \"Don't be complacent, the storm might hit abruptly.\"",
+    "dialecto_region": "Andina",
+    "fuente": "generador1",
+    "seed_id": "sem-019",
+    "traduccion_modelo": "When the family stayed at the shelter, the grandpa reminded them: \"Don't get caught off guard, because the storm could come suddenly.\""
+  },
+  {
+    "texto_dialectal": "Después de escuchar el rumor, la joven de 20 años gritó a sus amigos: \"¡Estén mosca, que el truco del vendedor de zapatos no es real!\"",
+    "traduccion": "After hearing the rumor, the 20‑year‑old shouted to her friends, \"Stay on guard, the shoemaker's trick isn’t real!\"",
+    "dialecto_region": "Andina",
+    "fuente": "generador1",
+    "seed_id": "sem-019",
+    "traduccion_modelo": "After hearing the rumor, the 20-year-old girl shouted to her friends: \"Be on guard, the shoe salesman's trick isn't real!\""
+  },
+  {
+    "texto_dialectal": "El director del centro comunitario, en la reunión, aconsejó: \"Para proteger nuestro patrimonio, mantengamos a todos mosca ante cualquier intento de fraude.\"",
+    "traduccion": "The community center director, during the meeting, advised, \"To protect our heritage, keep everyone on guard against any fraud attempt.\"",
+    "dialecto_region": "Andina",
+    "fuente": "generador1",
+    "seed_id": "sem-019",
+    "traduccion_modelo": "The community center director, at the meeting, advised: \"To protect our assets, keep everyone on their toes against any fraud attempt.\""
+  },
+  {
+    "texto_dialectal": "¿Neta, ese plan es viable?",
+    "traduccion": "Seriously, is that plan doable?",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador1",
+    "seed_id": "sem-042",
+    "traduccion_modelo": "Seriously, is that plan feasible?"
+  },
+  {
+    "texto_dialectal": "Neta, no me voy a perder el concierto mañana.",
+    "traduccion": "For real, I’m not going to miss the concert tomorrow.",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador1",
+    "seed_id": "sem-042",
+    "traduccion_modelo": "Man, I'm not going to miss the concert tomorrow."
+  },
+  {
+    "texto_dialectal": "—¿Neta, te has comprado la casa? —Neta, sí, la compré.",
+    "traduccion": "—Seriously, did you buy the house? —For real, yes, I did.",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador1",
+    "seed_id": "sem-042",
+    "traduccion_modelo": "—Seriously, did you buy the house? —Seriously, yes, I bought it."
+  },
+  {
+    "texto_dialectal": "¡Neta! Si eso pasa, no lo creo.",
+    "traduccion": "Seriously! If that happens, I don't believe it.",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador1",
+    "seed_id": "sem-042",
+    "traduccion_modelo": "Damn it! If that happens, I won't believe it."
+  },
+  {
+    "texto_dialectal": "Neta, te juro que ya terminé ese informe.",
+    "traduccion": "For real, I swear I already finished that report.",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador1",
+    "seed_id": "sem-042",
+    "traduccion_modelo": "Man, I swear I finished that report already."
+  },
+  {
+    "texto_dialectal": "—Neta, ¿qué onda con la reunión? —Neta, se canceló.",
+    "traduccion": "—Seriously, what's up with the meeting? —For real, it got canceled.",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador1",
+    "seed_id": "sem-042",
+    "traduccion_modelo": "—Hey, what's up with the meeting? —Hey, it got canceled."
+  },
+  {
+    "texto_dialectal": "Mira, Carlos, tú sigues haciendo el bulto en la obra, pero la verdad es que nadie necesita tu silencio.",
+    "traduccion": "Look, Carlos, you keep being there at the construction site, but really nobody needs your silence.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador1",
+    "seed_id": "sem-053",
+    "traduccion_modelo": "Look, Carlos, you're still being a pain at work, but the truth is nobody needs your silence."
+  },
+  {
+    "texto_dialectal": "A ver, en la reunión de la comunidad, no te quedes haciendo el bulto, participa con ideas concretas.",
+    "traduccion": "Come on, at the community meeting, don't just hang around; bring concrete ideas.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador1",
+    "seed_id": "sem-053",
+    "traduccion_modelo": "Look, at the community meeting, don't just sit there being a bit of a snob, contribute with concrete ideas."
+  },
+  {
+    "texto_dialectal": "El profesor comentó que en la clase, el alumno estaba haciendo el bulto y no contribuyó en la discusión.",
+    "traduccion": "The teacher noted that in class, the student was just present and didn't contribute to the discussion.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador1",
+    "seed_id": "sem-053",
+    "traduccion_modelo": "The teacher commented that in class, the student was being a bit of a snitch and didn't contribute to the discussion."
+  },
+  {
+    "texto_dialectal": "¡Tú, que siempre haces el bulto en los bailes, al menos que te pongan al frente la música!",
+    "traduccion": "You, who always just show up at the dances, at least put me on the front of the music!",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador1",
+    "seed_id": "sem-053",
+    "traduccion_modelo": "You, you always make a fool of yourself at the dances, at least when they play your favorite song!"
+  },
+  {
+    "texto_dialectal": "En la junta de la empresa, Juan, no te quedes haciendo el bulto; si quieres avanzar, debes aportar propuestas reales.",
+    "traduccion": "At the company meeting, Juan, don't just be there; if you want to advance, you need to bring real proposals.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador1",
+    "seed_id": "sem-053",
+    "traduccion_modelo": "At the company meeting, Juan, don't just sit there being a snitch; if you want to progress, you need to bring real proposals."
+  },
+  {
+    "texto_dialectal": "Yo sé que en la obra de la esquina él solo hace el bulto, pero si le piden que trabaje, no hay que dudar.",
+    "traduccion": "I know that at the corner construction site he just hangs around, but if they ask him to work, we shouldn't hesitate.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador1",
+    "seed_id": "sem-053",
+    "traduccion_modelo": "I know he's a bit of a show-off in the neighborhood, but if they ask him to work, there's no doubt about it."
+  },
+  {
+    "texto_dialectal": "Cuando el jefe me dijo que la reunión era importante y yo pensé que era una excusa, claramente me cogí la caña.",
+    "traduccion": "When the boss said the meeting was important and I thought it was a pretext, I clearly fell for the joke.",
+    "dialecto_region": "Andina",
+    "fuente": "generador1",
+    "seed_id": "sem-067",
+    "traduccion_modelo": "When the boss told me the meeting was important and I thought it was just an excuse, clearly I got myself into a mess."
+  },
+  {
+    "texto_dialectal": "Mira, no te la cuentes, que el amigo me hizo una broma de la nueva película y yo me cogí la caña.",
+    "traduccion": "Hey, don’t joke with me, the friend pulled a prank about the new movie and I fell for it.",
+    "dialecto_region": "Andina",
+    "fuente": "generador1",
+    "seed_id": "sem-067",
+    "traduccion_modelo": "Look, don't play dumb, the friend made a joke about the new movie and I got completely hungover."
+  },
+  {
+    "texto_dialectal": "Al ver la foto del perro con la mochila, me cogí la caña pensando que era una publicación de la mascota de la empresa.",
+    "traduccion": "Seeing the dog’s photo with the backpack, I fell for the bait, thinking it was a company pet post.",
+    "dialecto_region": "Andina",
+    "fuente": "generador1",
+    "seed_id": "sem-067",
+    "traduccion_modelo": "When I saw the photo of the dog with the backpack, I got a bit confused thinking it was an employee's pet profile."
+  },
+  {
+    "texto_dialectal": "Cuando el tándem me dijo que había una nueva ruta de estudio, me cogí la caña y terminé sin saber de nada.",
+    "traduccion": "When the study group said there was a new learning path, I fell for the trick and ended up clueless.",
+    "dialecto_region": "Andina",
+    "fuente": "generador1",
+    "seed_id": "sem-067",
+    "traduccion_modelo": "When the duo told me there was a new study route, I got completely lost and ended up knowing nothing."
+  },
+  {
+    "texto_dialectal": "Le dije al vendedor que la oferta era de último minuto, y él me dijo que era una urgencia. Yo me cogí la caña y compré el coche.",
+    "traduccion": "I told the salesman the deal was a last‑minute one, and he claimed it was urgent. I fell for the bait and bought the car.",
+    "dialecto_region": "Andina",
+    "fuente": "generador1",
+    "seed_id": "sem-067",
+    "traduccion_modelo": "I told the salesman that the offer was last-minute, and he said it was an emergency. I got myself into a bit of a financial mess and bought the car."
+  },
+  {
+    "texto_dialectal": "Cuando la nueva campaña de la empresa promete un premio, yo me cogí la caña y me registré sin leer los términos.",
+    "traduccion": "When the new company campaign promises a prize, I fell for the bait and registered without reading the terms.",
+    "dialecto_region": "Andina",
+    "fuente": "generador1",
+    "seed_id": "sem-067",
+    "traduccion_modelo": "When the new company campaign promised a prize, I got myself into trouble and registered without reading the terms."
+  },
+  {
+    "texto_dialectal": "Che, después de ese fallo en el trabajo, tengo mala leche y no sé si voy a conseguir el ascenso.",
+    "traduccion": "Mate, after that blunder at work, I'm feeling down and I don't know if I'll get the promotion.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador1",
+    "seed_id": "sem-078",
+    "traduccion_modelo": "Hey, after that workplace mishap, I'm in a foul mood and I don't know if I'll get the promotion."
+  },
+  {
+    "texto_dialectal": "¡No te preocupes! Hoy solo es mala leche, mañana volveré a la buena vibra.",
+    "traduccion": "Don't worry! Today it's just bad luck, tomorrow I'll be back on track.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador1",
+    "seed_id": "sem-078",
+    "traduccion_modelo": "Don't worry! Today is just in a bad mood, tomorrow I'll be back to the good vibes."
+  },
+  {
+    "texto_dialectal": "El jefe se volvió muy gruñón después de la presentación, parece que tiene mala leche.",
+    "traduccion": "The boss got really grumpy after the presentation, looks like he's having a bad day.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador1",
+    "seed_id": "sem-078",
+    "traduccion_modelo": "The boss became very grumpy after the presentation, it seems he's in a foul mood."
+  },
+  {
+    "texto_dialectal": "No me lo digas, pero esa mala leche que tienes hoy no me hace sentir cómodo.",
+    "traduccion": "Don't tell me, but that bad vibe you have today makes me uncomfortable.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador1",
+    "seed_id": "sem-078",
+    "traduccion_modelo": "Don't tell me, but that snarky attitude you have today is making me feel uncomfortable."
+  },
+  {
+    "texto_dialectal": "Parece que la mala leche de la reunión se ha extendido a todo el departamento.",
+    "traduccion": "It seems that the bad mood from the meeting has spread to the whole department.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador1",
+    "seed_id": "sem-078",
+    "traduccion_modelo": "It seems the bad mood from the meeting has spread to the entire department."
+  },
+  {
+    "texto_dialectal": "Se me fue la mala leche y no pude terminar la tarea a tiempo.",
+    "traduccion": "I got a bad streak and couldn't finish the task on time.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador1",
+    "seed_id": "sem-078",
+    "traduccion_modelo": "I lost my temper and couldn't finish the assignment on time."
+  },
+  {
+    "texto_dialectal": "Cuando el profesor empezó a explicar el problema y el chico se hizo humo, ya no quedó ni un segundo en la clase.",
+    "traduccion": "When the teacher started explaining the problem and the kid vanished, he wasn't there for a second.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador1",
+    "seed_id": "sem-079",
+    "traduccion_modelo": "When the teacher started explaining the problem and the kid just disappeared, there was no way he stayed in class for even a second."
+  },
+  {
+    "texto_dialectal": "—¿Y dónde quedó el cliente que pidió la mudanza? —preguntó el jefe, con voz de quejarse—. Se hizo humo antes de que lo pudieras ver.",
+    "traduccion": "—Where did the client who asked for the move go? —the boss asked, irritated— He took off before you could catch him.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador1",
+    "seed_id": "sem-079",
+    "traduccion_modelo": "—And where did the client who asked for a move go? —the boss asked, with a complaining tone—. He disappeared before you could even see him."
+  },
+  {
+    "texto_dialectal": "Lo vi salir del bar, y de repente, ¡se hizo humo! Nunca lo volví a ver en esa noche.",
+    "traduccion": "I saw him leave the bar, and suddenly he vanished. I never saw him again that night.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador1",
+    "seed_id": "sem-079",
+    "traduccion_modelo": "I saw him leave the bar, and suddenly he disappeared! I never saw him again that night."
+  },
+  {
+    "texto_dialectal": "Cuando la policía llegó al lugar del robo, el culpable se hizo humo, dejando a los agentes sin pistas.",
+    "traduccion": "When the police arrived at the robbery site, the culprit took off, leaving no clues.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador1",
+    "seed_id": "sem-079",
+    "traduccion_modelo": "When the police arrived at the crime scene, the culprit disappeared, leaving the agents without any leads."
+  },
+  {
+    "texto_dialectal": "—No me la quería contar, ¿y qué pasó con la idea? —dijo la amiga, en tono de broma—. Se hizo humo justo cuando la estaba explicando.",
+    "traduccion": "—He didn't want to tell me, what happened to the idea? —the friend teased— He vanished right when I was explaining it.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador1",
+    "seed_id": "sem-079",
+    "traduccion_modelo": "—I didn't want to tell you, and what happened with the idea? —said my friend, in a joking tone—. It just disappeared right when I was explaining it."
+  },
+  {
+    "texto_dialectal": "Al llegar al despacho, el abogado se hizo humo, y la reunión quedó en suspenso.",
+    "traduccion": "When he entered the office, the lawyer took off, leaving the meeting hanging.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador1",
+    "seed_id": "sem-079",
+    "traduccion_modelo": "When the lawyer arrived, he went into a tailspin, and the meeting was put on hold."
+  },
+  {
+    "texto_dialectal": "¡Qué pedo, güey! Se quedó de noche y ya está bien pedo.",
+    "traduccion": "Dude, what the heck! He stayed out all night and now he's really drunk.",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador1",
+    "seed_id": "sem-088",
+    "traduccion_modelo": "What a mess, man! He stayed out all night and is now completely hungover."
+  },
+  {
+    "texto_dialectal": "No me digas que está bien pedo, porque voy a tener que cuidarlo.",
+    "traduccion": "Don't tell me he's really drunk, because I'm going to have to look after him.",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador1",
+    "seed_id": "sem-088",
+    "traduccion_modelo": "Don't tell me it's fine, because I'm going to have to look after him."
+  },
+  {
+    "texto_dialectal": "Con esa cantidad de tequila, ya está bien pedo, y va a romper la silla.",
+    "traduccion": "With that amount of tequila, he's totally drunk, and he's going to break the chair.",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador1",
+    "seed_id": "sem-088",
+    "traduccion_modelo": "With that amount of tequila, you're already completely drunk, and you'll break the chair."
+  },
+  {
+    "texto_dialectal": "Si sigue bebiendo, terminará bien pedo y no podrá volver a casa.",
+    "traduccion": "If he keeps drinking, he'll end up really drunk and won't be able to get home.",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador1",
+    "seed_id": "sem-088",
+    "traduccion_modelo": "If he keeps drinking, he'll end up completely hungover and won't be able to go home."
+  },
+  {
+    "texto_dialectal": "Lo vi en la fiesta y, amigo, estaba bien pedo, ¡ya no podía ni hablar!",
+    "traduccion": "I saw him at the party, buddy, he was really drunk, he couldn't even speak!",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador1",
+    "seed_id": "sem-088",
+    "traduccion_modelo": "I saw him at the party and, man, he was totally hungover, he couldn't even talk!"
+  },
+  {
+    "texto_dialectal": "Ya no puedo, está bien pedo y me tiene de los dos lados, ¿qué hago?",
+    "traduccion": "I can't do it, he's really drunk and he's holding me from both sides, what do I do?",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador1",
+    "seed_id": "sem-088",
+    "traduccion_modelo": "I can't take it anymore, he's so annoying and he's got me in a bind, what do I do?"
+  },
+  {
+    "texto_dialectal": "La próxima vez, si me lo piden, lo hago al tiro.",
+    "traduccion": "The next time you ask me, I'll do it right away.",
+    "dialecto_region": "Chilena",
+    "fuente": "generador1",
+    "seed_id": "sem-092",
+    "traduccion_modelo": "Next time, if they ask me, I'll do it right away."
+  },
+  {
+    "texto_dialectal": "¡Al tiro! No me quedo esperando, ya voy.",
+    "traduccion": "Right away! I won't keep you waiting, I'm on it.",
+    "dialecto_region": "Chilena",
+    "fuente": "generador1",
+    "seed_id": "sem-092",
+    "traduccion_modelo": "Let's go! I'm not waiting around, I'm heading out."
+  },
+  {
+    "texto_dialectal": "Si me avisan de la reunión, yo iré al tiro.",
+    "traduccion": "If you let me know about the meeting, I'll go right away.",
+    "dialecto_region": "Chilena",
+    "fuente": "generador1",
+    "seed_id": "sem-092",
+    "traduccion_modelo": "If you let me know about the meeting, I'll go to the gym."
+  },
+  {
+    "texto_dialectal": "¡Al tiro, compadre! No te preocupes por el papeleo.",
+    "traduccion": "Right away, buddy! Don't worry about the paperwork.",
+    "dialecto_region": "Chilena",
+    "fuente": "generador1",
+    "seed_id": "sem-092",
+    "traduccion_modelo": "Let's go, buddy! Don't worry about the paperwork."
+  },
+  {
+    "texto_dialectal": "¿Puedes traer el informe? Lo preparo al tiro.",
+    "traduccion": "Can you bring the report? I'll get it ready right away.",
+    "dialecto_region": "Chilena",
+    "fuente": "generador1",
+    "seed_id": "sem-092",
+    "traduccion_modelo": "Can you bring the report? I've already prepared it."
+  },
+  {
+    "texto_dialectal": "Al tiro, jefe. No haré falta de tiempo.",
+    "traduccion": "Right away, boss. I won't keep you waiting.",
+    "dialecto_region": "Chilena",
+    "fuente": "generador1",
+    "seed_id": "sem-092",
+    "traduccion_modelo": "Let's go, boss. I won't waste time."
+  },
+  {
+    "texto_dialectal": "Lamentablemente, mi amigo está salado y no puede salir de esta mala racha.",
+    "traduccion": "Unfortunately, my friend is having a run of bad luck and can't seem to break free from it.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador2",
+    "seed_id": "sem-012",
+    "traduccion_modelo": "Unfortunately, my friend is in a foul mood and can't get out of this bad streak."
+  },
+  {
+    "texto_dialectal": "No te preocupes, es solo una fase, no estás salado para siempre.",
+    "traduccion": "Don't worry, it's just a phase, you're not cursed with bad luck forever.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador2",
+    "seed_id": "sem-012",
+    "traduccion_modelo": "Don't worry, it's just a phase, you're not always going to be in a bad mood."
+  },
+  {
+    "texto_dialectal": "Oye, ¿por qué no intentas algo diferente? No puedes seguir estando salado para siempre.",
+    "traduccion": "Hey, why don't you try something new? You can't keep having this bad luck forever.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador2",
+    "seed_id": "sem-012",
+    "traduccion_modelo": "Hey, why don't you try something different? You can't keep being a snob forever."
+  },
+  {
+    "texto_dialectal": "Estoy salado, no puedo ganar ni un centavo en esta ruleta.",
+    "traduccion": "I'm having a run of bad luck, I can't seem to win a penny at this roulette.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador2",
+    "seed_id": "sem-012",
+    "traduccion_modelo": "I'm broke, I can't even win a penny in this roulette."
+  },
+  {
+    "texto_dialectal": "No te preocupes, solo es una racha, no estás salado para siempre. ¡Vamos a intentarlo de nuevo!",
+    "traduccion": "Don't worry, it's just a streak, you're not cursed with bad luck forever. Let's try again!",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador2",
+    "seed_id": "sem-012",
+    "traduccion_modelo": "Don't worry, it's just a streak, you're not always in a foul mood. Let's give it another shot!"
+  },
+  {
+    "texto_dialectal": "Estoy salado, no puedo encontrar mi billetera en ningún lado.",
+    "traduccion": "I'm having a run of bad luck, I can't find my wallet anywhere.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador2",
+    "seed_id": "sem-012",
+    "traduccion_modelo": "I'm broke, I can't find my wallet anywhere."
+  },
+  {
+    "texto_dialectal": "Es mejor estar mosca y no confiar en extraños, especialmente en esta zona.",
+    "traduccion": "It's better to be on the alert and not trust strangers, especially in this area.",
+    "dialecto_region": "Andina",
+    "fuente": "generador2",
+    "seed_id": "sem-019",
+    "traduccion_modelo": "It's better to be cautious and not trust strangers, especially in this area."
+  },
+  {
+    "texto_dialectal": "Estoy mosca con ese tipo, no me gusta su actitud.",
+    "traduccion": "I'm on my guard with that guy, I don't like his attitude.",
+    "dialecto_region": "Andina",
+    "fuente": "generador2",
+    "seed_id": "sem-019",
+    "traduccion_modelo": "I'm fed up with that guy, I don't like his attitude."
+  },
+  {
+    "texto_dialectal": "No te fíes, hay que estar mosca con los vendedores ambulantes, a veces son estafadores.",
+    "traduccion": "Don't trust them, you need to be on the alert with street vendors, they can be scammers.",
+    "dialecto_region": "Andina",
+    "fuente": "generador2",
+    "seed_id": "sem-019",
+    "traduccion_modelo": "Don't trust anyone, you have to be wary of street vendors, sometimes they're swindlers."
+  },
+  {
+    "texto_dialectal": "Estoy mosca con la situación, algo no me cuadra.",
+    "traduccion": "I'm on guard, something about this situation doesn't feel right.",
+    "dialecto_region": "Andina",
+    "fuente": "generador2",
+    "seed_id": "sem-019",
+    "traduccion_modelo": "I'm totally fed up with the situation, something just doesn't add up."
+  },
+  {
+    "texto_dialectal": "Oye, ¿estás mosca? No te pierdas ningún detalle, es importante.",
+    "traduccion": "Hey, are you on the alert? Don't miss any details, it's crucial.",
+    "dialecto_region": "Andina",
+    "fuente": "generador2",
+    "seed_id": "sem-019",
+    "traduccion_modelo": "Hey, are you pissed off? Don't miss any details, it's important."
+  },
+  {
+    "texto_dialectal": "No te relajes, hay que estar mosca con los trámites burocráticos, pueden ser un dolor de cabeza.",
+    "traduccion": "Don't let your guard down, you need to be on the alert with bureaucratic procedures, they can be a headache.",
+    "dialecto_region": "Andina",
+    "fuente": "generador2",
+    "seed_id": "sem-019",
+    "traduccion_modelo": "Don't slack off, we need to be on edge with the paperwork, they can be a real pain."
+  },
+  {
+    "texto_dialectal": "Neta, ¿estás seguro de que quieres hacer eso?",
+    "traduccion": "Seriously, are you sure you want to do that?",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador2",
+    "seed_id": "sem-042",
+    "traduccion_modelo": "Man, are you sure you want to do that?"
+  },
+  {
+    "texto_dialectal": "Neta, ¿no te das cuenta de que estás equivocado?",
+    "traduccion": "For real, don't you realize you're wrong?",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador2",
+    "seed_id": "sem-042",
+    "traduccion_modelo": "Man, are you not realizing that you're wrong?"
+  },
+  {
+    "texto_dialectal": "Neta, ¿no te parece que exageras un poco?",
+    "traduccion": "Seriously, don't you think you're overreacting?",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador2",
+    "seed_id": "sem-042",
+    "traduccion_modelo": "Man, don't you think you're overreacting a bit?"
+  },
+  {
+    "texto_dialectal": "Neta, ¿no te gustaría probar esta deliciosa comida?",
+    "traduccion": "For real, wouldn't you like to try this delicious food?",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador2",
+    "seed_id": "sem-042",
+    "traduccion_modelo": "Hey, wouldn't you like to try this delicious food?"
+  },
+  {
+    "texto_dialectal": "Neta, ¿no te has dado cuenta de que el tiempo pasa rápido?",
+    "traduccion": "Seriously, haven't you noticed how time flies?",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador2",
+    "seed_id": "sem-042",
+    "traduccion_modelo": "Man, have you noticed how time flies by?"
+  },
+  {
+    "texto_dialectal": "Neta, ¿no te parece que deberíamos planear mejor nuestra estrategia?",
+    "traduccion": "For real, don't you think we should plan our strategy better?",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador2",
+    "seed_id": "sem-042",
+    "traduccion_modelo": "Man, don't you think we should plan our strategy better?"
+  },
+  {
+    "texto_dialectal": "Neta, ¿no te da pena actuar así en público?",
+    "traduccion": "Seriously, aren't you embarrassed to act like that in public?",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador2",
+    "seed_id": "sem-042",
+    "traduccion_modelo": "Man, don't you feel embarrassed acting like that in public?"
+  },
+  {
+    "texto_dialectal": "No me gusta cuando mi hermano hace el bulto en las reuniones familiares, solo está ahí ocupando espacio.",
+    "traduccion": "I don't appreciate it when my brother just shows up at family gatherings without contributing; he's just taking up space.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador2",
+    "seed_id": "sem-053",
+    "traduccion_modelo": "I don't like it when my brother acts pompous at family gatherings, he's just there taking up space."
+  },
+  {
+    "texto_dialectal": "En el equipo de fútbol, hay algunos jugadores que hacen el bulto y no se esfuerzan lo suficiente.",
+    "traduccion": "On the soccer team, there are a few players who are just there without really putting in the effort; they're not pulling their weight.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador2",
+    "seed_id": "sem-053",
+    "traduccion_modelo": "In the football team, there are some players who act like they're doing it all and don't put in enough effort."
+  },
+  {
+    "texto_dialectal": "Oye, no me digas que vas a hacer el bulto en el proyecto de grupo, ¿eh? Tenemos que trabajar juntos y aportar ideas.",
+    "traduccion": "Hey, don't tell me you're just going to be there without contributing to the group project, right? We need to work together and bring our ideas to the table.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador2",
+    "seed_id": "sem-053",
+    "traduccion_modelo": "Hey, don't tell me you're going to slack off on the group project, okay? We need to work together and contribute ideas."
+  },
+  {
+    "texto_dialectal": "En la cocina, todos tenemos roles específicos, así que no hagas el bulto y ayuda a pelar las verduras.",
+    "traduccion": "In the kitchen, we all have specific roles, so don't just stand there without helping; lend a hand and start peeling those vegetables.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador2",
+    "seed_id": "sem-053",
+    "traduccion_modelo": "In the kitchen, we all have specific roles, so don't be a pain and help me peel the vegetables."
+  },
+  {
+    "texto_dialectal": "Durante la fiesta, algunos invitados solo hicieron el bulto y no participaron en los juegos ni en la conversación.",
+    "traduccion": "At the party, some guests just showed up without really engaging; they didn't participate in the games or join the conversation.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador2",
+    "seed_id": "sem-053",
+    "traduccion_modelo": "During the party, some guests just hung out and didn't participate in the games or conversation."
+  },
+  {
+    "texto_dialectal": "No quiero que en mi boda haya gente que solo haga el bulto, quiero que todos disfruten y se involucren.",
+    "traduccion": "I don't want people just showing up at my wedding without getting involved; I want everyone to have a good time and participate.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador2",
+    "seed_id": "sem-053",
+    "traduccion_modelo": "I don't want my wedding to have people who just show up and act aloof, I want everyone to enjoy themselves and get involved."
+  },
+  {
+    "texto_dialectal": "No te preocupes, es normal que coger la caña en estas situaciones, pero debes estar atento la próxima vez.",
+    "traduccion": "It's common to fall for a prank like that, but you should be more alert next time.",
+    "dialecto_region": "Andina",
+    "fuente": "generador2",
+    "seed_id": "sem-067",
+    "traduccion_modelo": "Don't worry, it's normal to get hungover in these situations, but you should be extra careful next time."
+  },
+  {
+    "texto_dialectal": "Oye, no te enojes, es solo una broma, ¿no ves que todos cogen la caña de vez en cuando?",
+    "traduccion": "Hey, don't get mad, it's just a joke, you know everyone falls for a prank sometimes, right?",
+    "dialecto_region": "Andina",
+    "fuente": "generador2",
+    "seed_id": "sem-067",
+    "traduccion_modelo": "Hey, don't get mad, it's just a joke, haven't you noticed that everyone takes a break from time to time?"
+  },
+  {
+    "texto_dialectal": "Coger la caña es parte del juego, así que no te sientas mal, todos hemos caído en alguna que otra broma.",
+    "traduccion": "Falling for a prank is part of the game, so don't feel bad, we've all been there.",
+    "dialecto_region": "Andina",
+    "fuente": "generador2",
+    "seed_id": "sem-067",
+    "traduccion_modelo": "Taking a joke is part of the game, so don't feel bad, we've all fallen for some kind of prank."
+  },
+  {
+    "texto_dialectal": "Espero que no hayas cogido la caña con esa oferta, porque era demasiado buena para ser verdad.",
+    "traduccion": "I hope you didn't fall for that scam, because it was too good to be true.",
+    "dialecto_region": "Andina",
+    "fuente": "generador2",
+    "seed_id": "sem-067",
+    "traduccion_modelo": "I hope you didn't take the bait with that offer, because it was too good to be true."
+  },
+  {
+    "texto_dialectal": "No te dejes engañar, no coger la caña es una habilidad que se aprende con el tiempo.",
+    "traduccion": "Don't let them fool you, learning not to fall for pranks is a skill that comes with experience.",
+    "dialecto_region": "Andina",
+    "fuente": "generador2",
+    "seed_id": "sem-067",
+    "traduccion_modelo": "Don't let yourself be fooled, getting the hang of it is a skill that you learn over time."
+  },
+  {
+    "texto_dialectal": "Coger la caña es parte de la diversión, así que no te tomes las bromas tan en serio.",
+    "traduccion": "Falling for a prank is all part of the fun, so don't take jokes too seriously.",
+    "dialecto_region": "Andina",
+    "fuente": "generador2",
+    "seed_id": "sem-067",
+    "traduccion_modelo": "Taking a break is part of the fun, so don't take things too seriously."
+  },
+  {
+    "texto_dialectal": "No te preocupes, es solo que tengo mala leche hoy.",
+    "traduccion": "Don't worry, I'm just having a bad day and feeling a bit grumpy.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador2",
+    "seed_id": "sem-078",
+    "traduccion_modelo": "Don't worry, it's just that I'm in a bad mood today."
+  },
+  {
+    "texto_dialectal": "La verdad, no sé qué me pasa, pero últimamente tengo mucha mala leche.",
+    "traduccion": "I honestly don't know what's wrong with me, but I've been feeling really unlucky and irritable lately.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador2",
+    "seed_id": "sem-078",
+    "traduccion_modelo": "Honestly, I don't know what's going on, but lately I've been in a foul mood."
+  },
+  {
+    "texto_dialectal": "No le des más vueltas, es obvio que tiene mala leche y no quiere hablar del tema.",
+    "traduccion": "Don't overthink it, it's clear that he's in a foul mood and doesn't want to discuss it.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador2",
+    "seed_id": "sem-078",
+    "traduccion_modelo": "Don't overthink it, it's obvious he's in a foul mood and doesn't want to talk about the topic."
+  },
+  {
+    "texto_dialectal": "Con todo lo que ha pasado, no es de extrañar que tenga mala leche.",
+    "traduccion": "Considering everything that's happened, it's no surprise that he's feeling unlucky and frustrated.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador2",
+    "seed_id": "sem-078",
+    "traduccion_modelo": "With all that's happened, it's not surprising he's in a foul mood."
+  },
+  {
+    "texto_dialectal": "Che, ¿qué te pasa? ¿Por qué estás con tanta mala leche?",
+    "traduccion": "Hey, what's up? Why are you in such a bad mood?",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador2",
+    "seed_id": "sem-078",
+    "traduccion_modelo": "Hey, what's up? Why are you in such a foul mood?"
+  },
+  {
+    "texto_dialectal": "No puedo creer que haya perdido el trabajo, estoy que trino, ¡tengo una mala leche terrible!",
+    "traduccion": "I can't believe I lost my job, I'm so angry and frustrated, I feel like I've had the worst luck ever!",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador2",
+    "seed_id": "sem-078",
+    "traduccion_modelo": "I can't believe he lost his job, I'm totally fed up, I have a terrible mood!"
+  },
+  {
+    "texto_dialectal": "El ladrón se hizo humo antes de que la policía llegara.",
+    "traduccion": "The thief vanished before the police arrived.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador2",
+    "seed_id": "sem-079",
+    "traduccion_modelo": "The thief ran away before the police arrived."
+  },
+  {
+    "texto_dialectal": "Cuando vimos a los inspectores, nos hicimos humo para evitar problemas.",
+    "traduccion": "We took off quickly when we saw the inspectors, trying to dodge trouble.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador2",
+    "seed_id": "sem-079",
+    "traduccion_modelo": "When we saw the inspectors, we went into hiding to avoid any trouble."
+  },
+  {
+    "texto_dialectal": "Mi hermano se hizo humo en cuanto vio a su exnovia en la fiesta.",
+    "traduccion": "My brother vanished as soon as he saw his ex at the party.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador2",
+    "seed_id": "sem-079",
+    "traduccion_modelo": "My brother went completely crazy the moment he saw his ex-girlfriend at the party."
+  },
+  {
+    "texto_dialectal": "El testigo clave se hizo humo y ahora no podemos encontrarlo.",
+    "traduccion": "The key witness has vanished, and we're unable to locate him.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador2",
+    "seed_id": "sem-079",
+    "traduccion_modelo": "The key witness disappeared and we can't find him anymore."
+  },
+  {
+    "texto_dialectal": "Me hice humo de la reunión porque no quería escuchar más quejas.",
+    "traduccion": "I took off from the meeting because I didn't want to hear any more complaints.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador2",
+    "seed_id": "sem-079",
+    "traduccion_modelo": "I got myself in a bit of a mess at the meeting because I didn't want to hear any more complaints."
+  },
+  {
+    "texto_dialectal": "Mi jefe se hizo humo en cuanto vio el informe con los errores.",
+    "traduccion": "My boss vanished as soon as he saw the report with the mistakes.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador2",
+    "seed_id": "sem-079",
+    "traduccion_modelo": "My boss went into a panic the moment he saw the report with all the errors."
+  },
+  {
+    "texto_dialectal": "Estaba tan pedo que no podía ni caminar derecho.",
+    "traduccion": "I was so drunk I couldn't even walk straight.",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador2",
+    "seed_id": "sem-088",
+    "traduccion_modelo": "I was so drunk I couldn't even walk straight."
+  },
+  {
+    "texto_dialectal": "No me digas que te fuiste a dormir sin terminar la botella, ¿estás pedo o qué?",
+    "traduccion": "Don't tell me you went to bed without finishing the bottle, are you drunk or what?",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador2",
+    "seed_id": "sem-088",
+    "traduccion_modelo": "Don't tell me you went to bed without finishing the bottle, are you drunk or what?"
+  },
+  {
+    "texto_dialectal": "Después de la tercera ronda, todos estábamos bien pedos y la fiesta se puso buena.",
+    "traduccion": "After the third round, we were all really drunk and the party got lit.",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador2",
+    "seed_id": "sem-088",
+    "traduccion_modelo": "After the third round, we were all hungover and the party got really good."
+  },
+  {
+    "texto_dialectal": "No puedo creer que te hayas empedado tan rápido, ¿no tienes control?",
+    "traduccion": "I can't believe you got so drunk so fast, don't you have any self-control?",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador2",
+    "seed_id": "sem-088",
+    "traduccion_modelo": "I can't believe you've gone off the deep end so quickly, don't you have any control?"
+  },
+  {
+    "texto_dialectal": "Estoy pedo, pero no tanto como para no darte un abrazo y desearte buena suerte.",
+    "traduccion": "I'm drunk, but not so drunk that I can't give you a hug and wish you good luck.",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador2",
+    "seed_id": "sem-088",
+    "traduccion_modelo": "I'm a bit hungover, but not so much that I can't give you a hug and wish you good luck."
+  },
+  {
+    "texto_dialectal": "No te preocupes, si te empedas, te llevaremos a casa en taxi.",
+    "traduccion": "Don't worry, if you get really drunk, we'll take you home in a taxi.",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador2",
+    "seed_id": "sem-088",
+    "traduccion_modelo": "Don't worry, if you get into trouble, we'll take you home in a cab."
+  },
+  {
+    "texto_dialectal": "Lo tengo al tiro, no te preocupes.",
+    "traduccion": "I'll have it ready right away, don't worry.",
+    "dialecto_region": "Chilena",
+    "fuente": "generador2",
+    "seed_id": "sem-092",
+    "traduccion_modelo": "I've got it all figured out, don't worry."
+  },
+  {
+    "texto_dialectal": "Al tiro, jefe, te lo entrego en un momento.",
+    "traduccion": "Right away, boss, I'll deliver it to you in a jiffy.",
+    "dialecto_region": "Chilena",
+    "fuente": "generador2",
+    "seed_id": "sem-092",
+    "traduccion_modelo": "Right away, boss, I'll hand it over to you in a moment."
+  },
+  {
+    "texto_dialectal": "Si quieres, podemos ir al tiro a la playa.",
+    "traduccion": "If you want, we can head to the beach right away.",
+    "dialecto_region": "Chilena",
+    "fuente": "generador2",
+    "seed_id": "sem-092",
+    "traduccion_modelo": "If you want, we can go to the beach for a round of golf."
+  },
+  {
+    "texto_dialectal": "Al tiro, no te enojes, ya estoy yendo.",
+    "traduccion": "Right away, don't get angry, I'm on my way.",
+    "dialecto_region": "Chilena",
+    "fuente": "generador2",
+    "seed_id": "sem-092",
+    "traduccion_modelo": "Just kidding, don't get mad, I'm already going."
+  },
+  {
+    "texto_dialectal": "Al tiro, profe, lo tendré listo para la próxima clase.",
+    "traduccion": "Right away, teacher, I'll have it ready for the next class.",
+    "dialecto_region": "Chilena",
+    "fuente": "generador2",
+    "seed_id": "sem-092",
+    "traduccion_modelo": "Let's get it done, professor, I'll have it ready for the next class."
+  },
+  {
+    "texto_dialectal": "No te preocupes, al tiro te ayudo con eso.",
+    "traduccion": "Don't worry, I'll help you with that right away.",
+    "dialecto_region": "Chilena",
+    "fuente": "generador2",
+    "seed_id": "sem-092",
+    "traduccion_modelo": "Don't worry, I'll help you with that right away."
+  },
+  {
+    "texto_dialectal": "Chamo, no me toques que estoy más salado que un bacalao hoy.",
+    "traduccion": "Man, don't touch me because I'm having the worst streak of bad luck today.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador3",
+    "seed_id": "sem-012",
+    "traduccion_modelo": "Bro, don't touch me because I'm hungrier than a fish today."
+  },
+  {
+    "texto_dialectal": "Mi hermano, lamentablemente estoy salado con este negocio; nada de lo que intento sale bien.",
+    "traduccion": "My friend, unfortunately I'm having a run of bad luck with this business; nothing I try goes right.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador3",
+    "seed_id": "sem-012",
+    "traduccion_modelo": "Bro, unfortunately I'm fed up with this business; nothing I do turns out well."
+  },
+  {
+    "texto_dialectal": "¡Ay, compadre! Estás pero bien salado si crees que te va a llover plata así de la nada.",
+    "traduccion": "Oh, buddy! You're really out of luck if you think money is just going to rain on you like that.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador3",
+    "seed_id": "sem-012",
+    "traduccion_modelo": "Hey, buddy! You're totally broke if you think you'll get rich out of nothing."
+  },
+  {
+    "texto_dialectal": "Parece que nací salado, porque cada vez que compro un ticket de lotería, sale el número anterior.",
+    "traduccion": "It seems like I was born under an unlucky star, because every time I buy a lottery ticket, the previous number wins.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador3",
+    "seed_id": "sem-012",
+    "traduccion_modelo": "It seems I was born with a knack for luck, because every time I buy a lottery ticket, the previous number comes up."
+  },
+  {
+    "texto_dialectal": "No me mandes a hacer ningún trámite hoy porque ando salado y seguro me niegan hasta el saludo.",
+    "traduccion": "Don't send me to run any errands today because I'm having bad luck and they'll probably even deny me a greeting.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador3",
+    "seed_id": "sem-012",
+    "traduccion_modelo": "Don't send me to do any paperwork today because I'm in a rush and they'll definitely deny me even the most basic of greetings."
+  },
+  {
+    "texto_dialectal": "Desde que se me cayó el amuleto en el muelle, siento que estoy salado en alta mar.",
+    "traduccion": "Ever since I dropped my amulet on the dock, I feel like I've been plagued by bad luck out at sea.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador3",
+    "seed_id": "sem-012",
+    "traduccion_modelo": "Ever since I lost my amulet on the dock, I feel like I'm out of luck at sea."
+  },
+  {
+    "texto_dialectal": "Oiga, mijo, ande mosca por el centro hoy porque la cosa está pesada.",
+    "traduccion": "Listen, son, keep your eyes peeled downtown today because things are rough.",
+    "dialecto_region": "Andina",
+    "fuente": "generador3",
+    "seed_id": "sem-019",
+    "traduccion_modelo": "Hey, son, go out for a walk around the city today because things are getting serious."
+  },
+  {
+    "texto_dialectal": "Pilas pues, muchachos, hay que estar mosca con los clientes nuevos que llegan hoy.",
+    "traduccion": "Heads up, guys, we need to stay on our guard with the new clients coming in today.",
+    "dialecto_region": "Andina",
+    "fuente": "generador3",
+    "seed_id": "sem-019",
+    "traduccion_modelo": "Watch out, guys, we need to be on our toes with the new clients who are arriving today."
+  },
+  {
+    "texto_dialectal": "Mi mamá siempre me dice que debo estar mosca cuando viajo en el bus urbano.",
+    "traduccion": "My mom always tells me I need to be on the alert when I take the city bus.",
+    "dialecto_region": "Andina",
+    "fuente": "generador3",
+    "seed_id": "sem-019",
+    "traduccion_modelo": "My mom always tells me I should be on my guard when I ride the city bus."
+  },
+  {
+    "texto_dialectal": "Manténganse mosca en la zona bancaria, que la gente anda muy pillativa últimamente.",
+    "traduccion": "Stay on guard around the banking district, people have been very sketchy lately.",
+    "dialecto_region": "Andina",
+    "fuente": "generador3",
+    "seed_id": "sem-019",
+    "traduccion_modelo": "Stay out of the financial district, because people are being very cautious lately."
+  },
+  {
+    "texto_dialectal": "Le sugiero encarecidamente que esté mosca ante cualquier llamada sospeushoza que reciba esta semana.",
+    "traduccion": "I strongly suggest that you remain on the alert for any suspicious calls you might receive this week.",
+    "dialecto_region": "Andina",
+    "fuente": "generador3",
+    "seed_id": "sem-019",
+    "traduccion_modelo": "I strongly suggest you be on high alert for any suspicious calls you receive this week."
+  },
+  {
+    "texto_dialectal": "Si van a rematar la fiesta por la 85, anden mosca porque la policía anda rondando.",
+    "traduccion": "If you guys are going to keep partying down on 85th street, keep your eyes open because the cops are patrolling.",
+    "dialecto_region": "Andina",
+    "fuente": "generador3",
+    "seed_id": "sem-019",
+    "traduccion_modelo": "If you're going to finish the party at 8:00, be careful because the police are patrolling."
+  },
+  {
+    "texto_dialectal": "¿Neta me estás diciendo que ganaste el boleto? No te creo.",
+    "traduccion": "Are you seriously telling me you won the ticket? I don't believe you.",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador3",
+    "seed_id": "sem-042",
+    "traduccion_modelo": "You're telling me you won the ticket? I don't believe you."
+  },
+  {
+    "texto_dialectal": "Te lo juro por mis hijos, neta no fui yo quien rompió el jarrón.",
+    "traduccion": "I swear on my kids, I for real didn't break the vase.",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador3",
+    "seed_id": "sem-042",
+    "traduccion_modelo": "I swear to my kids, I didn't break the vase."
+  },
+  {
+    "texto_dialectal": "—¿Pasó el examen difícil sin estudiar? —Neta, te lo juro.",
+    "traduccion": "—Did you pass the hard test without studying? —Seriously, I swear.",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador3",
+    "seed_id": "sem-042",
+    "traduccion_modelo": "—Did you pass the tough exam without studying? —I swear to you, I did."
+  },
+  {
+    "texto_dialectal": "La neta, jefe, creo que este proyecto necesita más presupuesto si queremos terminarlo a tiempo.",
+    "traduccion": "To be honest, boss, I think this project needs more budget if we want to finish it on time.",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador3",
+    "seed_id": "sem-042",
+    "traduccion_modelo": "Man, boss, I think this project needs more funding if we want to finish it on time."
+  },
+  {
+    "texto_dialectal": "¡Neta que ya me tienes harto con tus mentiras!",
+    "traduccion": "I'm seriously sick and tired of your lies!",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador3",
+    "seed_id": "sem-042",
+    "traduccion_modelo": "You've really worn me out with your lies!"
+  },
+  {
+    "texto_dialectal": "¿Es neta que cerraron la taquería? Justo venía con hambre.",
+    "traduccion": "Are you for real telling me the taco place is closed? I was so hungry.",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador3",
+    "seed_id": "sem-042",
+    "traduccion_modelo": "Is it true they closed the taqueria? I just came by with an empty stomach."
+  },
+  {
+    "texto_dialectal": "Mi hermano, vente conmigo a mudar los muebles, pero no te me pongas a hacer el bulto, que necesito manos de verdad.",
+    "traduccion": "Bro, come help me move the furniture, but don't just stand there uselessly, I actually need an extra pair of hands.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador3",
+    "seed_id": "sem-053",
+    "traduccion_modelo": "Bro, come with me to move the furniture, but don't make me do all the work, I need real hands."
+  },
+  {
+    "texto_dialectal": "Llegó temprano a la reunión de la junta directiva de la asociación de vecinos, pero como siempre, solo fue a hacer el bulto.",
+    "traduccion": "He arrived early at the neighborhood association board meeting, but as always, he was just there taking up space.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador3",
+    "seed_id": "sem-053",
+    "traduccion_modelo": "He arrived early to the association's board meeting, but as usual, he only came to show off."
+  },
+  {
+    "texto_dialectal": "¡Oye, chico! Si vas a venir a la cocina a ayudar con la cena de Navidad, ponte a picar algo en vez de estar ahí haciendo el bulto.",
+    "traduccion": "Hey man! If you're gonna come into the kitchen to help with Christmas dinner, start chopping something instead of just standing around doing nothing.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador3",
+    "seed_id": "sem-053",
+    "traduccion_modelo": "Hey, man! If you're coming to the kitchen to help with Christmas dinner, go get yourself something to eat instead of just standing around being useless."
+  },
+  {
+    "texto_dialectal": "En este grupo de trabajo nadie se faja; fulano y zutano vinieron hoy nada más que a hacer el bulto y cobrar la nota.",
+    "traduccion": "In this work group nobody breaks a sweat; so-and-so and what's-his-name only showed up today to take up space and get paid.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador3",
+    "seed_id": "sem-053",
+    "traduccion_modelo": "In this work group nobody is pulling their weight; Fulano and Zutano came today just to play and get paid."
+  },
+  {
+    "texto_dialectal": "El jefe nos obligó a quedarnos hasta tarde, así que nos sentamos en la oficina solo a hacer el bulto hasta que marcara la salida.",
+    "traduccion": "The boss forced us to stay late, so we just sat in the office taking up space until it was time to clock out.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador3",
+    "seed_id": "sem-053",
+    "traduccion_modelo": "The boss made us stay late, so we sat in the office just hanging out until he called it quits."
+  },
+  {
+    "texto_dialectal": "No me mandes a ese muchacho para el taller, que lo único que sabe hacer allá es el bulto y estorbar entre las herramientas.",
+    "traduccion": "Don't send that kid to the workshop, because all he knows how to do over there is get in the way and be useless.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador3",
+    "seed_id": "sem-053",
+    "traduccion_modelo": "Don't send that kid to the shop, he's only good for causing trouble and getting in the way of the tools."
+  },
+  {
+    "texto_dialectal": "Fuimos al partido de sóftbol para apoyar al equipo, pero como llovió tanto, terminamos en la banca haciendo el bulto.",
+    "traduccion": "We went to the softball game to support the team, but since it rained so much, we ended up just sitting on the bench doing nothing.",
+    "dialecto_region": "Caribeña",
+    "fuente": "generador3",
+    "seed_id": "sem-053",
+    "traduccion_modelo": "We went to the baseball game to support the team, but since it rained so much, we ended up on the bench doing nothing."
+  },
+  {
+    "texto_dialectal": "El profe nos dijo que habría examen sorpresa y todos cogieron la caña rapidito.",
+    "traduccion": "The teacher told us there was going to be a pop quiz and everyone fell for it right away.",
+    "dialecto_region": "Andina",
+    "fuente": "generador3",
+    "seed_id": "sem-067",
+    "traduccion_modelo": "The teacher told us there would be a surprise exam and we all got ready quickly."
+  },
+  {
+    "texto_dialectal": "No seas tan ingenuo, hombre, a la primera que te inventan un cuento ya coges la caña.",
+    "traduccion": "Don't be so gullible, man, the second someone makes up a story you just take the bait.",
+    "dialecto_region": "Andina",
+    "fuente": "generador3",
+    "seed_id": "sem-067",
+    "traduccion_modelo": "Don't be so naive, man, the first time they come up with a story you get caught."
+  },
+  {
+    "texto_dialectal": "Le dije que me había ganado la lotería y el muy tonto cogió la caña de una vez.",
+    "traduccion": "I told him I won the lottery and the fool fell for the joke immediately.",
+    "dialecto_region": "Andina",
+    "fuente": "generador3",
+    "seed_id": "sem-067",
+    "traduccion_modelo": "I told him I'd won the lottery and he totally got it right away."
+  },
+  {
+    "texto_dialectal": "Cuidado con lo que le dices a Luisa, ella es muy crédula y coge la caña con cualquier bromita.",
+    "traduccion": "Be careful what you say to Luisa, she's very gullible and falls for any little joke.",
+    "dialecto_region": "Andina",
+    "fuente": "generador3",
+    "seed_id": "sem-067",
+    "traduccion_modelo": "Watch what you say to Luisa, she's very gullible and takes the bait with any joke."
+  },
+  {
+    "texto_dialectal": "Pensé que se darían cuenta de que era mentira, pero todos cogieron la caña sin pensarlo.",
+    "traduccion": "I thought they'd realize it was a lie, but everyone took the bait without thinking twice.",
+    "dialecto_region": "Andina",
+    "fuente": "generador3",
+    "seed_id": "sem-067",
+    "traduccion_modelo": "I thought they'd catch on that it was a lie, but everyone caught the joke without thinking."
+  },
+  {
+    "texto_dialectal": "A mi tío le encanta echar mentiras piadosas solo para ver quién coge la caña en la cena.",
+    "traduccion": "My uncle loves telling little white lies just to see who falls for the joke at dinner.",
+    "dialecto_region": "Andina",
+    "fuente": "generador3",
+    "seed_id": "sem-067",
+    "traduccion_modelo": "My uncle loves telling harmless lies just to see who gets caught in the lie at dinner."
+  },
+  {
+    "texto_dialectal": "Hoy me levanté con la peor mala leche, se me rompió el celular apenas salí de casa.",
+    "traduccion": "I woke up with the worst bad luck today, my phone broke as soon as I left the house.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador3",
+    "seed_id": "sem-078",
+    "traduccion_modelo": "Today I woke up with the worst mood, my phone broke as soon as I left home."
+  },
+  {
+    "texto_dialectal": "No te le acerques a Marcelo ahora mismo porque tiene una mala leche tremenda con el jefe.",
+    "traduccion": "Don't go near Marcelo right now because he's in a foul mood with the boss.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador3",
+    "seed_id": "sem-078",
+    "traduccion_modelo": "Don't go near Marcelo right now because he's in a terrible mood with the boss."
+  },
+  {
+    "texto_dialectal": "Qué mala leche la nuestra, justo pinchamos la goma bajo la tormenta.",
+    "traduccion": "Talk about terrible luck, we just got a flat tire right in the middle of the storm.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador3",
+    "seed_id": "sem-078",
+    "traduccion_modelo": "What a bad luck, we just got a flat tire right under the storm."
+  },
+  {
+    "texto_dialectal": "Es un tipo que siempre anda con mala leche, nunca te tira un centavo de buena onda.",
+    "traduccion": "He's the kind of guy who's always got a bad attitude, he never gives you a break or says anything nice.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador3",
+    "seed_id": "sem-078",
+    "traduccion_modelo": "He's a guy who always has a bad attitude, never gives you a good vibe."
+  },
+  {
+    "texto_dialectal": "Tuvimos la mala leche de perder el vuelo por cinco minutos de demora en Migraciones.",
+    "traduccion": "We had the bad luck of missing our flight due to a five-minute delay at immigration.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador3",
+    "seed_id": "sem-078",
+    "traduccion_modelo": "We had a bad luck of missing the flight because of five minutes of delay at Immigration."
+  },
+  {
+    "texto_dialectal": "¿Viste cómo me contestó? Qué mala leche tiene esa mujer, no se le puede decir nada.",
+    "traduccion": "Did you see how she answered me? That woman is so ill-tempered, you can't tell her a thing.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador3",
+    "seed_id": "sem-078",
+    "traduccion_modelo": "Did you see how she responded to me? She's such a snitch, you can't say anything to her."
+  },
+  {
+    "texto_dialectal": "Cuando vio que la discusión se ponía fea, el tipo se hizo humo sin saludar a nadie.",
+    "traduccion": "When he saw that the argument was getting ugly, the guy took off without saying goodbye to anyone.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador3",
+    "seed_id": "sem-079",
+    "traduccion_modelo": "When he saw the argument was getting ugly, the guy just disappeared without saying a word to anyone."
+  },
+  {
+    "texto_dialectal": "Le pedí plata prestada y se hizo humo; no lo encontré más por ningún lado.",
+    "traduccion": "I lent him some money and he vanished; I couldn't find him anywhere after that.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador3",
+    "seed_id": "sem-079",
+    "traduccion_modelo": "I asked him for a loan and he disappeared; I couldn't find him anywhere."
+  },
+  {
+    "texto_dialectal": "¿Viste al coordinador? Estaba acá hace un rato y de repente se hizo humo.",
+    "traduccion": "Did you see the coordinator? He was right here a minute ago and suddenly ghosted.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador3",
+    "seed_id": "sem-079",
+    "traduccion_modelo": "Did you see the coordinator? He was here a minute ago and then he disappeared."
+  },
+  {
+    "texto_dialectal": "Apenas empezó la fiesta y vio a su ex, mi hermano se hizo humo.",
+    "traduccion": "As soon as the party started and he saw his ex, my brother dipped.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador3",
+    "seed_id": "sem-079",
+    "traduccion_modelo": "As soon as the party started and he saw his ex, my brother went completely crazy."
+  },
+  {
+    "texto_dialectal": "El sospechoso se hizo humo antes de que la policía pudiera rodear la cuadra.",
+    "traduccion": "The suspect slipped away before the police could surround the block.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador3",
+    "seed_id": "sem-079",
+    "traduccion_modelo": "The suspect blew out before the police could surround the block."
+  },
+  {
+    "texto_dialectal": "Cada vez que hay que lavar los platos después de comer, los chicos se hacen humo.",
+    "traduccion": "Every time it's time to wash the dishes after eating, the kids disappear.",
+    "dialecto_region": "Rioplatense",
+    "fuente": "generador3",
+    "seed_id": "sem-079",
+    "traduccion_modelo": "Every time we have to wash the dishes after dinner, the kids get into a frenzy."
+  },
+  {
+    "texto_dialectal": "Anoche en la boda de mi tío, mi hermano terminó bien pedo y se puso a cantar música ranchera en una mesa ajena.",
+    "traduccion": "Last night at my uncle's wedding, my brother ended up totally wasted and started singing country music at someone else's table.",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador3",
+    "seed_id": "sem-088",
+    "traduccion_modelo": "Last night at my uncle's wedding, my brother ended up completely drunk and started singing ranch music in an empty table."
+  },
+  {
+    "texto_dialectal": "No me jodan, ayer llegué a mi casa bien pedo y hoy me está cargando la fregada con la resaca.",
+    "traduccion": "Cut the crap, yesterday I got completely hammered when I got home and today I'm dying with this hangover.",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador3",
+    "seed_id": "sem-088",
+    "traduccion_modelo": "Don't mess with me, I got home yesterday totally hungover and today I'm still feeling the hangover."
+  },
+  {
+    "texto_dialectal": "Oigan, mejor vámonos antes de que el jefe se ponga bien pedo y empiece a decir tonterías frente a los clientes.",
+    "traduccion": "Listen, we'd better leave before the boss gets totally sloshed and starts talking nonsense in front of the clients.",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador3",
+    "seed_id": "sem-088",
+    "traduccion_modelo": "Hey, let's go before the boss gets too drunk and starts spouting nonsense in front of the clients."
+  },
+  {
+    "texto_dialectal": "Para calmar los nervios del examen, mi compa se metió unos tequilas y llegó bien pedo al aula.",
+    "traduccion": "To calm his nerves for the exam, my buddy downed a few tequilas and showed up totally plastered to the classroom.",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador3",
+    "seed_id": "sem-088",
+    "traduccion_modelo": "To calm down for the exam, my buddy got drunk and arrived completely hungover in class."
+  },
+  {
+    "texto_dialectal": "Dice mi mamá que si vas a regresar a la casa bien pedo otra mejor ni te aparezcas por aquí hoy en la noche.",
+    "traduccion": "My mom says that if you're going to come home completely drunk again, you'd better not show your face around here tonight.",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador3",
+    "seed_id": "sem-088",
+    "traduccion_modelo": "My mom says if you're going to come back home, make sure you bring a better version of yourself and don't show up here tonight."
+  },
+  {
+    "texto_dialectal": "El artista salió al escenario bien pedo y apenas podía sostener el micrófono, qué vergüenza de concierto.",
+    "traduccion": "The artist came out on stage completely loaded and could barely hold the mic, what an embarrassing concert.",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador3",
+    "seed_id": "sem-088",
+    "traduccion_modelo": "The artist stepped onto the stage in a terrible state and barely could hold the microphone, what a terrible concert."
+  },
+  {
+    "texto_dialectal": "En cuanto probó el mezcal artesanal, mi tío cayó redondito y en media hora ya estaba bien pedo.",
+    "traduccion": "As soon as he tried the artisanal mezcal, my uncle passed right out and within half an hour he was completely blotto.",
+    "dialecto_region": "Mexicana",
+    "fuente": "generador3",
+    "seed_id": "sem-088",
+    "traduccion_modelo": "As soon as he tried the artisanal mezcal, my uncle went completely off his rocker and was drunk in half an hour."
+  },
+  {
+    "texto_dialectal": "Ya po, cállate un rato que te lo arreglo al tiro.",
+    "traduccion": "Fine, shut up for a second, I'll fix it right now.",
+    "dialecto_region": "Chilena",
+    "fuente": "generador3",
+    "seed_id": "sem-092",
+    "traduccion_modelo": "Come on, shut up for a second I'll fix it right away."
+  },
+  {
+    "texto_dialectal": "Tranquilo jefe, le tengo listo el informe al tiro.",
+    "traduccion": "Don't worry boss, I'll have the report ready for you straight away.",
+    "dialecto_region": "Chilena",
+    "fuente": "generador3",
+    "seed_id": "sem-092",
+    "traduccion_modelo": "Don't worry boss, I've got the report ready in a flash."
+  },
+  {
+    "texto_dialectal": "Mamá, voy al almacén y vuelvo al tiro.",
+    "traduccion": "Mom, I'm running to the corner store and I'll be right back.",
+    "dialecto_region": "Chilena",
+    "fuente": "generador3",
+    "seed_id": "sem-092",
+    "traduccion_modelo": "Mom, I'm going to the store and I'll be back in a flash."
+  },
+  {
+    "texto_dialectal": "Oiga compadre, páseme la llave que está ahí, al tiro por favor.",
+    "traduccion": "Hey buddy, hand me that wrench right there, immediately please.",
+    "dialecto_region": "Chilena",
+    "fuente": "generador3",
+    "seed_id": "sem-092",
+    "traduccion_modelo": "Hey buddy, pass me the keys, they're right there, please."
+  },
+  {
+    "texto_dialectal": "Le encargo que retire los documentos al tiro antes de que cierre la oficina.",
+    "traduccion": "I must ask you to pick up the documents right away before the office closes.",
+    "dialecto_region": "Chilena",
+    "fuente": "generador3",
+    "seed_id": "sem-092",
+    "traduccion_modelo": "I'm asking him to get the documents out of the way before the office closes."
+  },
+  {
+    "texto_dialectal": "¿Me haces un favor? Sí, dale, hácelo al tiro antes de que se me olvide.",
+    "traduccion": "Can you do me a favor? Yeah, go ahead, do it right now before I forget.",
+    "dialecto_region": "Chilena",
+    "fuente": "generador3",
+    "seed_id": "sem-092",
+    "traduccion_modelo": "Can I ask you a favor? Yes, do it right away before I forget."
+  }
+]

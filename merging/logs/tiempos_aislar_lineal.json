@@ -1,0 +1,6 @@
+{
+ "fusion_peft_linear_norm": 82.1,
+ "fusion_peft_cat_norm": 27.5,
+ "predicciones_peft_linear_norm": 357.9,
+ "predicciones_peft_cat_norm": 354.4
+}

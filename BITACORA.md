@@ -2444,3 +2444,617 @@ Pendiente: volver a revisar los 9 diagramas renderizados tras el
 arreglo (no se pudieron renderizar dentro de esta sesión). Falta también decidir si
 se redibujan en TikZ dentro de `paper/main.tex`, y confirmar con el
 profesor si pide diagramas y en qué notación.
+
+---
+
+## Sesión 26 — 2026-10-07 — Anderson García
+
+Qué se hizo: pasados los 30 días de antigüedad de la cuenta de Hugging Face, se desplegó el servicio como Space público
+(`Andry891/traductor-jerga-dialectal`, Gradio + ZeroGPU) con el código ya preparado en `api/space/`.
+URL pública: https://andry891-traductor-jerga-dialectal.hf.space
+
+- Se clonó el Space vacío, se copió `api/space/` y se registró `adapter/tokenizer.json` (~11MB) con Git LFS
+  (HF exige LFS para archivos >10MB; su `.gitattributes` solo cubría `*.safetensors`).
+- Se alineó el encabezado de `api/space/README.md` con el Space creado (`sdk_version: 6.29.1`, `python_version: '3.12'`;
+  antes decía 5.0.0).
+- Primer build falló al cargar el adapter: `PeftModel.from_pretrained` sin `torch_device` usa `infer_device()`, que bajo
+  ZeroGPU devuelve `"cuda"` emulado, y el parche de `spaces` rompe la lectura del safetensors. Fix en `api/space/app.py`:
+  `torch_device="cpu"`. El traceback del usuario llegó cortado (sin la última línea), así que la causa se dedujo leyendo
+  `peft_model.py`; el Space pasó a "Running" tras el fix, lo que lo confirma en la práctica.
+- Prueba con `curl` a la URL pública (patrón de dos pasos de Gradio): `salud` -> `ok`; `traducir` con "Que chimba de parche,
+  nos vemos mas tarde bacano" -> "That's awesome patch, we'll meet up later cool." en 2.5 s.
+- `docs/despliegue.md` actualizado: URL real, historial del bloqueo marcado como resuelto, los dos problemas encontrados
+  y el resultado de la prueba.
+
+Decisiones tomadas:
+- Se usó la misma cuenta que se había bloqueado en vez de la de otro integrante: esperar los 30 días funcionó y evitó
+  depender de credenciales ajenas.
+- Se corrigió `api/space/app.py` en el repo (fuente de verdad) y se copió al Space, no al revés.
+
+Pendiente: la prueba de aceptación pedía hacer el `curl` desde una máquina distinta a la que despliega; solo se corrió
+desde la máquina de desarrollo. Falta que otro integrante (o un celular con datos móviles) la repita y se anote en
+`docs/despliegue.md`. Latencia GPU medida con una sola solicitud; no se midió con el Space "dormido" (primer arranque en frío).
+
+Actualización (misma fecha): prueba de aceptación cerrada. El usuario abrió la URL pública desde un celular con datos
+móviles (sin Wi-Fi) y la interfaz web tradujo bien el texto de prueba; antes también la había probado desde su mismo
+computador con el mismo resultado. Se hizo por interfaz web, no con `curl`. Pendiente restante: medir latencia con el
+Space dormido y el comportamiento al agotar la cuota diaria de ZeroGPU.
+
+---
+
+## Sesión 30 (2) — 2026-10-07 — Anderson García
+
+Qué se hizo: prueba de carga contra el Space desplegado con el modelo real (el pendiente que dejó la Sesión 30, que solo
+midió la capa de API con traducción simulada). Nuevo `api/prueba_carga_space.py` (5/20/50 concurrentes, API de Gradio de
+dos pasos, latencia de extremo a extremo). Resultados en `docs/pruebas_carga.md`, "Resultado 3". Cliente anónimo:
+- Nivel 5: 3 OK / 2 fallos, latencia prom. 3.59 s (máx. 4.74 s). Nivel 20: 0 OK / 20 fallos. Nivel 50: 0 OK / 50 fallos.
+- Todos los fallos son por cuota de ZeroGPU ("exceeded your ZeroGPU quota... 45s requested vs. 39s left", luego "runs
+  limit"), con rechazo inmediato y mensaje claro; `salud` siguió en `ok` (el servicio no se cayó).
+- Límite claro encontrado: para un cliente anónimo el techo no es de concurrencia sino de cuota diaria de GPU: solo se
+  atendieron 4 traducciones (1 de calentamiento + 3) antes de agotarla; reinicia en ~24 h.
+
+Decisiones tomadas:
+- Se documentó tal cual que la latencia con 20 y 50 concurrentes NO se pudo medir (la cuota ya estaba agotada) en vez de
+  rellenar la tabla; cumple a medias el criterio "cifras de latencia para los tres niveles".
+- Se añadió soporte opcional de `HF_TOKEN` (variable de entorno) al script para repetir la prueba con más cuota, sin
+  escribir nunca el token en el código.
+- Esta prueba consumió la cuota diaria de GPU de la IP del usuario: el Space no responderá a su IP hasta que se reinicie.
+
+Pendiente: repetir 20 y 50 pasadas ~24 h y/o con token. Hipótesis sin verificar: `@spaces.GPU(duration=30)` reserva 30 s
+por llamada aunque una traducción tarde ~2 s; probar `duration` menor (p. ej. 10) para estirar la cuota. n=3 en el nivel 5
+no basta para concluir paralelismo vs. serialización.
+
+---
+
+## Sesión 31 (2) — 2026-10-07 — Anderson García
+
+Qué se hizo: la prueba de integración E2E de la Sesión 31 quedó repetible contra un servicio real, no solo en proceso.
+`tests/test_integracion_e2e.py` ahora tiene una sola lógica (`verificar_cadena`) con dos modos: pytest (en proceso, generación
+mockeada) y CLI `python tests/test_integracion_e2e.py --url <URL>` (servicio real; sale con 0/1). En modo real no asume estado
+limpio: compara métricas antes y después.
+- Cada etapa falla con un mensaje "Etapa N ROTA" y lo esperado vs. lo recibido; se añadieron 2 pruebas que rompen a propósito
+  el registro de latencia y la retroalimentación y confirman que el fallo nombra la etapa 4 y la 6.
+- Se añadió la comprobación negativa de la etapa 2 (texto vacío → 400): prueba que la validación está conectada.
+- Pytest: 18/18 pasan (E2E + `api/test_main.py`).
+- Acceptance contra servicio real (uvicorn local con Qwen2.5-3B + LoRA, sin mocks): las 6 etapas pasan, traducción
+  "That's awesome patch, we'll catch up later cool.", latencia 53.6 s en CPU. Evidencia: `docs/evidencia_e2e.log`
+  (la primera corrida, 59.3 s, salió con la codificación rota y se repitió en UTF-8).
+- Nueva `docs/pendientes_despliegue.md` con lo que falta y espera condiciones externas (cuota de GPU, token, decisión del equipo).
+
+Decisiones tomadas:
+- La acceptance se corrió contra la API FastAPI real, NO contra el Space de Hugging Face: el Space solo tiene `traducir` y
+  `salud`, así que las etapas 4-6 no existen ahí; además la cuota anónima de ZeroGPU estaba agotada tras la Sesión 30 (2).
+  Esto cumple la cadena completa de punta a punta pero no "contra el servicio desplegado en HF"; queda como decisión del equipo
+  (portar métricas/retroalimentación al Space, o aceptar este alcance) en `docs/pendientes_despliegue.md` punto 4.
+- La rate limiting solo se verifica por su efecto en las solicitudes válidas (no se bloquean); el 429 bajo ráfaga no se repite
+  en modo real para no gastar 10 generaciones de ~55 s (ya cubierto por `api/test_main.py`).
+
+Pendiente: ver `docs/pendientes_despliegue.md`.
+
+---
+
+## Sesión extra (4) — 2026-10-07 — Anderson García
+
+Qué se hizo: se dejó lista y verificada toda la preparación de la Fase 3 que no necesita GPU ni personas; lo que sigue es correr el notebook en Colab.
+- **Datos de los 3 generadores sobre las mismas 100 semillas** (`lote_01` + `lote_02`). Hasta ahora el Generador 1 solo se había generado con `lote_01` (40 semillas). `generar_sintetico.py` ahora acepta `--generador 1|2|3` y `--lotes`; `consolidar.py` toma el generador como argumento. Resultado (variantes limpias): G1 587 (Groq), G2 632 (Cohere), G3 625 (Google).
+- **Reparto fijo de semillas** (`seeds/split_semillas.json`, 81/10/9, estratificado por dialecto): `split_dataset.py` lo usa para los 3 generadores, así todos se entrenan y evalúan con las mismas semillas por split (antes dependía de qué variantes sobrevivían al filtro, y habría diferido entre generadores).
+- `generation/mezclar_datasets.py` (dataset mezcla 1+2+3: 1496/183/165) y `evaluation/construir_test_comun.py` (174 entradas: 9 "oro" con referencia humana de las semillas + variantes de test de cada generador).
+- **Fusión**: `merging/fusionar_adaptadores.py` (TIES, DARE+TIES, lineal vía `add_weighted_adapter` de PEFT); probado con un adaptador real (17 s en CPU). **Destilación multi-maestro**: `merging/destilacion_multimaestro.py` (estudiante que imita el promedio de 3 maestros + CE); su lógica se verifica con `tests/test_destilacion.py` (modelo diminuto aleatorio: solo el estudiante recibe gradiente, los maestros no cambian).
+- **Evaluación**: `evaluation/generar_predicciones.py`, `metricas_automaticas.py` con desglose por fuente y `--salida-json`, `tabla_comparativa.py`, `preparar_evaluacion_humana.py` (hojas ciegas) y `kappa.py` (Fleiss y Cohen ponderado; `tests/test_kappa.py` lo verifica contra el valor publicado 0.210 y el 0.4 clásico).
+- `finetuning/fase3_pipeline_colab.ipynb`: entrena 4 adaptadores, fusiona, destila, predice con 9 modelos, mide y empaqueta. Hoja de ruta: `docs/hoja_de_ruta_fin_proyecto.md`.
+
+Decisiones tomadas:
+- **Generador 3 pasó de `gemini-3.6-flash` a `gemini-3.5-flash-lite`**: el nivel gratuito del primero permite solo 20 solicitudes/día (100 semillas = 5 días); el lite tiene 15/min. Se descartaron las 21 salidas ya generadas con 3.6-flash para que el generador sea un solo modelo. Es un cambio respecto a `test_apis.py`/README, que aún nombran 3.6-flash.
+- **Fusión con PEFT en vez de `mergekit`**: los 3 modelos son el mismo base + LoRA r=8; PEFT hace TIES/DARE sobre los adaptadores sin materializar 3 copias de 3B (~18 GB). Es una desviación del plan original ("vía mergekit").
+- Reparaciones de JSON en `consolidar.py` (`strict=False` y reponer una comilla de apertura omitida por Gemini); `sem-059` (G1) y varias de G3 se regeneraron. Cohere/Google se quedaron colgados una vez: el script es reanudable y se reinició.
+- El test común mezcla referencias humanas (oro, solo 9 entradas) con referencias de cada LLM; por eso se reporta por fuente, y el oro es la columna menos sesgada.
+
+Pendiente: no se entrenó ni evaluó ningún modelo nuevo; ninguna cifra de Fase 3 existe todavía. `destilacion_multimaestro.py` NO se corrió con el modelo real (un ejemplo con 3B en CPU pasó de 25 min sin terminar); solo su lógica está verificada con un modelo diminuto, así que es el script con más riesgo de fallar la primera vez en Colab. Los siguientes pasos y quién los hace están en `docs/hoja_de_ruta_fin_proyecto.md` (Colab, evaluadores humanos, paper). Faltan data cards de G2 y G3 y actualizar `test_apis.py`/README con el modelo de Google.
+
+---
+
+## Sesión extra (5) — 2026-10-07 — Anderson García
+
+Qué se hizo: integración y compilación final del paper (`paper/main.tex`). Las secciones de Arquitectura, Escenarios de calidad, Gobernanza, Prototipo y Resultados preliminares ya estaban integradas por Paula y Mariana (Sesiones 33 y 35); esta sesión las revisó y las dejó consistentes con el estado real.
+- **Compilación**: MiKTeX 25.12 instalado en modo usuario (no había LaTeX en la máquina). Dos pasadas de `pdflatex`: 0 errores, **0 Overfull hbox**, 0 referencias o citas indefinidas, 0 `??` en el texto del PDF extraído. Resultado: **18 páginas** (`paper/main.pdf` actualizado). Quedan 17 avisos "Underfull" (no bloquean) y avisos de que el flotante `h` pasó a `ht`.
+- **Auditoría estática** (`paper/auditar_tex.py`): las 7 figuras/tablas tienen `\caption` y `\label`; todo `\ref` tiene su `\label`; todo `\cite` tiene `\bibitem` y viceversa; sin marcas de texto sin terminar.
+- **Texto desactualizado corregido** (el paper decía que el despliegue estaba "bloqueado"): despliegue público en Hugging Face Spaces (2.5 s por solicitud, probado desde un celular con datos móviles), el fallo y arreglo de la carga del adaptador bajo ZeroGPU, prueba de integración de 6 etapas, resultado de la carga contra el Space (cuota diaria de GPU agotada tras ~4 traducciones; 20 y 50 concurrentes no medibles), datos de los generadores 2 y 3 ya generados, fusión con PEFT en vez de `mergekit`, y hoja de ruta y conclusiones coherentes con eso.
+
+Decisiones tomadas:
+- No se tocaron las cifras de la Tabla de BLEU/chrF (8 de 23 ejemplos del reparto anterior): siguen siendo ciertas para esa corrida, y el paper ya las declara preliminares. Se reemplazarán con los resultados de la Fase 3 cuando existan.
+- Los `\label` `sec:arquitectura-empresarial` y `sec:escenarios-calidad` no se referencian en ningún lado; se dejaron (no rompen nada).
+
+Pendiente: el criterio de aceptación "un compañero que no haya visto el documento lo lee de principio a fin sin encontrar nada roto o a medio escribir" NO se puede verificar desde aquí; solo se comprobó la parte mecánica. Está como casilla en `docs/hoja_de_ruta_fin_proyecto.md`. La sección de Resultados sigue siendo la de un solo generador hasta que se corra la Fase 3 en Colab.
+
+---
+
+## Sesión 35 (2) — 2026-10-07 — Anderson García
+
+Qué se hizo: revisión y actualización de `docs/fase2_resultados_borrador.md` (la sección de resultados preliminares que escribió Mariana en la Sesión 35), con el criterio de que cada cifra sea rastreable a un archivo.
+- Se verificaron 31 cifras (BLEU/chrF global y por dialecto, latencias, pruebas de carga) contra `reporte_metricas_generador1.md`, `reporte_metricas_baseline.md`, `BITACORA.md`, `docs/pruebas_carga.md`, `docs/despliegue.md` y `docs/evidencia_e2e.log`: todas coinciden. Las diferencias +9.03 BLEU y +11.38 chrF se recalcularon.
+- Se agregó una tabla de trazabilidad (cifra → archivo) al final del borrador.
+- Se actualizó lo que había quedado viejo: latencia con GPU real (2.5 s en el Space público), latencia en contenedor y E2E, resultados de carga (incluida la medición contra el Space y su límite de cuota), y que los datos de los generadores 2 y 3 ya existen (aunque sus modelos no).
+
+Decisiones tomadas:
+- El prompt de la tarea citaba `evaluation/resultados_humanos_ronda1.csv`, que no existe. No se creó ni se simuló: no hay evaluación humana real, y el borrador lo sigue diciendo. El piloto de 10 filas (`muestreo_manual.csv`, marcadas `[piloto IA]`) se reporta explícitamente como prueba de formato, no como evaluación.
+- Se dejó aviso de que el `test.json` del Generador 1 se regeneró (hoy 54 variantes, antes 23): las cifras de BLEU/chrF son de la corrida anterior y su fuente de verdad son los dos reportes, no el `test.json` actual. No son comparables con los resultados de la Fase 3.
+- Se mantuvo el lenguaje cauteloso ("una primera señal sugiere"); no se agregaron conclusiones nuevas.
+
+Pendiente: las cifras de calidad siguen siendo de 8 ejemplos y un solo generador; se reemplazarán con los resultados de `finetuning/fase3_pipeline_colab.ipynb` cuando se corra en Colab (casilla en `docs/hoja_de_ruta_fin_proyecto.md`). La evaluación humana real sigue sin existir.
+
+---
+
+## Sesión 36 (2) — 2026-10-07 — Anderson García
+
+Qué se hizo: actualización de `docs/banco_preguntas_fase2.md` y de `docs/guion_demo_fase2.md` con lo nuevo de la Fase 2.
+- Preguntas nuevas con respuesta honesta: por qué Hugging Face Spaces (y qué se descartó), por qué Qwen2.5-3B, qué tan realista es la latencia (2.5 s individual con GPU; 50-80 s en CPU; sin medir bajo carga), si soportaría usuarios reales (no: cuota de GPU), por qué solo un generador y ninguna fusión ejecutada, el cambio de modelo del Generador 3, por qué PEFT y no `mergekit`, y la pregunta incómoda de privacidad (el Space público pasa por infraestructura de un tercero).
+- Corregidas respuestas viejas: "¿por qué no está desplegado?" (ya lo está desde el 2026-10-07), latencia, y el 8-de-23 (el reparto cambió).
+- Sección de ensayo cronometrado con tabla de tiempos y casilla por integrante; responsable sugerido por área.
+- El guion de demo asumía "si todavía no está desplegado": se actualizó (servicio público ~2.5 s) y se añadió la advertencia de no gastar la cuota de GPU antes de la sustentación.
+
+Decisiones tomadas:
+- En la respuesta sobre el modelo se dice explícitamente que Qwen no se eligió comparando candidatos (solo se midió Qwen; Gemma y Llama nunca se midieron, verificado en la bitácora) para no sobreafirmar.
+- Se corrigió la framing del prompt ("una técnica de fusión"): hoy no hay ninguna técnica ejecutada.
+- La respuesta de privacidad admite que la ventaja "no sale a una nube de terceros" aplica al contenedor propio, no al Space público de demostración.
+
+Pendiente: lo que pedía la prueba de aceptación NO se pudo hacer desde aquí y queda sin cumplir: el ensayo cronometrado con el equipo completo y que cada integrante responda una pregunta nueva sin leerla (casillas en `docs/hoja_de_ruta_fin_proyecto.md` y en el propio banco). No se inventó ningún tiempo de ensayo; el tiempo asignado por el profesor también está por completar.
+
+---
+
+## Sesión 37 — 2026-10-07 — Anderson García
+
+Qué se hizo: cierre formal de la tarea "Generador 2 como parámetro del mismo script". El script ya aceptaba `--generador 1|2|3` desde la Sesión extra (4) (un solo `generar_sintetico.py`, misma plantilla, mismas semillas, solo cambia la API); esta sesión lo verificó con la prueba de aceptación pedida y corrigió lo que esa prueba encontró.
+- **Docstring** de `generation/generar_sintetico.py` reescrito: ya no habla solo del Generador 1; describe los tres generadores, la estructura común del registro y cómo agregar un cuarto.
+- **Prueba de aceptación** (`tests/test_formato_generadores.py`, 19 tests, sobre los datos reales de `generation/raw/`): con las mismas 3 semillas usadas para el Generador 1 (`sem-007`, `sem-018`, `sem-006`), el registro crudo del Generador 2 tiene los mismos campos y tipos que el del 1 (`seed_id, generador, modelo, timestamp_utc, prompt, respuesta_cruda`), y el `prompt` enviado es idéntico (comprobado además sobre las 100 semillas). Cada respuesta parseada trae 5-8 variantes con los mismos 4 campos (`texto_dialectal, traduccion, registro, contexto_uso`), todos strings no vacíos. También se verifica el dataset consolidado de los tres.
+- **Dos defectos encontrados por esa prueba y corregidos**: (1) en 2 de 625 variantes del Generador 3 (`sem-007`, `sem-043`) Gemini escribió `"informal": "informal"` en vez de `"registro": "informal"`; `consolidar.py` lo dejaba pasar con `registro` vacío — ahora lo recupera (`registro_de`) y esas dos semillas se regeneraron para que también el crudo quede limpio; (2) `consolidar.py` leía `sys.argv` al importarse, lo que rompía cualquier `import`; ahora lo lee dentro de `main()`.
+
+Decisiones tomadas:
+- Se regeneraron `sem-007` y `sem-043` del Generador 3 (2 llamadas) en vez de dejar el crudo irregular: es la forma de que el formato sea idéntico también antes de consolidar. Tamaños de los datasets sin cambio (589 / 632 / 625).
+- Los generadores sí difieren en el número de variantes por semilla dentro de lo pedido (5-8); no se fuerza a que sean iguales.
+
+Pendiente: ninguno propio de esta tarea. Nota: el comportamiento del Generador 2 sobre las 3 semillas se probó con la ejecución real que ya existía (no se volvió a llamar a la API de Cohere solo para esto).
+
+---
+
+## Sesión 38 — 2026-10-07 — Anderson García
+
+Qué se hizo: generación completa del Generador 2 (Cohere) sobre las 100 semillas (`lote_01` + `lote_02`), consolidación y filtrado con el mismo `generation/validar.py`, y comparación contra el Generador 1. La generación y el filtrado se hicieron en la sesión anterior (extra 4); esta sesión los verificó y escribió la comparación, con el script reproducible `generation/comparar_generadores.py` → `generation/comparacion_generadores.md`. (La Sesión 37 no tenía entrada previa de otra persona; la de Anderson es la que valida el script con el Generador 2.)
+- `generation/dataset_generador2_limpio.json` existe: **632 variantes** (G1: 587; mismo orden de magnitud).
+- Generación: G1 589 variantes crudas (5.9 por semilla, rango 5-7); G2 632 (6.3, rango 6-7); G3 625 (6.2, rango 6-7).
+- Filtro (`validar.py`, la misma lógica para los tres; solo se cambió el nombre del archivo de reporte): **G1 descartó 2 de 589 (0.3 %)** — ambas "casi idéntica a la semilla" (`sem-031`, `sem-040`); **G2 descartó 0 de 632 (0.0 %)**; G3 0 de 625. Ningún generador tuvo variantes sospechosas.
+
+Observaciones relevantes para PI1 (no se ignoran):
+- El filtro prácticamente no discrimina entre generadores (0.3 % vs 0 %): solo mira vacíos, duplicados, longitud, similitud con la semilla y idioma. No es una medida de calidad comparable; las diferencias entre generadores tendrán que venir de la evaluación del modelo entrenado, no de este filtro.
+- **Mezcla de dialecto**: el Generador 1 tiene 6 variantes con "che" (marcador rioplatense) en semillas Caribeña, Andina y Chilena (`sem-010`, `sem-016`, `sem-097`, `sem-103`, `sem-104`, `sem-105`; una incluso mezcla "cuate", mexicano, en una variante chilena). Los generadores 2 y 3 tienen 0 con esta heurística. Es una pista de que G1 contamina dialectos más que los otros dos, pero la heurística mira un solo marcador (no detectaría otras mezclas) y son pocas variantes: se reporta como indicio, no como conclusión.
+- **Registro**: G2 produce más registro formal y menos jerga (formal 20 % / jerga 19 %) que G1 (12 % / 30 %) y G3 (7 % / 33 %), con el mismo prompt. Para una tarea de jerga, G2 aporta proporcionalmente menos jerga.
+- Longitud: G3 genera frases algo más largas (15.0 palabras en español, 15.5 en inglés) que G1 (14.0 / 13.2) y G2 (12.9 / 13.3).
+- Cuidado: G3 es un modelo "lite" más pequeño; cualquier diferencia no se puede atribuir solo a "qué LLM es" (ya anotado en la Sesión extra 4).
+
+Decisiones tomadas:
+- Se corrigió la numeración de la entrada anterior, que había quedado como "Sesión 41 (2)" por no tener el número; es la Sesión 37.
+- No se tocó el umbral ni la lógica del filtro para que no descarte más a G2: la tarea pedía anotar la diferencia, no igualarla.
+
+Pendiente: las observaciones de mezcla de dialecto y de registro son candidatas para la discusión de PI1 en el paper; confirmar con la evaluación humana si la contaminación de G1 se nota en la calidad percibida. Se añade al paper cuando haya resultados de entrenamiento.
+
+---
+
+## Sesión 39 — 2026-10-07 — Anderson García
+
+Qué se hizo: cierre formal del Generador 3 (Google) con el mismo `generation/generar_sintetico.py` parametrizado (sin crear un script nuevo). La generación completa (100 semillas) ya se había corrido en la Sesión extra (4); esta sesión verificó y documentó lo que la tarea pide.
+- **Credenciales**: `GOOGLE_API_KEY` está en `.env` (ignorado por git) y declarada vacía en `.env.example`; `generation/test_apis.py` responde OK con el modelo real del generador. Ninguna clave se escribió en código ni en documentos.
+- **Prueba de aceptación** (igual que la Sesión 37, `tests/test_formato_generadores.py`, 19 tests): sobre las mismas 3 semillas (`sem-007`, `sem-018`, `sem-006`) el Generador 3 tiene el mismo registro crudo (6 campos, mismos tipos), el mismo prompt enviado, 5-8 variantes por respuesta y los mismos 4 campos por variante que los Generadores 1 y 2.
+- **Ajustes especiales de Gemini, documentados en el docstring del script** (no se bifurcó el código): `thinking_level="minimal"` con `max_tokens=3000`; modelo `gemini-3.5-flash-lite` en vez de `gemini-3.6-flash` (el segundo permite 20 solicitudes por DÍA, el lite 15 por MINUTO); y dos irregularidades de formato de sus respuestas (comilla de apertura omitida, `{"informal": "informal"}` en vez de `{"registro": ...}`) que se tratan en `consolidar.py`.
+- `generation/test_apis.py` y `README.md` apuntaban a `gemini-3.6-flash`; se actualizaron a `gemini-3.5-flash-lite` (pendiente anotado en la Sesión extra 4).
+
+Decisiones tomadas:
+- Cualquier ajuste de Gemini vive en la configuración (`GENERADORES`) o en el procesamiento posterior, no en un script aparte, para que los tres generadores sigan produciendo registros comparables.
+- `generation/probar_prompt_derivacion.py` (la prueba manual de la Sesión 6) sigue nombrando `gemini-3.6-flash`; se dejó como registro histórico de esa sesión.
+
+Pendiente: ninguno propio de esta tarea. La comparación de calidad entre los tres generadores depende del entrenamiento en Colab (`docs/hoja_de_ruta_fin_proyecto.md`).
+
+---
+
+## Sesión 40 — 2026-10-07 — Anderson García
+
+Qué se hizo: cierre del Generador 3 sobre todo el banco y tabla comparativa de los tres generadores. La generación, validación y filtrado del Generador 3 se hicieron antes (Sesión extra 4) y la Sesión 39 validó el script; esta sesión comprobó que existen los tres `generation/dataset_generador{1,2,3}_limpio.json` y armó `generation/comparacion_generadores.md` con `generation/comparar_generadores.py`.
+- Una fila por generador: **G1** 589 generados → 587 tras el filtro (2 descartadas, 0.3 %), 0.9 s por llamada; **G2** 632 → 632 (0 %), 27.6 s por llamada (rango 16-72 s); **G3** 625 → 625 (0 %), 2.9 s por llamada. Costo: $0 en los tres (capa gratuita).
+- Tiempo: el de las corridas reales no se guardó (se pausaron/reanudaron; la de Cohere se colgó), así que se midió con 3 llamadas reales por generador sobre `sem-006`, `sem-007`, `sem-018` (`generation/latencias_generadores.json`). Estimación para 100 semillas secuenciales, sin reintentos por límite de tasa: G1 ~1 min, G2 ~46 min, G3 ~5 min. Cohere es muy variable (16 a 72 s), lo que explica que pareciera colgarse.
+- Costo: dinero 0; se reportan semillas procesadas y tokens aproximados (caracteres / 4, no el conteo del proveedor). No se calculó un "costo si fuera de pago": no se verificaron tarifas vigentes.
+- La tabla incluye además estadísticas de los datos (variantes por semilla, longitud, registro, mezcla de dialecto) y una sección "cómo leerla para PI1".
+
+Decisiones tomadas:
+- Se midió la latencia en vez de estimarla desde las marcas de tiempo de los archivos, porque esas incluyen pausas y reinicios y darían una cifra engañosa.
+- Con solo 3 mediciones por generador y desde una sola máquina/hora, los tiempos son una referencia gruesa; la tabla lo dice.
+- Los tamaños son comparables (589 / 632 / 625), así que el tamaño del dataset no es una variable de confusión grande para PI1.
+
+Pendiente: ninguno propio. La respuesta a PI1 depende de entrenar con cada generador y medir (Colab, `docs/hoja_de_ruta_fin_proyecto.md`); esta tabla es solo el primer insumo, y el filtro automático casi no discrimina entre generadores.
+
+---
+
+## Sesión 41 — 2026-10-07 — Anderson García
+
+Qué se hizo: preparación del fine-tuning del Generador 2 (y de los demás) con la garantía de que la configuración es idéntica a la del Generador 1. **El entrenamiento en sí NO se corrió**: es cómputo pesado y la política del proyecto es Colab (`CONTEXTO_PROYECTO.md`); queda en `finetuning/fase3_pipeline_colab.ipynb`, que ya entrena G2, G3 y la mezcla con `entrenar_lora.py --todos`. (El archivo se llama `entrenar_lora.py`, no `entrenar.py`.)
+- **Splits del Generador 2**: listos (`generation/splits/dataset_generador2/`: 513 / 64 / 55 variantes), generados con el mismo `split_dataset.py` y el reparto fijo de semillas `seeds/split_semillas.json` (misma partición de semillas que G1 y G3, con verificación de que ninguna semilla se repite entre splits).
+- **Configuración idéntica, verificada**: `finetuning/entrenar_lora.py` es un único script para todos los datasets y su configuración está fija en el código, sin ramas por dataset: LoRA `r=8`, `lora_alpha=16`, `lora_dropout=0.05`, `bias="none"`, módulos `q_proj/k_proj/v_proj/o_proj`; `learning_rate=2e-4`, `per_device_train_batch_size=1`, hasta 10 épocas con `EarlyStoppingCallback(patience=2)` y `load_best_model_at_end`. Lo único que cambia con `--dataset-dir` es de dónde se leen los datos y la carpeta de salida. El `adapter_config.json` guardado del Generador 1 coincide con el código (r=8, alpha=16, dropout 0.05, mismos 4 módulos).
+- Nuevo `finetuning/verificar_config_identica.py`: lee la configuración del código con `ast`, y compara los `adapter_config.json` de generador1/2/3/mezcla entre sí y con el código; falla (código 1) nombrando el campo que difiera. Hoy solo existe el del Generador 1 (OK); los otros tres figuran como pendientes. La celda correspondiente se agregó al notebook.
+- Nuevo `finetuning/resumen_curva.py`: genera `curva_final_<nombre>.md` desde `loss_log.json`, y escribe "NO REGISTRADO" si no se le da hardware/tiempo (no inventa). Se probó con el log real del Generador 1: sus cifras (0.7180/0.3577/0.1932 de entrenamiento; 1.0972/1.5414/1.5243 de validación) coinciden exactamente con el informe manual de la Sesión 19.
+
+Decisiones tomadas:
+- Incidente: al probar `resumen_curva.py` sobrescribió por error `finetuning/curva_final_generador1.md` (el informe escrito a mano); se restauró desde git (`git checkout` de ese solo archivo, cambio no commiteado). Desde entonces el script se niega a sobrescribir sin `--forzar`.
+- Un matiz de validez: el early stopping hace que el número de épocas efectivas dependa del dataset (es el mecanismo, igual para todos, no una diferencia de configuración). El adaptador del Generador 1 que está en el repo se entrenó con el reparto anterior (189 ejemplos); el notebook lo reentrena con el reparto nuevo para que los cuatro salgan de las mismas condiciones.
+
+Pendiente (no se pudo hacer aquí; criterios de aceptación sin cumplir): que exista `finetuning/checkpoints/generador2/`, la prueba manual de traducciones coherentes, y `finetuning/curva_final_generador2.md`. Pasos en `docs/hoja_de_ruta_fin_proyecto.md`.
+
+---
+
+## Sesión 42 — 2026-10-07 — Anderson García
+
+Qué se hizo: preparación del fine-tuning del Generador 3, igual que la Sesión 41 para el Generador 2. **El entrenamiento NO se corrió** (cómputo pesado; política del proyecto: Colab); `finetuning/fase3_pipeline_colab.ipynb` ya entrena `generador3` con `entrenar_lora.py --dataset-dir generation/splits/dataset_generador3 --todos`.
+- **Splits verificados** sobre `generation/dataset_generador3_limpio.json`: train 508 variantes / 81 semillas, val 61 / 10, test 56 / 9. Comprobado con un script ad hoc contra `seeds/split_semillas.json`: los splits de los generadores 1, 2, 3 y mezcla contienen solo semillas del reparto fijo, y **las 9 semillas de test son las mismas en G1, G2 y G3** (diferencia vacía). Es lo que hace comparable a los tres modelos.
+- **Configuración**: la misma que se verificó en la Sesión 41 (un solo `entrenar_lora.py`, sin ramas por dataset: LoRA r=8, alpha=16, dropout 0.05, módulos Q/K/V/O; lr 2e-4, batch 1, hasta 10 épocas con early stopping paciencia 2). `finetuning/verificar_config_identica.py` se volvió a correr: OK con el único adaptador existente (G1); G2, G3 y mezcla figuran como pendientes de comparar.
+
+Decisiones tomadas:
+- No se escribió `finetuning/curva_final_generador3.md` a mano ni con valores supuestos: se genera con `finetuning/resumen_curva.py generador3 ...` cuando exista `loss_log.json` real de Colab.
+- Ningún cambio de código en esta sesión: el proceso del Generador 3 es exactamente el mismo que el del 2 (única variable: el dataset).
+
+Pendiente (criterios de aceptación NO cumplidos): `finetuning/checkpoints/generador3/` no existe, y por lo tanto el equipo todavía NO tiene los tres modelos individuales (SLM+A, SLM+B, SLM+C) para la comparación de la Semana 8; hoy solo existe el del Generador 1, entrenado con el reparto anterior (el notebook lo reentrena). Se cumple al correr el notebook en Colab; pasos en `docs/hoja_de_ruta_fin_proyecto.md`.
+
+---
+
+## Sesión 43 — 2026-10-07 — Anderson García
+
+Qué se hizo: integración de los resultados de la primera corrida de `finetuning/fase3_pipeline_colab.ipynb` (zip del usuario) y análisis. Documento completo en `docs/resultados_fase3.md`.
+- **Hallazgo crítico**: `generador1` NO se reentrenó. El notebook saltó el entrenamiento ("ya existe el adaptador") porque el clon de GitHub ya traía el adaptador viejo de la Sesión 19. Evidencia: su `loss_log.json` tiene 189 ejemplos implícitos (esperado 475) y pérdidas idénticas a las de entonces; y `git status` no mostró cambios en ese adaptador. Además 2 de las 9 semillas de test actuales (`sem-012`, `sem-019`) estaban en su entrenamiento (fuga) y 6 en validación. Quedan **inválidos**: `generador1` y las 3 fusiones (se calcularon a partir de él). Se quitaron del árbol de trabajo (siguen en el zip del usuario). La destilación falló en Colab (error pendiente de recibir).
+- **Válidos**: baseline, generador2 (513 ejemplos, ✓ coincide), generador3 (508 ✓), mezcla (1496 ✓). Configuración de LoRA idéntica en los 4 adaptadores (`verificar_config_identica.py`: OK).
+- **Resultados** (BLEU/chrF globales sobre 174 entradas de 9 semillas): base 37.0/53.9; G2 40.7/55.3; G3 42.3/57.9; mezcla 42.4/57.2. Nuevo `evaluation/bootstrap.py` (remuestreo por semilla, IC 95 %) → `evaluation/analisis_bootstrap.md`: los tres adaptadores superan al base en BLEU (IC sin 0); en chrF solo G3 y la mezcla; G3 supera a G2 en chrF; la mezcla no se distingue de G3.
+- **Todos sobreajustan rápido**: mejor validación en la época 1 en los cuatro; el early stopping guardó esa. Informes `finetuning/curva_final_{generador2,generador3,mezcla}.md` generados con `resumen_curva.py` (hardware y tiempo "NO REGISTRADO": Colab no los incluye en el zip).
+- **Notebook corregido**: la celda del generador1 borra el adaptador viejo para forzar el reentrenamiento y afirma que use 475 ejemplos.
+
+Decisiones tomadas:
+- Se versionan los adaptadores válidos (G2, G3, mezcla) y los resultados de evaluación válidos, para que la próxima corrida los salte; los inválidos no se versionan.
+- Las conclusiones se redactan como señales tentativas: solo 9 semillas de test, una corrida por modelo, referencias mayormente sintéticas y sesgo de referencia visible (cada generador gana en la columna de su propio LLM); el subconjunto "oro" tiene 9 entradas.
+- Este fallo se detectó porque se comparó el tamaño implícito de entrenamiento con el esperado; conviene mantener esa comprobación (ya está en el notebook).
+
+Pendiente (criterios de la Semana 8 aún sin cumplir): no existe un `generador1` válido, así que PI1 está incompleto y PI2 sin evaluar; hay que repetir en Colab generador1, fusiones y destilación (lista en `docs/hoja_de_ruta_fin_proyecto.md`). El paper sigue con los resultados de la Fase 2 hasta tener la corrida completa.
+
+---
+
+## Sesión 43 (2) — 2026-10-07 — Anderson García
+
+Qué se hizo: posible corrección del fallo de la destilación en Colab, sin haber visto el error real (la copia del notebook guardada desde Colab no traía salidas). Revisión de `merging/destilacion_multimaestro.py`: con `device_map="auto"` el modelo queda en la GPU, pero `perdidas()` y `ce_validacion()` dejaban `ids`, `mask` y `labels` en CPU, e indexar un tensor CUDA con una máscara booleana de CPU lanza `RuntimeError`. Las pruebas locales no lo vieron porque todo corre en CPU. Ahora los tensores se mueven a `modelo.device`. `tests/test_destilacion.py` sigue pasando (2/2).
+
+Decisiones tomadas / honestidad: esto es una hipótesis razonable, NO una causa confirmada. Si la destilación vuelve a fallar en Colab, hace falta el mensaje de error real. Tampoco se probó en GPU.
+
+Pendiente: segunda corrida de Colab (generador1, fusiones, destilación) y mensaje de error si persiste; ver `docs/hoja_de_ruta_fin_proyecto.md`.
+
+---
+
+## Sesión 43 (3) — 2026-10-07 — Anderson García
+
+Qué se hizo: se completaron los campos de hardware y tiempo de los informes `finetuning/curva_final_{generador2,generador3,mezcla}.md` con los datos que dio el usuario de las celdas de Colab (GPU Tesla T4; ~19, ~18 y ~52 min, que incluyen cargar el modelo), y se añadió la tabla de tiempos a `docs/resultados_fase3.md` (fusiones 38 s y 14 s sin atribuir a un método porque eran dos tiempos para tres; predicciones de los 8 modelos ~42 min en total). El 0 s del Generador 1 confirma que su entrenamiento se saltó.
+
+Decisiones tomadas: los tiempos son los de la celda de Colab (no solo el entrenamiento), y así se indica; el tiempo de las fusiones no se reparte por método para no inventar.
+
+Pendiente: el informe del Generador 1 (`curva_final_generador1.md`) sigue siendo el de la Sesión 19 (datos viejos) hasta que se reentrene en la segunda corrida.
+
+---
+
+## Sesión 43 (4) — 2026-10-07 — Anderson García
+
+Qué se hizo: el usuario reinició el entorno de Colab y perdió los tiempos de las celdas (ya estaban registrados en `docs/resultados_fase3.md` y en los informes de curva, así que no se perdió nada). Para que no dependa de la memoria de nadie, `finetuning/fase3_pipeline_colab.ipynb` ahora mide el tiempo de cada paso pesado (4 entrenamientos, fusiones, destilación y predicciones de cada modelo) y la GPU asignada, los guarda en `tiempos_fase3.json` y lo incluye en `resultados_fase3.zip`.
+
+Decisiones tomadas: se mide con `time.time()` por celda, igual que el tiempo de celda de Colab (incluye cargar el modelo). Se validó que las 24 celdas del notebook tienen sintaxis válida; no se ejecutó en Colab.
+
+Pendiente: confirmar en la segunda corrida que `tiempos_fase3.json` aparece en el zip.
+
+---
+
+## Sesión 44 — 2026-10-08 — Anderson García
+
+Qué se hizo: integración y análisis de la segunda corrida de `finetuning/fase3_pipeline_colab.ipynb` (zip `resultados_fase3 (1).zip`). Es la corrida completa y válida de la Fase 3. Documento: `docs/resultados_fase3.md`.
+- **Validación**: `generador1` ahora sí se reentrenó (`loss_log` con 475 ejemplos implícitos; antes 189) y G2/G3/mezcla coinciden con lo esperado (513/508/1496); los 4 adaptadores con configuración de LoRA idéntica (`verificar_config_identica.py`: OK). Los archivos de G2/G3/mezcla/baseline que reaparecían como modificados eran idénticos salvo fin de línea (comprobado con `git diff --ignore-cr-at-eol`) y se restauraron. La destilación, que había fallado en la primera corrida, terminó (el arreglo de dispositivo de la Sesión 43 (2) era la causa probable; sigue sin confirmarse con el error original). `tiempos_fase3.json` llegó en el zip (se movió a `finetuning/tiempos_fase3_corrida2.json`).
+- **Resultados** (BLEU/chrF globales, 174 entradas de 9 semillas; IC 95 % por bootstrap por semilla en `evaluation/analisis_bootstrap.md`): base 37.0/53.9; G1 42.2/57.5; G2 40.7/55.3; G3 42.3/57.9; mezcla 42.4/57.2; TIES 43.7/58.2; DARE+TIES 43.8/57.7; fusión lineal 35.3/51.5; destilación 43.9/58.3.
+- **Señales tentativas** (todas con n=9 semillas): PI1 — G1 y G3 no se distinguen; G2 queda por debajo en chrF. PI2 — TIES, DARE+TIES y destilación igualan al mejor individual y lo superan por ~1.4 BLEU, pero ese margen no se distingue del ruido; sí superan a G2 y, en BLEU, a la mezcla. La destilación no mejora a TIES (Δ −0.0 BLEU) y costó ~95 min de GPU frente a ~24 s. La fusión lineal queda por debajo del base en chrF (posible causa, no verificada: promediar A y B por separado).
+- Informe `finetuning/curva_final_generador1.md` regenerado con datos reales (el de la Sesión 19, otro reparto, se conservó como `curva_final_generador1_sesion19.md`). Los 4 entrenamientos sobreajustan rápido (mejor validación en la época 1).
+
+Decisiones tomadas:
+- Las conclusiones se redactan como señales tentativas: 9 semillas, una corrida por modelo, referencias mayormente sintéticas, sesgo de referencia visible, sin evaluación humana ni PI3. El subconjunto "oro" (9 entradas) no se interpreta.
+- El bootstrap de esta pasada usó 1000 remuestreos (la primera, 2000).
+
+Pendiente: evaluación humana (personas), PI3 (portabilidad), actualizar `paper/main.tex` con estos resultados, ensayo de la sustentación y prueba de carga del Space; ver `docs/hoja_de_ruta_fin_proyecto.md`.
+
+---
+
+## Sesión 45 — 2026-10-08 — Anderson García
+
+Qué se hizo: actualización de `paper/main.tex` con los resultados completos de la Fase 3 (`docs/resultados_fase3.md`), que habían dejado desactualizado el documento (hablaba de un solo generador, 8 ejemplos de prueba y ninguna fusión).
+- **Sección Resultados reescrita** (antes "Resultados preliminares"): tabla con los 9 modelos y su intervalo de 95 % por bootstrap sobre semillas (`tab:resultados-fase3`), y párrafos de ajuste fino, PI1 (generadores), PI2 (fusión, destilación y fusión lineal), sobreajuste y costo, evaluación humana (sigue sin existir), latencia, y qué significan y qué no. Todo redactado como señal tentativa: 9 semillas de prueba, una corrida por modelo, referencias mayormente sintéticas, sesgo de cada generador hacia sus propias referencias.
+- **Datos**: los tres generadores sobre las 100 semillas (589/632/625 variantes; filtro 2/0/0 descartadas), reparto fijo 81/10/9, cambio de modelo del Generador 3, y el indicio de mezcla de dialecto (6 variantes con "che" en G1 y ninguna en G2/G3) con su salvedad de heurística de un solo marcador.
+- **Resto**: introducción de la arquitectura, caption de la tabla de LoRA (idéntica en los 4 adaptadores), hoja de ruta, alcance del MVP (el servicio desplegado sirve el adaptador viejo del Generador 1, no una fusión), trabajo futuro y conclusiones.
+- **Compilación**: dos pasadas de `pdflatex`, 0 errores, 0 Overfull hbox, 0 referencias/citas indefinidas, 0 `??` en el texto del PDF, **19 páginas**; `paper/auditar_tex.py` sin problemas. Se revisó visualmente la tabla nueva (página 15). `paper/main.pdf` actualizado.
+
+Decisiones tomadas:
+- Se reemplazó la tabla de la Fase 2 (base vs. Generador 1 sobre 8 de 23 ejemplos): era de otro reparto de semillas y ya no es comparable. Sigue documentada en `docs/fase2_resultados_borrador.md`.
+- Las cifras del paper se copiaron de `evaluation/analisis_bootstrap.md` y `evaluation/comparacion_fase3.md`; no se redondeó ni se inventó ninguna.
+- Sin conclusiones fuertes: se dice explícitamente que no se puede afirmar que la fusión supere al mejor individual.
+
+Pendiente: lectura del documento por una persona que no lo haya visto; evaluación humana y PI3 (aún no existen); acuerdo de Mariana y Paula con el texto de resultados y conclusiones, que reescribe lo que ellas habían integrado en la Sesión 35.
+
+---
+
+## Sesión 46 — 2026-10-08 — Anderson García
+
+Qué se hizo: tabla de comparación automática para PI1 en el archivo pedido, `evaluation/comparacion_pi1_automatica.md`, generada por el nuevo `evaluation/comparacion_pi1.py`. Los números ya existían (Sesión 44: `evaluation/comparacion_fase3.md` y `analisis_bootstrap.md`); lo nuevo es el archivo específico, el desglose por dialecto y la verificación explícita.
+- **Mismo conjunto de evaluación, verificado en código**: el script compara, para los 4 modelos (base y los 3 adaptadores), las 174 entradas, sus referencias, semillas y fuentes, y aborta si algo difiere; también comprueba que coincide con `evaluation/test_comun.json`. Resultado: las mismas 174 entradas y las mismas 9 semillas para todos (no un test derivado de cada generador). Incluye la referencia humana del banco de semillas (fuente `oro`, 9 entradas) además de las variantes de test de los tres generadores.
+- **Cifras** (BLEU / chrF globales): base 37.0 / 53.9; G1 42.2 / 57.5; G2 40.7 / 55.3; G3 42.3 / 57.9. Solo con referencias humanas (n=9): G1 4.0 / 10.5; G2 3.2 / 10.5; G3 3.8 / 13.9. Desglose por dialecto en el archivo.
+- **Lectura**: hay diferencia medible (G2 por debajo de G1 y G3 en chrF; G1 y G3 casi iguales), pero con intervalos amplios de 9 semillas: G1−G2 +2.3 chrF [+0.2, +4.2], G3−G2 +2.7 [+0.8, +5.3], G1−G3 −0.5 [−2.4, +1.1]; en BLEU no se distingue ninguno. Los desgloses por dialecto (1-2 semillas por dialecto) se declaran anecdóticos y no se interpretan.
+
+Decisiones tomadas:
+- La tarea pedía evaluar contra "las referencias humanas del banco de semillas" con el `test.json` original. Esas referencias son solo 9 entradas (una por semilla de test), así que la tabla principal usa el test común (más grande, con referencias sintéticas de los tres generadores) y la de solo referencias humanas se muestra aparte, con la advertencia de que no permite concluir. El `test.json` original de la Fase 2 ya no existe (se regeneró con 100 semillas).
+- No se repitió el entrenamiento ni la evaluación: se reutilizaron las predicciones de la corrida de Colab.
+
+Pendiente: respuesta definitiva a PI1 requiere evaluación humana (personas) y más semillas de prueba.
+
+---
+
+## Sesión 47 — 2026-10-08 — Anderson García
+
+Qué se hizo: preparación de la fusión con `mergekit` (promedio simple y TIES) de los tres adaptadores LoRA, con los modelos guardados por separado. **La fusión con los modelos reales NO se corrió**: es cómputo pesado (3 modelos de ~6 GB) y la política del proyecto es Colab. Queda en `merging/fusion_mergekit_colab.ipynb`. Proceso y decisiones en `merging/fusion_simple.md`.
+- **Por qué importa**: en la Fase 3 la fusión "lineal" con PEFT quedó por debajo del modelo base (chrF 51.5 vs 53.9). `mergekit` fusiona modelos completos, lo que equivale a base + promedio de las actualizaciones; si ahora el promedio simple funciona, la causa era cómo se promediaba (hipótesis: A y B por separado), no fusionar.
+- **Preparado**: `merging/configs/{linear,ties}.yaml` (validan contra el esquema de `mergekit` 0.1.4), `merging/incorporar_adaptadores.py` (cada adaptador → modelo completo en float16), `merging/probar_fusion.py` (5 frases + heurísticas de basura/repetición), opción `--modelo-completo` en `evaluation/generar_predicciones.py`, el notebook de Colab (registra todo error en `merging/logs/`), y los dos modelos nuevos en `evaluation/tabla_comparativa.py`. `.gitignore` excluye los modelos completos.
+- **Verificado localmente**: (a) `mergekit` con 4 modelos Qwen2 diminutos aleatorios: el promedio simple coincide con el promedio exacto (error 6.5e-4, fp16) y TIES da un modelo finito con las mismas claves; (b) con el modelo real y SOLO el adaptador del Generador 1: incorporarlo tomó 103 s, el modelo completo carga y las 5 frases salen sin basura ni repeticiones (5/5), aunque con errores de traducción reales ("qué chimba de parche" → "What a mess"; "gandalla" → "really cool"), anotados en el documento.
+
+Errores y comportamientos inesperados (para el paper, documentados en `merging/fusion_simple.md`):
+- **`mergekit` 0.1.4 es incompatible con `transformers` 5.x**: falla con `PydanticUserError: ConfiguredModuleArchitecture is not fully defined; you should define torch` aunque `pydantic` cumpla (2.10.6). Solución verificada: `transformers<5` (4.57.6) y `huggingface_hub<1`. El mensaje no apunta a la versión.
+- `mergekit` exige modelos completos, no adaptadores: hay que incorporarlos primero (~25 GB de disco frente a ~45 MB de los adaptadores).
+- `--copy-tokenizer` falla si el modelo de origen no trae tokenizador (artefacto de la prueba diminuta; no aplica a la fusión real).
+
+Decisiones tomadas: float16 al guardar los modelos completos (bfloat16 podría redondear la actualización pequeña del LoRA; no verificado contra bf16); mismos hiperparámetros de TIES que con PEFT (density 0.5, pesos 1) para comparar; los modelos de ~6 GB no se versionan.
+
+Pendiente (criterios de aceptación NO cumplidos): fusionar los tres adaptadores reales, que el modelo fusionado cargue y genere texto coherente en 5 ejemplos, y evaluarlo. Se cumple al correr el notebook en Colab; pasos en `docs/hoja_de_ruta_fin_proyecto.md`.
+
+---
+
+## Sesión 47 (2) — 2026-10-08 — Anderson García
+
+Qué se hizo: análisis de la primera corrida real de `merging/fusion_mergekit_colab.ipynb` (zip `resultados_mergekit.zip`, solo logs). **No se obtuvo ninguna fusión.** Detalle en `merging/fusion_simple.md`; logs archivados en `merging/logs/corrida1_sin_gpu/`.
+- **Hechos**: la sesión de Colab no tenía GPU (`Could not find cuda drivers`); el paso 1 (incorporar adaptadores) terminó a los 120 s sin traceback ni mensaje de éxito; `mergekit` encontró el `config.json` del Generador 1 pero no el del 2; las pruebas de coherencia y las predicciones (12 s en vez de ~5.6 min) fallaron porque faltaban los modelos de entrada. Los 38 s y 13 s de `mergekit` son lo que tardó en fallar.
+- **Inferencia (no confirmada por ningún log)**: el proceso murió por falta de memoria (RAM de Colab ~12.7 GB; modelo fp16 ~6 GB) al guardar el primer modelo. Los `print` se perdieron porque iban por `tee` sin vaciar el búfer.
+- **El notebook no se detenía en el primer error**, por lo que los pasos siguientes generaron errores en cascada que ocultaban la causa.
+- **Arreglos**: `incorporar_adaptadores.py` usa GPU si hay, guarda en shards de 1 GB, libera memoria entre adaptadores, imprime con `flush=True` y verifica que los pesos sumen ~6 GB; el notebook exige GPU en la primera celda, corre cada adaptador en su proceso y verifica cada paso antes de seguir. Reprobado localmente con el modelo real y un adaptador: 7 shards, 6.2 GB, 94 s en CPU, salto de "ya existe" correcto (salida borrada, no se versiona).
+
+Decisiones tomadas: se conservan los logs de la corrida fallida como evidencia (información para el paper, como pedía la tarea); no se intentó "arreglar" la fusión con otra técnica; no se modificó nada de los resultados de la Fase 3.
+
+Pendiente (criterios de aceptación NO cumplidos): repetir el notebook con GPU T4 activa; luego fusión con `mergekit`, carga del modelo fusionado y 5 traducciones coherentes. Pasos en `docs/hoja_de_ruta_fin_proyecto.md`.
+
+---
+
+## Sesión 47 (3) — 2026-10-08 — Anderson García
+
+Qué se hizo: segunda corrida de `merging/fusion_mergekit_colab.ipynb` (zip `resultados_mergekit (1).zip`): **las dos fusiones con `mergekit` funcionaron**. Detalle en `merging/fusion_simple.md`.
+- **Aceptación**: `merging/salida/linear/` y `merging/salida/ties/` (modelos completos, ~6 GB, fuera de git) cargan sin errores y generan texto coherente en las 5 frases de prueba (leídas a mano; sin vacíos, repeticiones ni basura). Con errores de traducción puntuales: "qué chimba de parche" → "What a mess" en ambos; "gandalla" → "really cool" con TIES y "shady" con el promedio simple.
+- **Errores/comportamientos**: ningún error en esta corrida; solo una deprecación de `torch_dtype`. Los de la primera corrida (memoria, notebook sin parada) ya estaban documentados y corregidos.
+- **Métricas** (BLEU / chrF, test común): `mergekit` lineal 44.2 / 58.4; `mergekit` TIES 44.0 / 58.0; frente a 35.3 / 51.5 del promedio simple con PEFT. mergekit − PEFT = +9.2 BLEU [+6.1, +13.3] y +7.0 chrF [+4.8, +9.7]. Consistente con que el fallo del lineal con PEFT venía de promediar A y B por separado (no aislado). Entre las fusiones que funcionan no hay diferencias distinguibles (43.7 a 44.2). `mergekit` lineal supera al Generador 1 (+2.0 BLEU [+0.2, +4.2]) y al 3 (+2.2 [+0.5, +4.2]) en BLEU, no en chrF: señal débil (decenas de comparaciones, 9 semillas). Bootstrap de 11 modelos en `evaluation/analisis_bootstrap.md`.
+- Tiempos: incorporar los 3 adaptadores 466 s; `mergekit` lineal 739 s y TIES 1069 s; predicciones ~271 s por modelo.
+- Paper (`paper/main.tex`): tabla con las dos filas nuevas, párrafo de PI2 reescrito y conclusiones; compila limpio (2 pasadas, 0 errores, 0 overfull, 0 `??`, 19 páginas); `paper/main.pdf` actualizado.
+
+Correcciones a mis propios errores:
+- **La Sesión 47 (2) afirmó que la sesión de Colab no tenía GPU** por el aviso de TensorFlow `Could not find cuda drivers`. Era una señal engañosa: ese aviso es de TensorFlow, no de PyTorch, y aparece también en esta corrida, que sí usó GPU (`cargando base ... (cuda)`). La afirmación no estaba probada; se corrigió en `merging/fusion_simple.md`. Lo que sí se sabe es que el script de entonces cargaba el modelo siempre en CPU. La entrada de la Sesión 47 (2) se deja tal cual (historial) y esta la corrige.
+- El texto de resultados de la sesión anterior decía que las tres fusiones útiles superan a la mezcla en BLEU; la destilación no (+1.3 [−0.5, +3.0]). Corregido en `docs/resultados_fase3.md` y en el paper.
+
+Decisiones tomadas: se redacta como señal débil por las comparaciones múltiples; no se concluye que un método de fusión sea mejor que otro (no se distinguen).
+
+Pendiente: opcional, aislar la causa del fallo del lineal con PEFT (comparar con promediar los productos B·A). Evaluación humana y PI3 siguen pendientes.
+
+---
+
+## Sesión 48 — 2026-10-08 — Anderson García
+
+Qué se hizo: dos tareas pendientes de la Fase 3: (2) evaluar PI3 y (4) aislar por qué el promedio simple con PEFT salió mal.
+
+**Parte 4 — corrección de una explicación mía.** Al revisar el código de PEFT (`_generalized_task_arithmetic_weighted_adapter`) vi que la fusión "lineal" de la Fase 3 usó pesos 1.0 por adaptador: **suma** las tres actualizaciones en vez de promediarlas, y además multiplica las sumas de A y de B (términos cruzados `B_i·A_j`). `mergekit` normaliza a 1/3. Eran dos diferencias a la vez; mi explicación en el paper ("promediar A y B por separado") era incompleta. Con los adaptadores reales (`merging/analisis_lineal_peft.py` → `merging/analisis_lineal_peft.md`, sin inferencia): la actualización de PEFT w=1 tiene 4.74 veces la norma del promedio ideal y coseno 0.635 con él; las matrices A de adaptadores distintos son ortogonales (coseno 0.000), así que los 6 términos cruzados son ruido y tienen 1.22 veces la energía de la señal; normalizar los pesos arregla la escala pero deja error relativo 1.22. **Qué domina la caída de calidad no está aislado**: preparado `merging/aislar_lineal_peft_colab.ipynb` (PEFT `linear` normalizado vs PEFT `cat` normalizado, que es el promedio exacto; `fusionar_adaptadores.py` ganó `cat` y `--normalizar`; el `cat` se verificó en pesos: error 2e-3 frente al promedio ideal; el `linear` normalizado conserva 1.21). Paper, `merging/fusion_simple.md` y `docs/resultados_fase3.md` corregidos.
+
+**Parte 2 — PI3** (`docs/resultados_pi3.md`):
+- Portabilidad (`evaluation/pi3_portabilidad.py`): modelo base 6.17 GB, adaptador 14.8 MB (0.24 %); con la red bloqueada a nivel de sockets y HF offline, **0 intentos de conexión** y traducciones correctas; RAM 6.69 GB tras generar; CPU 46-65 s por traducción. Aclarado en el informe que la "carga 1.5 s / 0.5 GB" es engañosa (carga perezosa); la cifra útil es la RAM tras generar.
+- Competitividad (`evaluation/comparar_sistemas_generales.py`, mismo prompt, mismas métricas): contra gpt-oss-120b y qwen3.8-27b (no generaron datos) el mejor modelo pequeño (fusión lineal mergekit, 44.2/58.4) queda **por debajo de forma distinguible** (−3.9 y −3.4 BLEU, −4.5 y −4.0 chrF; `evaluation/analisis_bootstrap_pi3.md`); contra los generadores (sin sus propias referencias) no se distingue de command-r ni de gemini-3.5-flash-lite en BLEU y supera a gpt-oss-20b en BLEU (+3.5 [+0.2, +7.0]), con el sesgo de que aprendió de ellos. Con referencias humanas (n=9) los LLM grandes puntúan más, sin poder concluir.
+- Paper actualizado (tabla `tab:pi3`, párrafo de PI3, hoja de ruta, trabajo futuro, conclusiones): 20 páginas, 2 pasadas, 0 errores, 0 overfull, 0 `??`.
+
+Decisiones tomadas / limitaciones: el tamaño de `command-r` y de `gemini-3.5-flash-lite` no está verificado y se marca; faltan Google Translate/DeepL (sin clave): PI3 queda parcial; una traducción de qwen3.8-27b y alguna de los generadores fallaron (n 173/117, comparaciones sobre las mismas entradas disponibles); incidente menor: un script de portabilidad quedó con un error de sintaxis tras un reemplazo mío y se reparó antes de usarlo de nuevo.
+
+Pendiente: correr `merging/aislar_lineal_peft_colab.ipynb` (Colab, usuario); comparar contra sistemas de traducción dedicados; cuantización; evaluación humana.
+
+---
+
+## Sesión 48 (2) — 2026-10-08 — Anderson García
+
+Qué se hizo: resultado del experimento de aislamiento (`resultados_aislar_lineal.zip`, notebook `merging/aislar_lineal_peft_colab.ipynb`). **Refuta la explicación que yo había puesto en el paper y en la Sesión 48.**
+- Resultados (BLEU / chrF, test común): PEFT `linear` con pesos 1/3 (corrige la escala, conserva los términos cruzados) **43.6 / 58.1**; PEFT `cat` con pesos 1/3 (promedio exacto, sin términos cruzados) **43.5 / 58.1**; el `linear` original con pesos 1.0 35.3 / 51.5; `mergekit` lineal 44.2 / 58.4.
+- Incertidumbre (`evaluation/analisis_bootstrap_aislar_lineal.md`, bootstrap por semilla): `linear` normalizado − `linear` original = +8.5 BLEU [+5.6, +12.4], +6.7 chrF; `cat` − `linear` normalizado = −0.1 BLEU [−0.7, +0.6] (indistinguibles); `mergekit` − las dos variantes = +0.7 BLEU con intervalo [+0.0, +1.4] / [+0.1, +1.6] (en el límite, no se interpreta).
+- **Conclusión**: la causa del mal resultado era la escala (sumar tres actualizaciones en vez de promediarlas), un **error de configuración nuestro** (se usaron los pesos por defecto, 1.0), no los términos cruzados ni una limitación de PEFT. Los términos cruzados tienen 1.22 veces la energía de la señal en el espacio de pesos y las matrices A son ortogonales, pero no dañan; no se investigó por qué.
+- Corregido: paper (párrafo de PI2, tabla con dos filas nuevas y la fila original renombrada "pesos 1.0 (suma, error de configuración)", conclusiones; 20 páginas, 2 pasadas, 0 errores, 0 overfull, 0 `??`), `merging/fusion_simple.md`, `docs/resultados_fase3.md` y `merging/analisis_lineal_peft.py` (sección "resultado posterior").
+
+Decisiones tomadas: se conserva la Sesión 48 como historial (decía "no aislado"); esta entrada la corrige. Se descartó que haya que cambiar el método de fusión: con pesos normalizados PEFT funciona igual que `mergekit`. Un error mío de redacción ("y y con") se detectó y corrigió antes de compilar el PDF final.
+
+Pendiente: opcional, entender por qué los términos cruzados no dañan.
+
+---
+
+## Sesión 49 — 2026-10-08 — Anderson García
+
+Qué se hizo: preparación completa de la ronda de evaluación humana ciega de los tres modelos individuales (PI1). **No se pudo enviar ni obtener resultados**: `evaluation/evaluadores.csv` está vacío (ningún evaluador confirmado), y enviar mensajes a personas es una acción humana. No se inventó ningún dato: `evaluation/resultados_humanos_pi1.csv` **no existe**.
+- **Hojas ciegas** (`evaluation/evaluacion_humana/hojas/<Dialecto>.csv`): 60 ítems (12 por dialecto) con las traducciones de los generadores 1, 2 y 3, 28-36 filas por hoja, opciones A/B/C en orden aleatorio, traducciones idénticas fusionadas en una sola fila. Mismas entradas para los tres modelos.
+- **Clave privada y semilla secreta**: el repositorio es público y el script tenía semilla fija (42), así que cualquiera podría regenerar la clave. Las hojas se regeneraron con una semilla aleatoria que no se guardó; `clave_modelos.json` quedó fuera de git (`.gitignore`) y se versiona su SHA-256 (`clave_sha256.txt`) para demostrar después que no se alteró. Consecuencia práctica: si se pierde el archivo de la clave, la ronda no se puede interpretar.
+- **Verificación del ciego** (`evaluation/verificar_ciego.py`, informe privado): sin nombres de modelos en celdas ni identificadores, columnas correctas, los tres modelos en cada ítem; reparto de posiciones de 23 % a 42 % por posición (ninguno >50 %); longitudes medias 13.3 / 13.5 / 14.2 palabras (diferencia <7 %). No descarta que un evaluador reconozca el estilo de un modelo.
+- **Consolidación** (`evaluation/consolidar_resultados_humanos.py`): valida cada hoja devuelta (mismas filas, contenido sin alterar, calificaciones enteras 1-5, mínimo 3 evaluadores por dialecto) y se niega a escribir si algo falla. Probado con respuestas simuladas en una carpeta temporal (nunca en el repo): se niega sin respuestas, con 2 evaluadores, con texto alterado y con calificación vacía; con datos correctos escribe el formato largo (dialecto, evaluador, ítem, opción, modelo, calificación) que consume `evaluation/kappa.py` (kappa ≈ 0 con calificaciones aleatorias, como debe).
+- Material para enviar: `evaluation/mensaje_evaluadores_pi1.md` (texto del mensaje, qué mandar y qué no, checklist, pasos al recibir); documento del procedimiento: `docs/evaluacion_humana_pi1.md`. Corregida la instrucción del script que pedía devolver la hoja "con tu nombre": ahora usa un ID (privacidad).
+
+Decisiones tomadas: no se incluyó el modelo base como control (el pedido eran los tres individuales); se deja a decisión del equipo. Los evaluadores se identifican por ID, no por nombre.
+
+Pendiente (criterios de aceptación NO cumplidos): confirmar ≥3 evaluadores nativos por dialecto, enviar, recoger las hojas y calcular kappa. Pasos en `docs/hoja_de_ruta_fin_proyecto.md`.
+
+---
+
+## Sesión 50 — 2026-10-08 — Anderson García
+
+Qué se hizo: informe de la fusión frente a los individuales en el archivo pedido, `evaluation/comparacion_fusion_simple.md`, generado por el nuevo `evaluation/comparacion_fusion.py`. Las cifras ya existían (Sesiones 44-48); lo nuevo es el archivo específico, la comparación explícita contra el mejor individual y una verificación en código de que todos los modelos se evaluaron sobre exactamente las mismas 174 entradas y 9 semillas.
+- **Mejor individual**: LoRA del Generador 3 (42.3 BLEU / 57.9 chrF), fijado de antemano como el de mayor chrF global; el Generador 1 (42.2 / 57.5) no se distingue de él y el Generador 2 (40.7 / 55.3) queda por debajo.
+- **Fusiones** (mergekit): promedio simple 44.2 / 58.4; TIES 44.0 / 58.0. Frente al mejor individual: promedio simple +2.2 BLEU [+0.5, +4.2] y +0.4 chrF [−0.6, +1.5]; TIES +1.9 BLEU [−0.4, +4.6] y +0.0 chrF [−2.2, +1.8]. Frente al modelo entrenado sobre la mezcla: +1.9 y +1.7 BLEU (distinguibles). Frente al Generador 2: +3.5 y +3.3 BLEU.
+- **Respuesta preliminar a PI2**: la fusión no fue peor que el mejor individual; una primera señal sugiere que es al menos igual y quizás algo mejor en BLEU, pero la ventaja es pequeña (en chrF no se distingue de un empate, y con TIES tampoco en BLEU) y no se puede afirmar que lo supere. Promedio simple y TIES no se distinguen entre sí; las réplicas con PEFT (promedio, cat, TIES, DARE+TIES) y la destilación quedan en el mismo rango (43.5-43.9 BLEU).
+- Cautelas anotadas en el informe: 9 semillas, una corrida por modelo, referencias mayormente sintéticas, decenas de comparaciones, "mejor individual" elegido con el mismo test, sin evaluación humana.
+
+Decisiones tomadas: el resultado se reporta tal cual; no se ajustó nada para favorecer a la fusión (las configuraciones de mergekit son las de la Sesión 47, sin cambios). Dos errores míos corregidos antes de entregar: una expresión regular con un `%` sin escapar y una frase del encabezado que decía que todos los individuales estaban "dentro del ruido" del mejor, cuando el Generador 2 queda por debajo de forma distinguible.
+
+Pendiente: evaluación humana (retención de matices) y más semillas de prueba para PI2.
+
+---
+
+## Sesión 51 — 2026-10-08 — Anderson García
+
+Qué se hizo: análisis consolidado de PI1 en `evaluation/analisis_pi1.md`, generado por el nuevo `evaluation/analisis_pi1.py`. **La parte humana NO se pudo calcular**: `evaluation/resultados_humanos_pi1.csv` no existe (no hay evaluadores confirmados, `evaluadores.csv` vacío, ninguna hoja enviada ni devuelta). Por eso **no hay un kappa de Fleiss calculado** y el criterio de aceptación ("kappa con valor numérico") **no se cumple**; no se simuló nada en el repositorio.
+- **Parte automática (con datos reales)**: ranking por chrF G3 (Google lite) 57.9 > G1 (Groq) 57.5 > G2 (Cohere) 55.3; BLEU 42.3 / 42.2 / 40.7. Diferencias (bootstrap por semilla, IC 95 %): G1 − G2 +2.3 chrF [+0.2, +4.2]; G3 − G2 +2.7 [+0.8, +5.3]; G1 − G3 −0.5 [−2.4, +1.1] (no distinguible); en BLEU ningún par se distingue.
+- **Respuesta a PI1 con la evidencia disponible**: **parcial y tentativa, no cerrada**. El generador importa en un sentido acotado (Cohere queda 2-3 puntos de chrF por debajo de los otros dos; entre Groq y Google no se distingue), pero sin evaluación humana no se sabe si eso corresponde a calidad percibida, las referencias son mayormente sintéticas y sesgadas hacia su propio LLM, y hay confusión entre "qué LLM es" y "qué tamaño tiene" (Google es "lite"). Hipótesis no probada: Cohere genera más registro formal y menos jerga.
+- **La parte humana está construida y probada** con calificaciones simuladas en una carpeta temporal (fuera del repo), en dos escenarios: (A) personas que ordenan igual que chrF → "coinciden", "clara con ambas señales alineadas"; (B) personas que prefieren a Cohere → "SE CONTRADICEN" en dos pares y "mixta, con contradicción". Calcula el kappa de Fleiss por dialecto (y el de Cohen ponderado), el puntaje medio por modelo con IC por bootstrap sobre ítems, compara rankings y añade una advertencia si el kappa medio es <0.40. En ambos escenarios simulados el kappa salió "leve" y la advertencia apareció.
+
+Decisiones tomadas: la regla de "coinciden / se contradicen / una señal distingue y la otra no" se fijó en código antes de ver datos humanos, para no decidirla a conveniencia; si los rankings no coinciden, el análisis lo declara como hallazgo a discutir, no lo oculta.
+
+Pendiente (criterios NO cumplidos): conseguir evaluadores, enviar las hojas (Sesión 49), consolidar, y volver a correr `python evaluation/analisis_pi1.py`; luego actualizar el paper con el kappa y la respuesta consolidada.
+
+---
+
+## Sesión extra (6) — 2026-10-08 — Anderson García
+
+Qué se hizo: auditoría de la lista de pendientes `docs/hoja_de_ruta_fin_proyecto.md`. El usuario preguntó si todo estaba agregado; la respuesta honesta fue "casi todo, pero la lista no es fiable": era un registro acumulado con casillas sin marcar de cosas ya hechas (corridas de Colab, fusiones, aislamiento del promedio con PEFT, PI3, paper) y le faltaban pendientes reales. Se añadió arriba una sección única "PENDIENTES ACTUALES" (A: depende del usuario o de personas; B: lo hago yo cuando lleguen datos humanos; C: lo puedo hacer ya) y las listas viejas quedaron marcadas como históricas, no borradas.
+
+Pendientes que faltaban y ahora constan: confirmar la numeración de sesiones de la bitácora (muchas se numeraron por inferencia); revisión del paper por Mariana y Paula (se reescribieron sus secciones de Resultados y Conclusiones); guardar la clave privada de la ronda de evaluación humana; decidir el merge o PR de `develop` a `main`; claves de Google Translate y DeepL para cerrar PI3; medir el arranque en frío del Space; data cards de los generadores 2 y 3; actualizar `README.md`; cuantización; ampliar el conjunto de prueba.
+
+Decisiones tomadas: no se reescribió el historial de la lista; solo se antepuso la sección vigente y se renombró el encabezado antiguo. Esta entrada se numeró "extra (6)" para no inventar otro número de sesión.
+
+Pendiente: lo que consta en esa sección.
+
+---
+
+## Sesión 52 — 2026-10-08 — Anderson García
+
+Qué se hizo: documentación y verificación de la fusión por destilación multi-maestro en `merging/fusion_destilacion.md`. El loop (`merging/destilacion_multimaestro.py`) ya estaba implementado (Sesión 43) y ejecutado en Colab; faltaban el documento, la comparación de costo, la prueba manual de 5 ejemplos y versionar el modelo.
+- **Proceso e hiperparámetros** (tomados del código y del notebook, una sola configuración sin ajustar): 3 maestros congelados + estudiante LoRA (r=8, alpha=16) en un solo modelo base; estudiante inicializado desde la fusión TIES con PEFT; datos `dataset_mezcla` (1,496 train / 183 val); pérdida `0.7·KL(promedio de maestros ‖ estudiante) + 0.3·CE`; AdamW lr 5e-5, lote 1 con acumulación 8, 2 épocas, modo eval, mejor CE de validación.
+- **Tiempo de cómputo** (T4): destilación 5,697 s (95 min) frente a 24 s de TIES con PEFT (~235×), 1,205 s del promedio con mergekit y 1,535 s de TIES con mergekit (contando la incorporación de adaptadores; 3.7-4.7×); equivale a entrenar ~5 adaptadores. La estimación de la celda de Colab (20-40 min) era incorrecta.
+- **Resultado**: 43.9 BLEU / 58.3 chrF; frente a TIES con PEFT −0.0 BLEU [−1.3, +1.3] y +0.1 chrF; frente al mejor individual +1.5 BLEU [−0.9, +4.5], no distinguible. Con estos datos el costo extra no se justifica.
+- **Prueba manual (aceptación)**: el modelo destilado carga sin errores y las 5 frases salen coherentes (5/5; "qué chimba de parche" → "What a mess" es un error que ya tenían los individuales y las otras fusiones).
+- **Versionado**: `.gitignore` excluía todo `*.safetensors`, así que el modelo destilado (14.8 MB) no estaba en git; se agregó una excepción y se versiona para reproducir sin repetir los 95 min. Las demás fusiones (PEFT y mergekit) siguen sin versionarse; se regeneran en segundos con `merging/fusionar_adaptadores.py`.
+
+Errores míos corregidos antes de subir: afirmé que los maestros estaban "cerca de memorizados" con pérdida de entrenamiento 0.14-0.30, pero esos valores son de la época 3 y los adaptadores guardados son los de la época 1 (pérdida media de entrenamiento 0.71, 0.54 y 0.84, verificada en los `loss_log.json`); y una frase mal redactada.
+
+Limitaciones anotadas en el documento: una corrida, sin ablaciones (el estudiante parte de TIES, así que no se separa inicialización de destilación; no se probó desde el modelo base ni desde el promedio simple: el de PEFT estaba mal configurado entonces y el de mergekit es un modelo completo, no un LoRA); no se guardaron las curvas de KL y CE; los maestros se consultan sobre datos que vieron; 9 semillas.
+
+Pendiente: opcional, repetir desde el modelo base y con otros `alfa`/`lr` para una ablación; guardar la salida del loop en la próxima corrida.
+
+---
+
+## Sesión extra (7) — 2026-10-08 — Anderson García
+
+Qué se hizo: se agregaron a la lista vigente de pendientes (`docs/hoja_de_ruta_fin_proyecto.md`, sección "PENDIENTES ACTUALES", subsección "Tareas del calendario que siguen abiertas") las dos tareas que pidió el usuario dejar anotadas, con su prompt completo y su estado real: (1) kappa de Fleiss y análisis consolidado de PI1 — la parte automática está hecha, el kappa NO se pudo calcular por falta de `resultados_humanos_pi1.csv`; (2) "Sesión 48 (Mariana)": borrador de resultados de PI1 y primera mitad de PI2 para el paper — no iniciada.
+
+Decisiones tomadas: no se ejecutó ninguna de las dos (el usuario pidió dejarlas en la lista). Se anotó que el paper ya contiene versiones de las secciones de PI1 y PI2 (escritas en las Sesiones 44-51), por lo que el borrador de Mariana debe partir de ellas, y que la confirmación del equipo de que la interpretación no exagera es una acción humana. Se detectó y anotó un conflicto de numeración: la "Sesión 48" de Mariana choca con mis entradas "Sesión 48" y "48 (2)".
+
+Pendiente: lo que consta en esa subsección.
+
+---
+
+## Sesiones 53-60 (cierre de la Semana 8-10, numeración inferida) — 2026-10-10 — Anderson García
+
+Qué se hizo: se completó lo que podía hacerse sin evaluadores humanos ni claves externas del calendario de las semanas 8-10.
+- **Comparación completa de PI2** (`evaluation/comparacion_completa_pi2.py/.md`): todas las variantes con intervalos y las cinco opciones; destilación − fusión simple = −0.6 BLEU [−2.5, +1.0], −0.1 chrF (marginal, a 95 min frente a 13 s-~20 min).
+- **Balance de la mezcla** (`finetuning/resumen_curva.py`, `curva_final_mezcla.md`): 513/475/508 ejemplos por generador; no se recortó, explicado.
+- **PI3, cuantización** (`evaluation/pi3_cuantizacion.py`, sección nueva en `evaluation/pi3_portabilidad.md`): int8 dinámico en CPU, 3 frases: 4.33 GB (−30 %), 28 s de mediana (vs 46-65 s), 0 conexiones con red bloqueada, pero RAM pico de 12.48 GB y calidad **sin medir** (las 3 frases no aciertan el sentido de la referencia; comparación no limpia). 4 bits no probado (requiere GPU/bitsandbytes). La medición sobre las 174 entradas no se corrió local (regla de cómputo pesado en Colab; ~81 min en esta máquina).
+- **Análisis cualitativo preliminar** (`evaluation/analisis_cualitativo.md`): 34 peores casos por chrF de la fusión simple, clasificados a mano por un solo lector no nativo (47 % errores de significado, 24 % pierden matiz, 29 % aceptables penalizados por la métrica); tablas por dialecto y por expresión. No hay comentarios de evaluadores: así se dice.
+- **Borradores**: `docs/fase3_resultados_pi1_borrador.md`, `docs/fase3_resultados_completos_borrador.md`, `docs/fase3_limitaciones_borrador.md` (datos, diseño, errores propios, riesgos, gobernanza), `docs/fase3_costos_y_futuro_borrador.md` (tiempos reales de T4, $0, trabajo futuro).
+- **Sustentación**: `docs/guion_sustentacion_final.md`, `docs/banco_preguntas_final.md`, y tres figuras generadas con `evaluation/figuras_sustentacion.py` en `docs/figuras/` (matplotlib se instaló en el venv).
+- **Comparación con traductores comerciales**: `evaluation/comparar_comerciales.py` (Google Translate v2 y DeepL), probado solo con respuestas simuladas; sin claves no hay resultado y el informe lo dice.
+- **Paper** (`paper/main.tex`, 20 páginas): párrafo cualitativo, resultado de la cuantización, riesgos y costos, trabajo futuro; compilado 2 pasadas sin errores ni overfull, `auditar_tex.py` sin problemas.
+- **`docs/hoja_de_ruta_fin_proyecto.md`**: nueva sección "Cuando me pases X, yo hago Y".
+
+Decisiones tomadas: no se simuló ningún dato humano ni se rellenó nada del kappa; la cuantización queda como resultado parcial; las fusiones se reportan sin contar el entrenamiento previo de los adaptadores (se aclara en costos y en la figura).
+
+Errores míos corregidos antes de subir: en el borrador de limitaciones escribí "576 de las 585 referencias" (cifra sin respaldo); la correcta es 165 de 174 en el test común. Escribí también que el Space "no guarda textos" sin verificarlo; ahora dice que no está verificado. Afirmé que los intervalos de los modelos ajustados no se solapan; se corrigió (sí se solapan).
+
+Pendiente: evaluación humana y kappa, claves de traductores comerciales, medir en Colab la calidad cuantizada, revisión del equipo, ensayo y video, numeración de sesiones, merge a `main` (todo en la nueva sección de la hoja de ruta).
+
+
+---
+
+## Sesión extra (8) — 2026-10-10 — Anderson García
+
+Qué se hizo: se corrió `evaluation/comparar_comerciales.py` con la clave gratuita de DeepL (guardada en `.env`, no en git; `.env.example` ahora lista `DEEPL_API_KEY` y `GOOGLE_TRANSLATE_API_KEY`). Resultado sobre el test común (174 entradas): DeepL 44.4 BLEU / 61.4 chrF frente a 44.2 / 58.4 de la fusión simple; diferencia +0.0 BLEU [-3.9, +3.9] (no distinguible) y -3.1 chrF [-6.5, -0.2] (el intervalo apenas excluye 0). Con las 9 referencias humanas DeepL saca 16.1 BLEU vs 4.9 (n=9, no concluyente). Casos mixtos: DeepL acierta "estar bien pedo" y "hacerse humo", falla "neta" (la deja sin traducir) y "coger la caña" (literal). Se añadió al script un bootstrap por semilla de la diferencia con el modelo pequeño. Se integró al paper (sección de PI3), a `docs/resultados_pi3.md`, al banco de preguntas y al borrador de resultados completos.
+
+Decisiones tomadas: Google Translate no se evalúa (exige cuenta de facturación y se prefirió no usarla); queda como limitación explícita. Las traducciones de DeepL quedan en `evaluation/predicciones_comerciales/deepl.json`.
+
+Pendiente: Google Translate (opcional); el resto sigue como en la hoja de ruta.
+
+
+---
+
+## Sesión extra (9) — 2026-10-10 — Anderson García
+
+Qué se hizo: prueba exploratoria de Jev (TypeSafe AI, modelo de decisión que no genera texto) como juez automático adicional (`evaluation/juez_jev.py`, resultados en `evaluation/juez_jev.md`, caché en `evaluation/predicciones_jev/`). Validación con las 9 entradas con referencia humana: orden esperado (control malo 1.35 < base 2.40 < mezcla 2.68 < fusión 2.88 < DeepL 3.14 < referencia 3.43). Sobre las 174 entradas: base 3.00, mezcla 3.22, fusión simple 3.37, referencia 3.71, DeepL 3.78; fusión − DeepL = −0.41 [−0.56, −0.26], fusión − mezcla = +0.15 [+0.08, +0.22].
+
+Decisiones tomadas: es señal automática exploratoria, no evaluación humana; no se integró al paper. Discrepa con BLEU en DeepL (empate en BLEU, ventaja clara de DeepL con este juez), lo que podría reflejar que premia fluidez más que fidelidad dialectal; no se verificó. La clave está solo en `.env` (`TYPESAFE_API_KEY`).
+
+Pendiente: decidir si se menciona en el paper; validación humana del juez cuando existan evaluadores.
+
+
+---
+
+## Sesión extra (10) — 2026-10-10 — Anderson García
+
+Qué se hizo: se documentó, sin ejecutarlo, el plan de un extra posterior al cierre del proyecto: seguir afinando el modelo fusionado y medir contra la fusión simple (`docs/extra_finetuning_continuo.md`, enlazado desde `docs/hoja_de_ruta_fin_proyecto.md`). Se registró que el servicio desplegado usa hoy el adaptador del Generador 1 y no el fusionado.
+
+Decisiones tomadas: la investigación se da por cerrada y el orden es primero la hoja de ruta y después este extra. Se advirtió que más pasos con los mismos datos probablemente sobreajustan y que hacen falta datos nuevos; no se prometió una mejora.
+
+Pendiente: confirmar la fuente de datos del extra; todo lo demás de la hoja de ruta.
+
+
+---
+
+## Sesión extra (11) — 2026-10-10 — Anderson García
+
+Qué se hizo: búsqueda web (sin descargar nada) de datasets existentes de jerga latinoamericana con traducción al inglés, para alimentar el extra de seguir afinando; resultado en `docs/extra_finetuning_continuo.md`. No se encontró un dataset listo; el candidato más prometedor es Wiktionary vía kaikki.org (expresiones con etiquetas regionales y glosas en inglés).
+
+Decisiones tomadas: no se descargó ni se usó ningún dato; todos los candidatos quedan marcados como por verificar (licencia, tamaño, cobertura de América). Se advirtió que las oraciones y traducciones seguirían siendo sintéticas.
+
+Pendiente: decidir si se explora kaikki.org (requiere descargar un archivo grande; se pedirá permiso antes) y revisar licencias.
+
+
+---
+
+## Sesión extra (12) — 2026-10-10 — Anderson García
+
+Qué se hizo: bloque C de la hoja de ruta (lo que no dependía de nadie).
+- **Data cards** de los generadores 2 y 3 (`generation/data_card_generador2.md`, `data_card_generador3.md`) con cifras recalculadas de los datasets (632 y 625 variantes, 0 descartadas; registro: G2 61 % informal / 20 % formal / 19 % jerga, G3 59 % / 7 % / 33 %; splits 513/64/55 y 508/61/56). La ficha del Generador 1 estaba desactualizada (solo `lote_01`); se le añadió una nota de actualización sin reescribir su historial.
+- **README.md**: estructura (`tests/`, `docs/`, `paper/`, `.githooks/`), mapa de dónde está cada cosa de `merging/` y `evaluation/`, y las claves opcionales nuevas (`.env.example` ahora incluye `TYPESAFE_API_KEY`). Las 29 pruebas de `tests/` pasan.
+- **Cuantización, calidad**: `evaluation/pi3_cuantizacion_gpu.py` (fp16, 8 bits y 4 bits con bitsandbytes, en la misma sesión, con informe y bootstrap por semilla) y `merging/cuantizacion_colab.ipynb`. No se corrió: requiere GPU de Colab. El cálculo del informe se probó con predicciones de otros modelos solo para verificar que funciona (no se guardó nada de eso). Ojo: es cuantización de bitsandbytes en GPU, no la dinámica de PyTorch en CPU de la prueba preliminar.
+
+Decisiones tomadas: "ampliar el test" queda bloqueado por semillas nuevas verificadas por humanos; lo de los términos cruzados de PEFT se deja sin hacer (opcional).
+
+Pendiente: correr el cuaderno de cuantización en Colab y pasar el zip; semillas nuevas (checkpoint de `seeds/lote_03.json`).
+
+
+---
+
+## Sesión extra (13) — 2026-10-10 — Anderson García
+
+Qué se hizo: se escribió `docs/LEEME_ESTADO_Y_PENDIENTES.md`, una hoja de ponerse al día para el equipo (qué es el proyecto, qué está hecho, resultados en cinco líneas con sus cautelas, qué falta en orden de importancia —evaluación humana, revisión del paper, sustentación, corrida de cuantización en Colab, entrega— extras, reglas del repo y mapa de dónde está cada cosa). Se enlazó desde `README.md` y desde `docs/hoja_de_ruta_fin_proyecto.md`.
+
+Decisiones tomadas: es un resumen, no una lista nueva; la lista con comandos sigue siendo la hoja de ruta. No se asignaron tareas a personas concretas, para que el equipo las reparta.
+
+Pendiente: lo que consta en ese archivo.
+
+
+---
+
+## Sesión extra (14) — 2026-11-08 — Paula Lozano
+
+Qué se hizo: checklist operativo de reclutamiento y evaluación humana (`evaluation/checklist_reclutamiento_evaluadores.md`), que junta en un solo flujo paso a paso lo que antes estaba repartido en `reclutamiento_evaluadores.md`, `rubrica_humana.md` y `mensaje_evaluadores_pi1.md`: mensajes de contacto ya personalizados por dialecto, cuándo enviar la tarea real, y qué hacer al recibir cada hoja. Se amplió `evaluation/evaluadores.csv` de 5 a 15 filas vacías (3 por dialecto) para registrar evaluadores a medida que se confirman. Se enlazó el checklist desde `docs/evaluacion_humana_pi1.md`.
+
+Decisiones tomadas: ninguna persona nueva se registró todavía (no se inventaron datos); el archivo solo deja la plantilla lista.
+
+Pendiente: lo mismo que ya constaba en `docs/LEEME_ESTADO_Y_PENDIENTES.md` — sobre todo conseguir evaluadores de los dialectos Andina, Rioplatense y Chilena (Mexicana y Caribeña ya tienen candidatos en curso).

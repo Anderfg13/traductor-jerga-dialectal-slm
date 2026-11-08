@@ -1,0 +1,7 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1791483777.706832    3002 cpu_feature_guard.cc:227] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1791483782.761548    3002 cudart_stub.cc:31] Could not find cuda drivers on your machine, GPU will not be used.
+Fetching 2 files:   0%|          | 0/2 [00:00<?, ?it/s]Fetching 2 files:  50%|█████     | 1/2 [01:02<01:02, 62.67s/it]Fetching 2 files: 100%|██████████| 2/2 [01:02<00:00, 31.34s/it]
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:16<00:16, 16.57s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:25<00:00, 12.19s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:25<00:00, 12.84s/it]

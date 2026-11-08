@@ -1,0 +1,27 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1791486716.052025   15589 cpu_feature_guard.cc:227] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1791486719.710681   15589 cudart_stub.cc:31] Could not find cuda drivers on your machine, GPU will not be used.
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:19<00:19, 19.88s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:24<00:00, 10.94s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:24<00:00, 12.28s/it]
+ES : Che, estoy remando con el sueldo que me dan.
+EN : Man, I'm struggling to make ends meet with the salary I get.
+     -> ok
+
+ES : ¡Qué chimba de parche, nos vemos más tarde, parcero!
+EN : What a mess, see you later, buddy!
+     -> ok
+
+ES : Ese cuate es bien gandalla, no te fíes de él.
+EN : That guy is really cool, don't trust him.
+     -> ok
+
+ES : No hay bronca, ahorita te marco.
+EN : No problem, I'll call you in a bit.
+     -> ok
+
+ES : Estar hecho percha después de tanto laburar.
+EN : I'm totally wiped out after all that work.
+     -> ok
+
+5/5 salidas sin señales de fusión rota (revísalas igual a mano).

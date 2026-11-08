@@ -75,10 +75,68 @@ solapamiento real), múltiples generaciones concurrentes sobre el mismo
 modelo probablemente **se serializan** en la práctica (compartiendo la
 misma GPU/CPU), no corren en paralelo de verdad. Medir la capacidad de
 concurrencia real del sistema completo requiere GPU (Colab, o el
-despliegue de la Sesión 26, todavía bloqueado hasta ~2026-10-02) y
-queda como trabajo pendiente — este documento no reporta un número de
+despliegue de la Sesión 26 — ya desplegado, ver "Resultado 3" abajo,
+con medición parcial) y queda como trabajo pendiente — este documento no reporta un número de
 "solicitudes concurrentes que el sistema completo puede manejar" con
 el modelo real, porque no se pudo medir honestamente sin ese entorno.
+
+## Resultado 3: Space desplegado con el modelo real (2026-10-07)
+
+Cierra el pendiente de la sección anterior. Servicio medido:
+`https://andry891-traductor-jerga-dialectal.hf.space` (Gradio +
+ZeroGPU, Sesión 26), modelo real Qwen2.5-3B + LoRA. Herramienta:
+`api/prueba_carga_space.py` (`ThreadPoolExecutor`, N solicitudes
+simultáneas; cada una hace los dos pasos de la API de Gradio —
+`POST /gradio_api/call/traducir` y lectura del stream de eventos hasta
+`complete`/`error` — y la latencia es de extremo a extremo). Mismo
+texto en todas: "Que chimba de parche, nos vemos mas tarde bacano".
+Cliente **anónimo** (sin token de Hugging Face), desde una sola IP.
+
+Una solicitud suelta y sin carga: **2.5 s** (curl, misma fecha;
+calentamiento de la corrida: 4.61 s) — contra ~65 s en CPU local
+(Sesión 25).
+
+| Nivel | OK | Fallos | Latencia prom. (solo OK) | Mediana | Máx. | Duración total |
+|---|---|---|---|---|---|---|
+| 5 | 3 | 2 (40%) | 3.59 s | 4.31 s | 4.74 s | 4.74 s |
+| 20 | 0 | 20 (100%) | — | — | — | 3.95 s |
+| 50 | 0 | 50 (100%) | — | — | — | 10.2 s |
+
+**Todos los fallos son el mismo y están provocados por la cuota de
+ZeroGPU, no por una caída del servicio:**
+
+- Nivel 5: `You have exceeded your ZeroGPU quota (45s requested vs. 39s
+  left). Try again in 23:57:12`. Las 3 primeras solicitudes se
+  atendieron; la cuota diaria de GPU de la IP anónima se agotó a mitad.
+- Niveles 20 y 50 (ya sin cuota): `You have exceeded your ZeroGPU runs
+  limit. Authenticate with a Hugging Face token for more quota`. El
+  rechazo es inmediato (1-2 s) y con mensaje claro.
+- Tras la carga, `salud` seguía respondiendo `ok`: el servicio no se
+  cayó ni se degradó; rechaza limpiamente.
+
+### Qué se concluye (y qué no)
+
+- **Límite claro del servicio actual**: con cliente anónimo, el límite
+  práctico no es de concurrencia sino de **cuota diaria de GPU**:
+  se atendieron solo **4 traducciones** (1 de calentamiento + 3 del
+  nivel 5) antes de que el Space empezara a rechazar, y la cuota tarda
+  ~24 h en reiniciarse. Un lote de 5 solicitudes simultáneas ya es
+  demasiado para un cliente anónimo en un día.
+- **No se pudo medir** la latencia bajo 20 y 50 concurrentes con el
+  modelo real: al llegar a esos niveles la cuota ya estaba agotada.
+  Las cifras de latencia bajo carga con 20 y 50 siguen **pendientes**;
+  este documento no las inventa. Las únicas latencias reales bajo
+  concurrencia son las 3 del nivel 5 (3.59 s en promedio; n=3, muestra
+  muy pequeña para hablar de paralelismo vs. serialización).
+- Posible causa de que la cuota dure tan poco (sin verificar): el
+  decorador `@spaces.GPU(duration=30)` de `api/space/app.py` reserva
+  hasta 30 s por llamada aunque una traducción tarde ~2 s; el mensaje
+  "45s requested" sugiere que la reserva, no el uso real, es lo que se
+  descuenta. Bajar `duration` (p. ej. a 10) podría permitir muchas más
+  solicitudes con la misma cuota — falta probarlo.
+- Para medir 20 y 50 de verdad: repetir la corrida pasadas ~24 h, y/o
+  con un token de Hugging Face (`export HF_TOKEN=...`, el script ya lo
+  soporta), idealmente tras reducir `duration`.
 
 ## Cómo reproducir
 
@@ -89,4 +147,7 @@ SKIP_MODEL_LOAD=1 MOCK_TRANSLATION_TEXT="mock" MOCK_TRANSLATION_DELAY_SEG=0.3 \
 
 # Terminal 2
 python api/prueba_carga.py --url http://127.0.0.1:8000 --niveles 5 20 50
+
+# Contra el Space desplegado (modelo real; sin HF_TOKEN usa cuota anónima)
+python api/prueba_carga_space.py --niveles 5 20 50
 ```

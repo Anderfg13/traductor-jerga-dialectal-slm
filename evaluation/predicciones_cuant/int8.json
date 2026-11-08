@@ -1,0 +1,29 @@
+[
+ {
+  "texto_dialectal": "Estar salado",
+  "traduccion": "To be having a run of bad luck",
+  "dialecto_region": "Caribeña",
+  "fuente": "oro",
+  "seed_id": "sem-012",
+  "traduccion_modelo": "I'm broke",
+  "segundos": 30.98
+ },
+ {
+  "texto_dialectal": "Estar mosca",
+  "traduccion": "To be on the alert / on guard",
+  "dialecto_region": "Andina",
+  "fuente": "oro",
+  "seed_id": "sem-019",
+  "traduccion_modelo": "I'm stuck",
+  "segundos": 13.25
+ },
+ {
+  "texto_dialectal": "Neta",
+  "traduccion": "Seriously / for real",
+  "dialecto_region": "Mexicana",
+  "fuente": "oro",
+  "seed_id": "sem-042",
+  "traduccion_modelo": "Sure, here's the translation:\n\n\"Damn it\" (informal)",
+  "segundos": 28.0
+ }
+]

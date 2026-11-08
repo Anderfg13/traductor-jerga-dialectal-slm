@@ -4,11 +4,21 @@
 > prototipo". Lenguaje deliberadamente cauteloso en todo el
 > documento — estos son resultados de **un solo generador sintético**,
 > **un solo modelo candidato**, y una muestra de prueba de **8
-> ejemplos** (de 23 totales en `test.json`). Ninguna cifra de esta
-> sección se estima ni se redondea de memoria: todas vienen
-> textualmente de `evaluation/reporte_metricas_generador1.md`,
-> `evaluation/reporte_metricas_baseline.md`,
-> `evaluation/comparacion_base_vs_ajustado.md` o `docs/pruebas_carga.md`.
+> ejemplos** (de 23 totales en el `test.json` de entonces). Ninguna
+> cifra de esta sección se estima ni se redondea de memoria: todas
+> vienen textualmente de los archivos listados en la tabla de
+> trazabilidad al final de este documento.
+>
+> **Aviso sobre `test.json`** (2026-10-07): el `test.json` del
+> Generador 1 se regeneró después de estas mediciones, al ampliar el
+> banco a 100 semillas con un reparto fijo (`seeds/split_semillas.json`),
+> y hoy tiene 54 variantes, no 23. Las cifras de BLEU/chrF de 10.1 son
+> de la corrida anterior (reparto de 40 semillas) y su fuente de verdad
+> son los dos `reporte_metricas_*.md` (commit `905ae81`), no el
+> `test.json` actual. No son comparables con lo que produzca la Fase 3.
+>
+> Tampoco existe `evaluation/resultados_humanos_ronda1.csv`: no hay
+> ninguna ronda de evaluación humana real (ver 10.2).
 
 ## 10.1. Calidad de traducción: BLEU y chrF
 
@@ -49,6 +59,10 @@ ambos modelos hasta la fecha de este borrador. Generar predicciones
 sobre los 15 restantes requiere cargar el modelo con GPU (política de
 cómputo del proyecto), y queda como paso pendiente antes de tratar
 estas cifras como representativas del conjunto de prueba completo.
+Ese paso ya está preparado (`evaluation/generar_predicciones.py` y
+`finetuning/fase3_pipeline_colab.ipynb`, sobre el test común de
+`evaluation/test_comun.json`), pero **no se ha ejecutado**: no existe
+todavía ninguna cifra sobre un conjunto de prueba más grande.
 
 ## 10.2. Evaluación humana: **todavía no disponible**
 
@@ -72,7 +86,16 @@ variante generada, útil como hallazgo de calidad de datos, pero
 **no se reporta aquí como resultado de evaluación humana** porque no
 lo es: no lo calificaron hablantes nativos reales de cada dialecto,
 sino el equipo mismo probando si el CSV funcionaba. Reportarlo como
-"evaluación humana" en el paper sería engañoso.
+"evaluación humana" en el paper sería engañoso. (Verificable en el
+propio archivo: `evaluation/muestreo_manual.csv` tiene 36 filas, solo
+10 calificadas, todas con el comentario marcado `[piloto IA]`.)
+
+Desde este borrador también quedó lista, sin usarse todavía, la parte
+técnica de la evaluación real: hojas ciegas por dialecto
+(`evaluation/preparar_evaluacion_humana.py`) y cálculo del kappa de
+Fleiss y de Cohen ponderado (`evaluation/kappa.py`, verificado contra
+valores publicados en `tests/test_kappa.py`). Lo que falta son las
+personas.
 
 ## 10.3. Latencia
 
@@ -85,11 +108,34 @@ para el detalle completo):
   milisegundos (`GET /salud` en ~7ms) — el costo está enteramente en
   la inferencia del modelo de 3B sobre CPU.
 
+- El mismo servicio en contenedor (Docker/Podman, también en CPU):
+  `GET /salud` en ~36 ms y una traducción en 33.8 s.
+- Prueba de integración de 6 etapas contra el servicio real con el
+  modelo (CPU, 2026-10-07): la traducción tardó 53.59 s de latencia
+  promedio registrada.
+
 Esto está muy por encima de cualquier objetivo razonable de latencia
 para un servicio interactivo. No se maquilla como un resultado
 aceptable: es la evidencia central de por qué el despliegue con GPU
 real (Sección 9.3) es necesario, no opcional, para que este prototipo
 sea usable en la práctica.
+
+**Con GPU real (actualización 2026-10-07).** Desplegado en Hugging
+Face Spaces con ZeroGPU, una traducción individual tarda **2.5 s**
+(una sola solicitud, sin carga, desde `curl` a la URL pública). Es una
+primera señal de que la latencia se resuelve con GPU, no una medición
+bajo carga.
+
+**Bajo carga.** (a) Capa de API con traducción simulada de 0.3 s: con el
+límite de tasa por defecto, solo pasan las primeras 10 solicitudes por
+minuto y el resto recibe `429`; con el límite desactivado, 0 % de
+errores en 5, 20 y 50 solicitudes concurrentes, con latencia promedio de
+0.707 s, 0.939 s y 1.298 s. (b) Contra el Space con el modelo real, un
+cliente anónimo agotó la cuota diaria de ZeroGPU: con 5 concurrentes se
+atendieron 3 (3.59 s de promedio) y con 20 y 50 todas fueron rechazadas
+de inmediato por cuota; el servicio siguió respondiendo. **La latencia
+con el modelo real bajo 20 y 50 solicitudes concurrentes no está
+medida.**
 
 ## 10.4. Qué significan estos resultados (y qué no)
 
@@ -97,7 +143,8 @@ Estos números son consistentes con la hipótesis de que el ajuste fino
 con datos sintéticos ayuda a la tarea de traducción dialectal, pero
 **no permiten todavía responder ninguna de las tres preguntas de
 investigación del proyecto**: PI1 (efecto del generador) requiere
-comparar contra los Generadores 2 y 3, que no existen todavía; PI2
+comparar contra los Generadores 2 y 3 (sus datos sintéticos ya están
+generados, pero sus modelos todavía no se han entrenado); PI2
 (fusión de modelos) no aplica aún porque solo hay un modelo entrenado;
 PI3 (competitividad frente a sistemas de propósito general) requeriría
 comparar contra Google Translate/DeepL/un LLM grande sobre el mismo
@@ -105,3 +152,19 @@ conjunto de prueba, que tampoco se ha hecho. Estos resultados son la
 base de referencia (baseline técnico propio) sobre la que se construye
 la comparación completa de la Fase 3, no una respuesta anticipada a
 esas preguntas.
+
+## Trazabilidad de cada cifra
+
+| Cifra | Archivo fuente |
+|---|---|
+| BLEU/chrF global y por dialecto, modelo ajustado (47.21 / 59.71 …) | `evaluation/reporte_metricas_generador1.md` |
+| BLEU/chrF global y por dialecto, línea base (38.18 / 48.33 …) | `evaluation/reporte_metricas_baseline.md` |
+| Diferencias +9.03 BLEU, +11.38 chrF | resta de las dos filas anteriores (47.21 − 38.18; 59.71 − 48.33) |
+| 8 de 23 ejemplos, 2 por dialecto | columna `n` de los dos reportes; 23 = tamaño del `test.json` de la corrida (BITACORA.md, Sesión 21) |
+| Piloto: 36 filas, 10 calificadas, marca `[piloto IA]` | `evaluation/muestreo_manual.csv` |
+| 79.4 s, 49.8 s, ~7 ms (CPU local) | `BITACORA.md`, Sesión 25 |
+| ~36 ms, 33.8 s (contenedor) | `BITACORA.md`, Sesión 27 |
+| 53.59 s (E2E, servicio real) | `docs/evidencia_e2e.log` |
+| 2.5 s (GPU, Space público) | `docs/despliegue.md`, "Resultado del despliegue real"; `BITACORA.md`, Sesión 26 (2026-10-07) |
+| 0.707 / 0.939 / 1.298 s; 0 % errores; 429 tras 10 solicitudes | `docs/pruebas_carga.md`, Resultados 1 y 2 |
+| 3 de 5 atendidas, 3.59 s; 20 y 50 rechazadas por cuota | `docs/pruebas_carga.md`, Resultado 3 |
