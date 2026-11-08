@@ -55,7 +55,7 @@ Sin esto no hay kappa ni respuesta completa a PI1.
 
 ### D2. Adaptador fusionado en el Space — hecho (2026-11-08)
 - ~~El Space servía el adaptador individual del Generador 1~~. Se generó el adaptador fusionado con `merging/preparar_adapter_space_colab.ipynb` (PEFT, concatenación normalizada, r=24) y se reemplazó en `api/space/adapter/` + `git push` al repositorio del Space. Verificado con una traducción real contra la URL pública.
-- [ ] **Falta**: repetir la prueba de carga con 20 y 50 concurrentes (`python api/prueba_carga_space.py --niveles 5 20 50`) sobre este modelo ya actualizado — la medición anterior era sobre el adaptador viejo. Cuidado con la cuota diaria de GPU (5 min/día), no hacerlo el día de la demo.
+- ~~Repetir la prueba de carga con 20 y 50 concurrentes~~. Hecho (2026-11-08), con token autenticado: 28 de 75 solicitudes atendidas antes de agotar la cuota diaria; confirma que el servicio corre en paralelo (no se serializa) y que el límite real es la cuota de GPU, no la capacidad de concurrencia. Detalle en `docs/pruebas_carga.md`, Resultado 4.
 
 ### E. Entrega
 - ~~Decidir si se hace el merge o PR de `develop` a `main`~~. Hecho (2026-11-08): `main` y `develop` están sincronizados.

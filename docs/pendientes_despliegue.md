@@ -9,23 +9,18 @@ condición espera, el comando exacto y **dónde anotar el resultado**.
 > otras etapas (entrenamiento completo en Colab, evaluadores humanos,
 > generadores 2 y 3, etc.) siguen en `BITACORA.md` en sus sesiones.
 
-## 1. Latencia del Space con 20 y 50 concurrentes (modelo real)
+## 1. Latencia del Space con 20 y 50 concurrentes (modelo real) — hecho (2026-11-08)
 
-- **Espera**: que se reinicie la cuota diaria de ZeroGPU (~24 h después
-  de la prueba del 2026-10-07 ~22:00 UTC, es decir, desde el 2026-10-08
-  por la tarde), y/o un token de Hugging Face con más cuota.
-- **Comando** (la cuota es por IP o por token; no correr otras
-  pruebas contra el Space antes):
-  ```bash
-  export HF_TOKEN=...   # opcional, nunca escribirlo en archivos
-  python api/prueba_carga_space.py --niveles 5 20 50
-  ```
-- **Anotar en**: `docs/pruebas_carga.md`, sección "Resultado 3"
-  (reemplazar las filas de 20 y 50, que hoy dicen 100% fallos por
-  cuota) y una línea en `BITACORA.md`.
-- **Qué mirar**: si las solicitudes se serializan (latencia crece
-  linealmente con N) o corren en paralelo, y cuántas solicitudes caben
-  antes de agotar la cuota.
+Corrido con `$env:HF_TOKEN` (PowerShell) sobre el adaptador fusionado:
+28 de 75 solicitudes atendidas antes de agotar la cuota diaria; las
+solicitudes corren en paralelo (no se serializan). Resultado completo
+en `docs/pruebas_carga.md`, "Resultado 4", y en `paper/main.tex`
+(Evidencia de prototipo).
+
+Sigue abierto, no bloqueante: confirmar si bajar `duration` en
+`@spaces.GPU` (30 → 10) permitiría medir los 75 intentos completos sin
+quedarse sin cuota a mitad de camino — no se probó porque exige otro
+despliegue y gastar más cuota para medir de nuevo.
 
 ## 2. Probar si bajar `duration` estira la cuota de GPU
 

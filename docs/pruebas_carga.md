@@ -138,6 +138,51 @@ ZeroGPU, no por una caída del servicio:**
   con un token de Hugging Face (`export HF_TOKEN=...`, el script ya lo
   soporta), idealmente tras reducir `duration`.
 
+## Resultado 4: con token autenticado, sobre el adaptador fusionado (2026-11-08)
+
+Repite la medición del Resultado 3, ahora con dos cambios: (1) el Space
+ya sirve el adaptador fusionado de los tres generadores, no el del
+Generador 1 individual (Sesión extra 19-20); (2) la corrida usó un
+token de Hugging Face autenticado (`$env:HF_TOKEN`, cuenta Andry891),
+que tiene más cuota diaria que un cliente anónimo.
+
+Calentamiento: 1 solicitud, 3.22 s, correcta (`"What a mess, see you
+later cool guy"`).
+
+| Nivel | OK | Fallos | Latencia prom. (solo OK) | Mediana | Máx. | Duración total |
+|---|---|---|---|---|---|---|
+| 5 | 5 | 0 (0%) | 3.77 s | 4.35 s | 4.44 s | 4.47 s |
+| 20 | 8 | 12 (60%) | 2.18 s | 1.74 s | 5.51 s | 5.55 s |
+| 50 | 15 | 35 (70%) | 3.65 s | 3.21 s | 6.03 s | 6.05 s |
+
+Todos los fallos son, otra vez, por cuota agotada, no por una caída del
+servicio: `"You have exceeded your free ZeroGPU quota (45s requested
+vs. 8s left)"` en el nivel 20, y `"(... vs. 1s left)"` en el 50 — la
+cuota diaria es compartida entre los tres niveles de la misma corrida,
+no se reinicia entre uno y otro.
+
+### Qué se concluye ahora
+
+- **Esta vez sí se pudo medir concurrencia real en los niveles 20 y
+  50**, aunque de forma parcial: de 75 solicitudes intentadas en total
+  (5+20+50, sin contar el calentamiento), se atendieron 28 (5+8+15)
+  antes de agotar la cuota diaria completa.
+- **El servicio corre en paralelo, no se serializa**: atender 5, 8 y
+  15 solicitudes a la vez tomó 4.47 s, 5.55 s y 6.05 s de principio a
+  fin respectivamente — si se serializara, 15 solicitudes a ~3-4 s cada
+  una tomarían 45-60 s, no 6.
+- **La latencia de lo que sí se atendió no empeora de forma clara con
+  más concurrencia** (mediana de 4.35 s en el nivel 5 frente a 3.21 s
+  en el nivel 50), dentro de lo poco que alcanzó a medirse antes de
+  quedarse sin cuota.
+- Confirma lo que ya se sospechaba en el Resultado 3: el límite
+  práctico del servicio gratuito es la cuota diaria de GPU, no la
+  capacidad de atender solicitudes al mismo tiempo.
+- Sigue sin confirmarse si bajar `duration` en `@spaces.GPU`
+  estiraría la cuota (hipótesis de la Sesión 26, sin probar): hacerlo
+  exige otro despliegue y gastar más cuota para volver a medir, así
+  que queda como trabajo futuro, no como resultado.
+
 ## Cómo reproducir
 
 ```bash

@@ -3124,3 +3124,14 @@ Qué se hizo: `git push` al repositorio del Space en Hugging Face (Andry891/trad
 Decisiones tomadas: ninguna nueva.
 
 Pendiente: repetir la prueba de carga (20 y 50 concurrentes) sobre el modelo ya actualizado — la medición anterior registrada en `docs/pruebas_carga.md` es del adaptador viejo.
+
+
+---
+
+## Sesión extra (21) — 2026-11-08 — Paula Lozano
+
+Qué se hizo: prueba de carga real del Space con token autenticado (`$env:HF_TOKEN` en PowerShell) sobre el adaptador fusionado, `python api/prueba_carga_space.py --niveles 5 20 50`. Resultado: nivel 5 completo (5/5 OK, 4.35s mediana), nivel 20 parcial (8/20 OK antes de agotar cuota), nivel 50 parcial (15/50 OK). Todos los fallos fueron por cuota diaria de ZeroGPU agotada, no por caída del servicio. Confirma que el servicio corre en paralelo (duración total de 4.5-6.1s para atender varias solicitudes a la vez, no 45-60s como sería si se serializara) y que la latencia de lo atendido no empeora de forma clara con más concurrencia. Integrado en `docs/pruebas_carga.md` (Resultado 4) y en `paper/main.tex` (Evidencia de prototipo y Trabajo futuro); marcado como hecho en `docs/pendientes_despliegue.md`, `docs/LEEME_ESTADO_Y_PENDIENTES.md` y `docs/hoja_de_ruta_fin_proyecto.md`.
+
+Decisiones tomadas: no se probó bajar `duration` de `@spaces.GPU` para estirar la cuota — exigiría otro despliegue y gastar más cuota para volver a medir; queda como trabajo futuro, no como resultado.
+
+Pendiente: evaluación humana (Andina, Rioplatense y Chilena sin evaluadores todavía), revisión del paper por Mariana y Paula, numeración de sesiones, ensayo de la sustentación.
