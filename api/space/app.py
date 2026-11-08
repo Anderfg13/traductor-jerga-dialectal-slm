@@ -31,11 +31,13 @@ ese instante. Solo la función que genera texto lleva el decorador
 segundos que dura la llamada y la libera al terminar.
 
 El adaptador LoRA (`api/space/adapter/`) es una COPIA de
-`finetuning/checkpoints/generador1/adapter/` (Sesión 19) — duplicada
-a propósito (son ~15MB, no vale la pena complicar el despliegue con
-rutas cruzadas) para que este directorio sea autocontenido: es
-exactamente lo que se sube al repositorio del Space en Hugging Face,
-sin arrastrar el resto del proyecto.
+`finetuning/checkpoints/peft_cat_norm/fusion/` (adaptador fusionado de
+los tres generadores, PEFT con concatenación normalizada, Sesión extra
+18 — hasta esa sesión fue una copia del Generador 1 individual) —
+duplicada a propósito (son ~21MB, no vale la pena complicar el
+despliegue con rutas cruzadas) para que este directorio sea
+autocontenido: es exactamente lo que se sube al repositorio del Space
+en Hugging Face, sin arrastrar el resto del proyecto.
 
 Uso local (sin GPU real ni ZeroGPU — para probar que la app arranca
 antes de subirla; `@spaces.GPU` no hace nada fuera de un Space real,
@@ -110,7 +112,8 @@ def salud():
 with gr.Blocks(title="Traductor de jerga/dialectos del español") as demo:
     gr.Markdown(
         "# Traductor de jerga y dialectos del español → inglés\n"
-        "Modelo: Qwen2.5-3B-Instruct + adaptador LoRA (Generador 1, Sesión 19)."
+        "Modelo: Qwen2.5-3B-Instruct + adaptador LoRA fusionado "
+        "(PEFT, promedio normalizado de los Generadores 1, 2 y 3)."
     )
     with gr.Row():
         texto_in = gr.Textbox(label="Texto en español", placeholder="Ej: ¡Que chimba, parcero!")

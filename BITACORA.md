@@ -3102,3 +3102,14 @@ Qué se hizo: causa real del fallo de la Sesión extra (17) encontrada con el tr
 Decisiones tomadas: ninguna, era un error de dependencias, no de diseño.
 
 Pendiente: volver a correr el cuaderno (ya con el arreglo) y confirmar que el Paso 1 y la verificación posterior pasan.
+
+
+---
+
+## Sesión extra (19) — 2026-11-08 — Paula Lozano
+
+Qué se hizo: corrida exitosa de `merging/preparar_adapter_space_colab.ipynb` ya con el fix de torchao (Sesión extra 18). El adaptador fusionado (PEFT, concatenación normalizada de los tres generadores, r=24) se descargó completo (21.1 MB, antes 14.8 MB del Generador 1 individual por la suma de ranks 8+8+8). Se reemplazaron `adapter_config.json` y `adapter_model.safetensors` en `api/space/adapter/`, y se actualizó el texto de `api/space/app.py` (docstring y el Markdown de la interfaz) para que diga que sirve el adaptador fusionado de los tres generadores, no el del Generador 1.
+
+Decisiones tomadas: ninguna nueva — es el mismo plan ya decidido en la Sesión extra (16).
+
+Pendiente: hacer el `git push` al repositorio del Space en Hugging Face (necesita el token de la cuenta Andry891, no está en git); después, repetir la prueba de carga con 20 y 50 concurrentes sobre el modelo ya actualizado.
