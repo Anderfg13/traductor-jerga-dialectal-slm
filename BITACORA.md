@@ -3080,3 +3080,14 @@ Qué se hizo: `merging/preparar_adapter_space_colab.ipynb`, cuaderno de Colab (G
 Decisiones tomadas: se eligió la fusión PEFT (adaptador de ~15 MB) en vez de la fusión de mergekit (modelo completo de ~6 GB) para no rediseñar la arquitectura del Space a una semana de la entrega; el paper ya documenta que ambas no se distinguen estadísticamente (43.5 vs 44.2 BLEU).
 
 Pendiente: correr el cuaderno, reemplazar los dos archivos del adaptador en el Space y hacer el `git push` al repositorio del Space (necesita un token de Hugging Face con permiso de escritura); después, repetir la prueba de carga con 20 y 50 concurrentes sobre el modelo ya actualizado.
+
+
+---
+
+## Sesión extra (17) — 2026-11-08 — Paula Lozano
+
+Qué se hizo: se corrió `merging/preparar_adapter_space_colab.ipynb` pero el zip descargado solo traía `adapter_config.json`, sin `adapter_model.safetensors` (los pesos reales) — el paso de fusión se rompió a medias y, como corrió como comando de shell (`!...`), "Ejecutar todas" no se detuvo ni avisó. Se endureció el cuaderno: limpieza del intento anterior antes de fusionar, una celda de verificación con `assert` justo después del Paso 1 que revisa que el archivo de pesos exista y pese lo esperado (~15 MB) antes de seguir, y el mismo `assert` repetido antes de empacar el zip para no volver a generar uno incompleto en silencio.
+
+Decisiones tomadas: no se intentó reconstruir ni inventar el archivo de pesos localmente — es cómputo que solo puede salir de una corrida real en Colab con GPU.
+
+Pendiente: volver a correr el cuaderno (ya corregido) en Colab y confirmar que esta vez el zip trae los dos archivos.
