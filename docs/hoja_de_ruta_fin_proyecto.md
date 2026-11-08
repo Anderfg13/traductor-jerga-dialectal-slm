@@ -63,7 +63,7 @@ contradice esta sección, manda esta.
 - [ ] **No gastar la cuota de GPU del Space antes de la demo** (nada de `prueba_carga_space.py` ese día).
 
 **Despliegue en Hugging Face (ver también `docs/pendientes_despliegue.md`)**
-- [ ] Repetir la carga del Space con 20 y 50 concurrentes cuando se reinicie la cuota (`python api/prueba_carga_space.py --niveles 5 20 50`; opcional con `HF_TOKEN`).
+- [x] ~~Repetir la carga del Space con 20 y 50 concurrentes~~. Hecho (2026-11-08) con `HF_TOKEN`, sobre el adaptador fusionado: ver `docs/pruebas_carga.md`, Resultado 4.
 - [ ] Decidir si se baja `duration` de `@spaces.GPU` (30 → 10) para estirar la cuota: requiere tu token para el `git push` al Space.
 - [ ] Medir el arranque en frío del Space dormido (una sola solicitud con cronómetro, tras horas sin uso).
 - [ ] Decidir con el equipo si se portan métricas y retroalimentación al Space (hoy solo traducir/salud).
