@@ -12,7 +12,7 @@ humana y sin sistemas de traducción dedicados.
 |---|---|
 | ¿Es pequeño? | Sí: 3B de parámetros (6.17 GB en bfloat16) y 14.8 MB por especialización (0.24 % del base). |
 | ¿Es portable (corre sin internet)? | **Sí**: con la red bloqueada a nivel de sockets y Hugging Face offline, 0 intentos de conexión y traducciones correctas. Requiere ~8 GB de RAM libre (6.7 GB medidos). |
-| ¿Es eficiente? | Depende del hardware: en CPU, 46-65 s por traducción (no interactivo); con GPU T4, ~1.9 s; en el servicio público (ZeroGPU), 2.5 s. No se evaluó cuantización. |
+| ¿Es eficiente? | Depende del hardware: en CPU, 46-65 s por traducción (no interactivo); con GPU T4, ~1.9 s; en el servicio público (ZeroGPU), 2.5 s. Cuantizado en GPU (bitsandbytes, 174 entradas): nf4 pierde 1.6 BLEU y usa 2.01 GB (frente a 6.17 GB en fp16); int8 pierde 0.9 BLEU y usa 3.40 GB, pero es la variante más lenta de las tres (efecto conocido de `bitsandbytes`, no investigado a fondo). |
 | ¿Es competitivo con sistemas de propósito general? | **Solo en parte.** Frente a LLM grandes que no generaron datos (gpt-oss-120b, qwen3.8-27b) queda por debajo de forma distinguible (−3.4 a −3.9 BLEU, −4.0 a −4.5 chrF). Frente a `command-r` y `gemini-3.5-flash-lite` no se distingue en BLEU, y supera a `gpt-oss-20b` en BLEU (+3.5, intervalo [+0.2, +7.0]). |
 
 ## Competitividad en cifras
@@ -55,10 +55,11 @@ ellos (48.0): 7.2 de 11.0 puntos.
 
 ## Lo que queda de PI3
 
-- Comparar contra sistemas de traducción dedicados (Google Translate, DeepL)
-  con la misma métrica.
-- Cuantización (int8/int4) y formatos ligeros (GGUF) para CPU: probablemente
-  acerquen el uso interactivo, no medido.
+- Comparar contra Google Translate con la misma métrica (DeepL ya se
+  comparó, ver más abajo).
+- Formatos ligeros para CPU (GGUF): no medido. La cuantización en GPU
+  (int8/nf4 con `bitsandbytes`) ya se midió, ver
+  `evaluation/pi3_cuantizacion_calidad.md`.
 - Evaluación humana (retención de matices), que es lo que BLEU/chrF no miden.
 
 ## Frente a DeepL

@@ -49,12 +49,12 @@ Sin esto no hay kappa ni respuesta completa a PI1.
 - Grabar el video del Plan B (30–40 s de una solicitud real al Space).
 - **No gastar la cuota de GPU del Space antes de la demo.**
 
-### D. Una corrida de Colab pendiente
-- Abrir `merging/cuantizacion_colab.ipynb` con GPU T4 y correrlo entero (~20 min); pasar el `resultados_cuantizacion.zip` que descarga. Mide cuánta calidad se pierde al cuantizar el modelo a 8 y 4 bits.
+### D. Corrida de Colab — hecho (2026-11-08)
+- ~~Abrir `merging/cuantizacion_colab.ipynb` con GPU T4~~. Corrido (tardó unos 45 min con instalación). nf4 pierde 1.6 BLEU y usa 2.01 GB (frente a 6.17 GB en fp16); int8 pierde 0.9 BLEU y usa 3.40 GB, pero resultó la variante más lenta de las tres. Detalle en `evaluation/pi3_cuantizacion_calidad.md`, ya integrado en el paper.
 
 ### E. Entrega
+- ~~Decidir si se hace el merge o PR de `develop` a `main`~~. Hecho (2026-11-08): `main` y `develop` están sincronizados.
 - Confirmar la numeración de sesiones de `BITACORA.md` (la "Sesión 48" de Mariana choca con las de Anderson; varios números se pusieron por inferencia).
-- Decidir si se hace el merge o PR de `develop` a `main` (no se ha hecho).
 - Opcional: Google Translate (pide cuenta de facturación; se descartó), token de HF para cambiar la duración de `@spaces.GPU` en el Space.
 
 ## 5. Extras (después de cerrar lo anterior)

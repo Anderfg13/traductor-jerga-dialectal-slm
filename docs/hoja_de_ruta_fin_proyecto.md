@@ -26,8 +26,9 @@ Resumen para leer primero, pensado para el equipo: [`LEEME_ESTADO_Y_PENDIENTES.m
 **Qué quedó hecho de las Sesiones 43-60 (hasta 2026-10-10) y qué no:**
 
 - Hecho con datos reales: comparación automática PI1, fusión simple (mergekit), comparación completa de PI2 (incl. destilación), PI3 (portabilidad, int8 preliminar, comparación contra LLMs generales), balance de la mezcla, análisis cualitativo preliminar (un lector), borradores de resultados (PI1/PI2 y completos), limitaciones/riesgos/gobernanza, costos y trabajo futuro, guion y figuras de sustentación, banco de preguntas final, paper compilado.
-- **No se puede hacer sin ti**: evaluación humana (comparativa y kappa), traductores comerciales (claves), ensayo, video Plan B, revisión del equipo, numeración, merge a `main`.
-- **Pendiente técnico mío si lo pides**: cuaderno de Colab para medir la calidad del modelo cuantizado sobre las 174 entradas (no se corrió local por la regla de cómputo pesado), `.pptx` con las figuras (requiere instalar `python-pptx`), data cards de G2 y G3.
+- **No se puede hacer sin ti**: evaluación humana (comparativa y kappa), ensayo, video Plan B, revisión del equipo, numeración.
+- **Hecho desde entonces (2026-11-08)**: merge de `develop` a `main` (ambas ramas ya están sincronizadas); cuantización en GPU con calidad medida sobre las 174 entradas (`evaluation/pi3_cuantizacion_calidad.md`); DeepL comparado.
+- **Pendiente técnico mío si lo pides**: `.pptx` con las figuras (requiere instalar `python-pptx`).
 
 ---
 
@@ -92,7 +93,7 @@ contradice esta sección, manda esta.
 ### C. Lo puedo hacer yo ya, sin depender de nadie (pídemelo)
 - [x] **Data cards** de los generadores 2 y 3 (`generation/data_card_generador2.md` y `3.md`; la del 1 lleva una nota de actualización).
 - [x] **Actualizar `README.md`** con la estructura nueva (hecho 2026-10-10: `tests/`, `docs/`, `paper/`, `.githooks/` y mapa de `merging/` y `evaluation/`).
-- [ ] PI3: int8 probado de forma preliminar (3 frases: 28 s, 4.33 GB; calidad sin medir, ver `evaluation/pi3_portabilidad.md`); **preparado**: cuaderno `merging/cuantizacion_colab.ipynb` (+ `evaluation/pi3_cuantizacion_gpu.py`) mide calidad con fp16/8 bits/4 bits en la misma sesión. **Te toca correrlo en Colab (T4, ~20 min) y pasarme `resultados_cuantizacion.zip`**; con eso yo reviso, escribo `evaluation/pi3_cuantizacion_calidad.md` en `pi3_portabilidad.md` y el paper, y subo.
+- [x] **PI3: cuantización en GPU — hecho (2026-11-08).** Corrido en Colab (T4, ~45 min con instalación incluida). fp16 43.6 BLEU/58.2 chrF (6.17 GB), int8 42.7/57.6 (3.40 GB, pero la variante más lenta de las tres), nf4 42.1/56.9 (2.01 GB, mejor compromiso). Detalle en `evaluation/pi3_cuantizacion_calidad.md` y `evaluation/pi3_portabilidad.md`; ya integrado en `docs/resultados_pi3.md` y el paper. La prueba preliminar en CPU (int8 dinámico, 3 frases, sin medir calidad) sigue documentada aparte, no se repitió.
 - [ ] Ampliar el conjunto de prueba (hoy 9 semillas): es la mayor limitación estadística de todos los resultados. **Bloqueado: requiere semillas nuevas verificadas por humanos** (ver el checkpoint de `seeds/lote_03.json`); sugerencia: reservar un tercio de las nuevas como segundo conjunto de prueba, generar sus variantes con los 3 generadores y evaluar todos los modelos ya entrenados en él (Colab).
 - [ ] Entender por qué los términos cruzados de PEFT no dañan el promedio (opcional; no se hizo: no afecta ninguna conclusión y el paper ya lo declara como no investigado).
 
