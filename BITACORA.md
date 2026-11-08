@@ -3091,3 +3091,14 @@ Qué se hizo: se corrió `merging/preparar_adapter_space_colab.ipynb` pero el zi
 Decisiones tomadas: no se intentó reconstruir ni inventar el archivo de pesos localmente — es cómputo que solo puede salir de una corrida real en Colab con GPU.
 
 Pendiente: volver a correr el cuaderno (ya corregido) en Colab y confirmar que esta vez el zip trae los dos archivos.
+
+
+---
+
+## Sesión extra (18) — 2026-11-08 — Paula Lozano
+
+Qué se hizo: causa real del fallo de la Sesión extra (17) encontrada con el traceback completo: `ImportError: Found an incompatible version of torchao` — la versión de `torchao` que trae Colab por defecto (0.10.0) es incompatible con la versión de `peft` instalada, y `PeftModel.from_pretrained` falla al cargar el primer adaptador. El cuaderno de cuantización (`cuantizacion_colab.ipynb`) ya tenía el arreglo (`pip uninstall -y -q torchao`) pero no se copió al cuaderno nuevo. Se agregó esa línea a `merging/preparar_adapter_space_colab.ipynb`.
+
+Decisiones tomadas: ninguna, era un error de dependencias, no de diseño.
+
+Pendiente: volver a correr el cuaderno (ya con el arreglo) y confirmar que el Paso 1 y la verificación posterior pasan.
