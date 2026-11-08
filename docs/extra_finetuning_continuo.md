@@ -11,7 +11,7 @@ Partir del modelo fusionado (fusión simple con mergekit, 44.2 BLEU / 58.4 chrF 
 - Todos los entrenamientos anteriores dieron la mejor época en la 1 y sobreajustan después: **más pasos con los mismos datos probablemente no mejoran**. Hace falta información nueva.
 - Las 9 semillas del test se mantienen apartadas; si se entrenaran, ya no se podría medir la mejora.
 - Con 9 semillas de prueba solo se detectan mejoras grandes; una mejora pequeña no se distinguirá del ruido.
-- El servicio desplegado usa hoy el adaptador del Generador 1 (`api/main.py`), no el fusionado: desplegar lo mejor requiere un cambio aparte (y el token de Hugging Face).
+- ~~El servicio desplegado usa hoy el adaptador del Generador 1~~: ya se actualizó (2026-11-08) para servir el adaptador fusionado (PEFT, promedio normalizado de los tres generadores) en `api/space/`.
 
 ## Fuentes de datos nuevos (de menor a mayor dependencia de personas)
 

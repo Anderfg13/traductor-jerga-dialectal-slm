@@ -9,7 +9,8 @@ Un traductor de jerga y dialectos latinoamericanos del español al inglés. Se a
 ## 2. Qué ya está hecho
 
 - Los tres datasets sintéticos, los cuatro adaptadores (3 individuales + mezcla), todas las fusiones (PEFT, mergekit, TIES/DARE) y la destilación, todos evaluados sobre el mismo test común (174 entradas, 9 semillas).
-- Servicio desplegado y probado (`docs/despliegue.md`); pruebas, contenedor y observabilidad de la Fase 2.
+- Servicio desplegado y probado (`docs/despliegue.md`); pruebas, contenedor y observabilidad de la Fase 2. **Actualizado (2026-11-08)**: el Space público ya sirve el adaptador fusionado (PEFT, promedio normalizado de los tres generadores), no el del Generador 1 individual — verificado con una traducción real contra la URL pública.
+- Cuantización en GPU medida sobre las 174 entradas (`evaluation/pi3_cuantizacion_calidad.md`).
 - El paper compila (`paper/main.tex`, 20 páginas) con resultados, limitaciones, costos y trabajo futuro.
 - Borradores, guion de sustentación, banco de preguntas y figuras (`docs/fase3_*_borrador.md`, `docs/guion_sustentacion_final.md`, `docs/banco_preguntas_final.md`, `docs/figuras/`).
 - Comparaciones de PI3: contra LLM grandes, contra DeepL y un juez automático exploratorio (`evaluation/`).
@@ -51,6 +52,10 @@ Sin esto no hay kappa ni respuesta completa a PI1.
 
 ### D. Corrida de Colab — hecho (2026-11-08)
 - ~~Abrir `merging/cuantizacion_colab.ipynb` con GPU T4~~. Corrido (tardó unos 45 min con instalación). nf4 pierde 1.6 BLEU y usa 2.01 GB (frente a 6.17 GB en fp16); int8 pierde 0.9 BLEU y usa 3.40 GB, pero resultó la variante más lenta de las tres. Detalle en `evaluation/pi3_cuantizacion_calidad.md`, ya integrado en el paper.
+
+### D2. Adaptador fusionado en el Space — hecho (2026-11-08)
+- ~~El Space servía el adaptador individual del Generador 1~~. Se generó el adaptador fusionado con `merging/preparar_adapter_space_colab.ipynb` (PEFT, concatenación normalizada, r=24) y se reemplazó en `api/space/adapter/` + `git push` al repositorio del Space. Verificado con una traducción real contra la URL pública.
+- [ ] **Falta**: repetir la prueba de carga con 20 y 50 concurrentes (`python api/prueba_carga_space.py --niveles 5 20 50`) sobre este modelo ya actualizado — la medición anterior era sobre el adaptador viejo. Cuidado con la cuota diaria de GPU (5 min/día), no hacerlo el día de la demo.
 
 ### E. Entrega
 - ~~Decidir si se hace el merge o PR de `develop` a `main`~~. Hecho (2026-11-08): `main` y `develop` están sincronizados.
