@@ -1,6 +1,11 @@
 # Evaluación humana ciega de los tres modelos individuales (PI1)
 
-**Estado (2026-10-08): preparada, NO ejecutada.** `evaluation/evaluadores.csv`
+**Checklist operativo paso a paso (reclutar → registrar → enviar →
+recibir):** [`evaluation/checklist_reclutamiento_evaluadores.md`](../evaluation/checklist_reclutamiento_evaluadores.md).
+Este documento de aquí es el diseño del experimento; para saber *qué hacer
+hoy* usa el checklist.
+
+**Estado (2026-10-20): preparada, NO ejecutada.** `evaluation/evaluadores.csv`
 está vacío: no hay ningún evaluador confirmado, así que no se envió nada y no
 existen resultados humanos. `evaluation/resultados_humanos_pi1.csv` **no
 existe a propósito**: lo crea `evaluation/consolidar_resultados_humanos.py`

@@ -3047,3 +3047,14 @@ Qué se hizo: se escribió `docs/LEEME_ESTADO_Y_PENDIENTES.md`, una hoja de pone
 Decisiones tomadas: es un resumen, no una lista nueva; la lista con comandos sigue siendo la hoja de ruta. No se asignaron tareas a personas concretas, para que el equipo las reparta.
 
 Pendiente: lo que consta en ese archivo.
+
+
+---
+
+## Sesión extra (14) — 2026-11-08 — Paula Lozano
+
+Qué se hizo: checklist operativo de reclutamiento y evaluación humana (`evaluation/checklist_reclutamiento_evaluadores.md`), que junta en un solo flujo paso a paso lo que antes estaba repartido en `reclutamiento_evaluadores.md`, `rubrica_humana.md` y `mensaje_evaluadores_pi1.md`: mensajes de contacto ya personalizados por dialecto, cuándo enviar la tarea real, y qué hacer al recibir cada hoja. Se amplió `evaluation/evaluadores.csv` de 5 a 15 filas vacías (3 por dialecto) para registrar evaluadores a medida que se confirman. Se enlazó el checklist desde `docs/evaluacion_humana_pi1.md`.
+
+Decisiones tomadas: ninguna persona nueva se registró todavía (no se inventaron datos); el archivo solo deja la plantilla lista.
+
+Pendiente: lo mismo que ya constaba en `docs/LEEME_ESTADO_Y_PENDIENTES.md` — sobre todo conseguir evaluadores de los dialectos Andina, Rioplatense y Chilena (Mexicana y Caribeña ya tienen candidatos en curso).
