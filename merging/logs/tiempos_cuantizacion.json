@@ -1,0 +1,6 @@
+{
+ "fusion_peft_cat_norm": 92.7,
+ "cuantizacion_fp16": 307.7,
+ "cuantizacion_int8": 935.2,
+ "cuantizacion_nf4": 651.3
+}

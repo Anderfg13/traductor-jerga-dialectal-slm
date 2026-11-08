@@ -3058,3 +3058,14 @@ Qué se hizo: checklist operativo de reclutamiento y evaluación humana (`evalua
 Decisiones tomadas: ninguna persona nueva se registró todavía (no se inventaron datos); el archivo solo deja la plantilla lista.
 
 Pendiente: lo mismo que ya constaba en `docs/LEEME_ESTADO_Y_PENDIENTES.md` — sobre todo conseguir evaluadores de los dialectos Andina, Rioplatense y Chilena (Mexicana y Caribeña ya tienen candidatos en curso).
+
+
+---
+
+## Sesión extra (15) — 2026-11-08 — Paula Lozano
+
+Qué se hizo: se corrió `merging/cuantizacion_colab.ipynb` en Colab (GPU T4, ~45 min con instalación incluida) y se integraron los resultados reales. Cuantización con `bitsandbytes` sobre las 174 entradas del test común, modelo fusionado `peft_cat_norm`, misma sesión que la referencia fp16: fp16 43.6 BLEU/58.2 chrF (6.17 GB), int8 42.7/57.6 (3.40 GB, −0.9 BLEU distinguible), nf4 42.1/56.9 (2.01 GB, −1.6 BLEU distinguible). Hallazgo contraintuitivo no investigado a fondo: int8 resultó la variante más lenta de las tres (4.04 s de latencia mediana, frente a 0.83 s en fp16 y 1.25 s en nf4). Se integró en `evaluation/pi3_cuantizacion_calidad.md` (con la tabla de memoria/latencia que el notebook deja para anotar a mano), `evaluation/pi3_portabilidad.md`, `docs/resultados_pi3.md`, `paper/main.tex` (PI3 y trabajo futuro) y se marcó como hecho en `docs/hoja_de_ruta_fin_proyecto.md` y `docs/LEEME_ESTADO_Y_PENDIENTES.md`.
+
+Decisiones tomadas: se reporta el resultado de int8 siendo más lento que nf4 sin ocultarlo ni intentar explicarlo más allá de nombrar la causa conocida (costo de descuantizar en bitsandbytes); con estos datos, nf4 es el mejor compromiso de las dos variantes cuantizadas.
+
+Pendiente: lo mismo que ya constaba — sobre todo evaluación humana (Andina, Rioplatense y Chilena sin evaluadores todavía), revisión del paper por Mariana y Paula, numeración de sesiones, y la sustentación.

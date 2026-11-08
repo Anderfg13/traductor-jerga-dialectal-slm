@@ -63,3 +63,33 @@ Lo que **no** se puede concluir:
 - **RAM.** La cuantización dinámica exige cargar primero el modelo completo: el pico fue casi el doble. Quien solo ejecute la versión cuantizada
   necesitaría guardarla ya cuantizada (no se hizo).
 - **4 bits** (bitsandbytes/GGUF) no se probó: requiere GPU o herramientas que no están en esta máquina. Queda como trabajo futuro, no como resultado.
+
+## Cuantización en GPU (bitsandbytes): calidad sobre las 174 entradas
+
+Generado en Colab (GPU T4) con `evaluation/pi3_cuantizacion_gpu.py`; detalle
+completo en `evaluation/pi3_cuantizacion_calidad.md`. A diferencia de la
+prueba anterior (CPU, 3 frases, sin medir calidad), esta sí mide BLEU/chrF
+sobre las 174 entradas del test común, con fp16 como referencia y el mismo
+modelo fusionado (`peft_cat_norm`) en la misma sesión.
+
+| Variante | BLEU | chrF | Memoria GPU | Latencia mediana |
+|---|---|---|---|---|
+| fp16 (referencia) | 43.6 | 58.2 | 6.17 GB | 0.83 s |
+| int8 | 42.7 | 57.6 | 3.40 GB | 4.04 s |
+| nf4 | 42.1 | 56.9 | 2.01 GB | 1.25 s |
+
+La pérdida de calidad es pequeña pero distinguible en ambos casos: int8
+pierde 0.9 BLEU (IC 95% [-1.6, -0.1]) y nf4 pierde 1.6 BLEU ([-2.7, -0.6])
+frente a fp16. En chrF solo nf4 tiene un intervalo que no incluye el cero
+(-1.3, [-2.5, -0.3]).
+
+Contraintuitivo: int8 es la variante **más lenta** de las tres (4.04 s,
+frente a 0.83 s de fp16 y 1.25 s de nf4) a pesar de usar menos memoria —es
+un efecto conocido de `bitsandbytes`, no investigado a fondo aquí. Para
+GPU, nf4 es el mejor compromiso de las dos variantes cuantizadas (ocupa
+menos memoria que int8 y además es más rápida), con una pérdida de calidad
+modesta.
+
+Esto es distinto de la cuantización dinámica de PyTorch en CPU medida
+arriba: aquí sí se midió la calidad sobre el conjunto completo, en lugar de
+3 frases.
