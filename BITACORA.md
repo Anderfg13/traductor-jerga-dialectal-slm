@@ -3113,3 +3113,14 @@ Qué se hizo: corrida exitosa de `merging/preparar_adapter_space_colab.ipynb` ya
 Decisiones tomadas: ninguna nueva — es el mismo plan ya decidido en la Sesión extra (16).
 
 Pendiente: hacer el `git push` al repositorio del Space en Hugging Face (necesita el token de la cuenta Andry891, no está en git); después, repetir la prueba de carga con 20 y 50 concurrentes sobre el modelo ya actualizado.
+
+
+---
+
+## Sesión extra (20) — 2026-11-08 — Paula Lozano
+
+Qué se hizo: `git push` al repositorio del Space en Hugging Face (Andry891/traductor-jerga-dialectal) con el adaptador fusionado y el `app.py` actualizado. El token se leyó de `.env` local, nunca mostrado ni escrito en el repositorio; el método de autenticación por header Bearer no funcionó contra el git de Hugging Face, sí funcionó el usuario:token embebido en la URL de push. Verificado en el navegador: el Space reconstruyó, el texto de la interfaz ya dice "adaptador LoRA fusionado... Generadores 1, 2 y 3", y una traducción de prueba real ("Che, estoy remando con el sueldo que me dan." → "Hey, I'm struggling to make ends meet with the salary they give me.") salió correcta. Se actualizaron las menciones desactualizadas en `paper/main.tex` (dos lugares en Arquitectura y Evidencia de prototipo), `docs/LEEME_ESTADO_Y_PENDIENTES.md` y `docs/extra_finetuning_continuo.md` que todavía decían que el Space servía el Generador 1 individual.
+
+Decisiones tomadas: ninguna nueva.
+
+Pendiente: repetir la prueba de carga (20 y 50 concurrentes) sobre el modelo ya actualizado — la medición anterior registrada en `docs/pruebas_carga.md` es del adaptador viejo.
