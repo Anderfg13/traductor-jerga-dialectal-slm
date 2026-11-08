@@ -3069,3 +3069,14 @@ Qué se hizo: se corrió `merging/cuantizacion_colab.ipynb` en Colab (GPU T4, ~4
 Decisiones tomadas: se reporta el resultado de int8 siendo más lento que nf4 sin ocultarlo ni intentar explicarlo más allá de nombrar la causa conocida (costo de descuantizar en bitsandbytes); con estos datos, nf4 es el mejor compromiso de las dos variantes cuantizadas.
 
 Pendiente: lo mismo que ya constaba — sobre todo evaluación humana (Andina, Rioplatense y Chilena sin evaluadores todavía), revisión del paper por Mariana y Paula, numeración de sesiones, y la sustentación.
+
+
+---
+
+## Sesión extra (16) — 2026-11-08 — Paula Lozano
+
+Qué se hizo: `merging/preparar_adapter_space_colab.ipynb`, cuaderno de Colab (GPU T4) para regenerar el adaptador fusionado (PEFT, concatenación normalizada de los tres generadores) y descargarlo listo para reemplazar en `api/space/adapter/`, porque el servicio público desplegado sigue sirviendo el adaptador individual del Generador 1 (Sesión 19), no el modelo fusionado que responde las preguntas de investigación.
+
+Decisiones tomadas: se eligió la fusión PEFT (adaptador de ~15 MB) en vez de la fusión de mergekit (modelo completo de ~6 GB) para no rediseñar la arquitectura del Space a una semana de la entrega; el paper ya documenta que ambas no se distinguen estadísticamente (43.5 vs 44.2 BLEU).
+
+Pendiente: correr el cuaderno, reemplazar los dos archivos del adaptador en el Space y hacer el `git push` al repositorio del Space (necesita un token de Hugging Face con permiso de escritura); después, repetir la prueba de carga con 20 y 50 concurrentes sobre el modelo ya actualizado.
