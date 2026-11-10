@@ -183,6 +183,60 @@ no se reinicia entre uno y otro.
   exige otro despliegue y gastar más cuota para volver a medir, así
   que queda como trabajo futuro, no como resultado.
 
+## Resultado 5: réplica independiente, misma configuración (2026-11-09)
+
+Segunda corrida del Resultado 4, hecha por otra integrante del equipo
+desde otra máquina y otra red, con el mismo token autenticado (la cuota
+de ZeroGPU es de la cuenta, no de la IP) y el mismo Space con el
+adaptador fusionado. Objetivo: que la medición no dependa de una sola
+corrida de una sola persona. Comando idéntico:
+`python api/prueba_carga_space.py --niveles 5 20 50`.
+
+Calentamiento: 1 solicitud, 5.70 s, correcta (`"What a mess, see you
+later cool guy"` — mismo texto que la corrida anterior).
+
+| Nivel | OK | Fallos | Latencia prom. (solo OK) | Mediana | Máx. | Duración total |
+|---|---|---|---|---|---|---|
+| 5 | 5 | 0 (0%) | 4.98 s | 5.36 s | 6.55 s | 6.55 s |
+| 20 | 15 | 5 (25%) | 8.35 s | 7.85 s | 9.92 s | 10.02 s |
+| 50 | 33 | 17 (34%) | 15.42 s | 14.9 s | 18.42 s | 18.72 s |
+
+Se atendieron **53 de 75** solicitudes (5+15+33), frente a 28 de 75 en
+el Resultado 4 — la cuota diaria se había reiniciado desde la corrida
+del día anterior. Todos los fallos son, de nuevo, el mismo mensaje de
+cuota y no una caída del servicio: `"You have exceeded your free
+ZeroGPU quota (45s requested vs. 5s left)"` en el nivel 20 y
+`"(... vs. 32s left)"` en el nivel 50.
+
+### Qué agrega esta corrida
+
+- **La concurrencia real sí se sostiene, y con más muestra**: 33
+  solicitudes simultáneas atendidas en 18.72 s de principio a fin. Si
+  se serializaran a la latencia sin carga (~5.7 s), esas 33 habrían
+  tomado unos 3 minutos, no 19 segundos. El rendimiento efectivo sube
+  y se aplana: 0.76 solicitudes/s en el nivel 5, 1.50 en el 20 y 1.76
+  en el 50.
+- **Corrige el Resultado 4 en un punto**: la latencia **sí empeora de
+  forma clara** con la concurrencia. La mediana pasa de 5.36 s (nivel
+  5) a 7.85 s (nivel 20) y 14.9 s (nivel 50), casi el triple. El
+  Resultado 4 había concluido lo contrario ("no empeora de forma
+  clara", mediana 4.35 s → 3.21 s), pero esa lectura venía de muestras
+  de 8 y 15 solicitudes sobrevivientes: con la cuota casi agotada, las
+  únicas que alcanzaban a completarse eran las que tomaban un turno de
+  GPU temprano, mientras las que habrían esperado más en la cola
+  fallaban por cuota y no entraban al promedio. Con 33 atendidas en el
+  nivel 50 ese sesgo se reduce y aparece el encolamiento esperable:
+  ZeroGPU solapa solicitudes, pero no las atiende todas a la vez.
+- **Observación no verificada sobre la cuota**: el nivel 20 reportó "5s
+  left" y el nivel 50, diez segundos más tarde, "32s left" — la cuota
+  parece regenerarse de forma continua (ventana deslizante) y no solo
+  reiniciarse una vez al día. No lo medimos a propósito, así que queda
+  como observación, no como resultado.
+- El techo del servicio gratuito sigue siendo la cuota de GPU, no la
+  capacidad de atender solicitudes al mismo tiempo: con dos corridas
+  independientes el servicio nunca devolvió un error propio ni se
+  degradó, solo rechazos limpios de cuota.
+
 ## Cómo reproducir
 
 ```bash
