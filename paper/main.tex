@@ -293,6 +293,37 @@ Antes de bajar a datos, aplicación y tecnología, vale la pena dejar explícito
 
 \textbf{Alineación con el modelo de negocio.} El diferenciador (portabilidad, no exposición de datos a la nube de un tercero, personalización por cliente, auditabilidad) es una consecuencia directa de una decisión ya tomada en la Fase 1 —usar un SLM en vez de envolver la API de un LLM grande—, no algo añadido en esta fase; lo que esta fase agrega es la evidencia de que esa decisión de negocio efectivamente se sostiene en un sistema real (Sección \ref{sec:prototipo}).
 
+\subsection{Métricas de negocio}
+\label{sec:metricas-negocio}
+
+Las métricas técnicas (BLEU, chrF, latencia) están en la Sección \ref{sec:resultados}; aquí se consolidan, en un solo lugar, las que le importan a quien decide si adoptar esto o no, no si funciona bien en lo técnico.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{p{4.3cm}p{9.3cm}}
+\toprule
+\textbf{Métrica} & \textbf{Valor} \\
+\midrule
+Costo total del proyecto & \$0 —todo con capas gratuitas (Groq, Cohere, Google AI Studio, Google Colab, Hugging Face Spaces); nunca se pagó por cómputo ni por generación de datos. \\
+\addlinespace
+Costo de cambiar de especialización & 15 MB (un adaptador) frente a los 6.17 GB del modelo base: adaptar el servicio a un nuevo cliente o dominio no exige volver a entrenar ni a mover el modelo completo. \\
+\addlinespace
+Tiempo de cómputo hasta un modelo funcional & 18-20 min de GPU T4 por adaptador individual, 52 min para entrenar con la mezcla completa, de 13 s a 20 min para fusionar los tres (según la técnica); fusionar es consistentemente más barato que reentrenar desde cero (Sección \ref{sec:resultados}). \\
+\addlinespace
+Dependencia de infraestructura de terceros & Ninguna en tiempo de inferencia: corre sin internet una vez descargados los pesos (Sección \ref{sec:resultados}), a diferencia de Google Translate, DeepL o envolver la API de un LLM grande, que exigen conexión constante. \\
+\addlinespace
+Exposición de datos sensibles a un tercero & Ninguna: el texto de cada solicitud se procesa y se descarta, nunca se persiste, ni sale de la infraestructura donde corre el servicio. \\
+\addlinespace
+Calidad frente a un traductor comercial (DeepL) & Empatado en BLEU (44.2 frente a 44.4), algo por debajo en chrF (Sección \ref{sec:resultados}): a este costo, competitivo pero no superior. \\
+\bottomrule
+\end{tabular}
+\caption{Métricas de negocio consolidadas: lo que le importa a una organización que evalúe adoptar el servicio, más allá de la calidad técnica de la traducción.}
+\label{tab:metricas-negocio}
+\end{table}
+
+Estas métricas no reemplazan un caso de negocio completo —no hay, por ejemplo, una proyección de cuántos clientes o cuánto volumen de solicitudes justificaría operar esto a escala, porque el proyecto todavía no tiene un cliente real con quien calibrar esa proyección—; son la evidencia concreta, medida y no estimada, de los diferenciadores declarados desde la Fase 1 en la Tabla \ref{tab:producto}.
+
 \subsection{Arquitectura de datos}
 
 El \textit{pipeline} de datos tiene cinco pasos, cada uno con su propio script y su propia salida versionada: (1) un \textbf{banco de semillas} de expresiones dialectales y de jerga, cada una con dialecto, registro (formal/informal/jerga) y traducción de referencia como campos separados a propósito —dialecto es una dimensión geográfica y registro una de formalidad, y mezclarlas habría sesgado el análisis posterior—; (2) una plantilla de \textbf{derivación} que le pide a un LLM generador expandir cada semilla en 5-8 variantes de contexto/registro/tono, sin inventar ni mezclar el dialecto original con otro, y en formato JSON estructurado igual sin importar cuál LLM la reciba; (3) \textbf{generación sintética} automatizada, con reintentos ante límites de tasa y guardado de la salida cruda antes de cualquier procesamiento; (4) \textbf{validación automática} mediante reglas de filtrado (longitud, casi-duplicados de la semilla original, idioma inesperado, duplicados exactos); y (5) \textbf{splits y \textit{data card}}, divididos 80/10/10 \emph{por semilla completa} (no por variante) y estratificados por dialecto, con verificación automática de que ninguna semilla queda repartida entre splits.
@@ -491,6 +522,17 @@ Lo que queda para cerrar el proyecto: la evaluación humana con hablantes nativo
 Para saber si las señales de la Sección \ref{sec:resultados} se sostienen: más semillas de prueba (hoy 9), más de una semilla de entrenamiento por modelo, otro modelo base (por ejemplo Llama 3.2 3B, si Meta aprueba el acceso) y un generador de tamaño comparable al de los otros dos para separar ``qué LLM es'' de ``qué tamaño tiene''.
 
 El servicio público ya sirve el adaptador fusionado (PEFT, promedio normalizado de los tres generadores) en vez del adaptador individual del Generador 1 que exponía hasta antes de esta entrega, y ya se midió su comportamiento bajo 20 y 50 solicitudes concurrentes: corre en paralelo, no se serializa ---medido en dos corridas independientes, de dos integrantes y desde dos redes distintas---, aunque la medición completa sigue limitada por la cuota diaria gratuita de GPU (Sección \ref{sec:prototipo}).
+
+\section{Implicaciones éticas, organizacionales y filosóficas}
+\label{sec:implicaciones}
+
+Las secciones anteriores documentan riesgos técnicos puntuales (Sección \ref{sec:gobernanza}): groserías sin filtrar, dialectos no cubiertos, posibles estereotipos en los datos. Esta sección va un nivel más arriba: qué significa este proyecto más allá de si el modelo traduce bien o mal.
+
+\textbf{Ético.} El caso que abre este documento (Sección \ref{sec:problema}) —un paciente que quedó cuadripléjico por un error de traducción de una sola palabra— no es una anécdota decorativa: es el estándar contra el que hay que medir cualquier sistema que se use en salud, justicia o servicios esenciales. Un modelo que traduce bien el 80\% de las veces y falla el 20\% restante sin avisar que está inseguro puede ser peor que no tener traductor, porque genera una falsa sensación de certeza. Nuestro sistema no mide ni comunica su propia incertidumbre por traducción individual, solo agregada (Sección \ref{sec:prototipo}); eso es una limitación ética, no solo técnica, para cualquier uso en un contexto de alto riesgo. Hay además una tensión de origen que ya reconocimos en la Fase 1 y que sigue vigente: el banco de semillas es jerga real curada con el conocimiento lingüístico del equipo, no un corpus recolectado con consentimiento explícito de hablantes nativos pagados por su trabajo ni documentado por un lingüista de campo. Es jerga auténtica, pero su trazabilidad se detiene en nosotros, no en la comunidad que la originó —una forma modesta del mismo problema de fondo que tienen los LLM grandes con los datos con los que se entrenan.
+
+\textbf{Organizacional.} El diseño técnico ya resuelve una parte de la pregunta de gobernanza: nadie dentro del equipo decide solo sobre el modelo base, la técnica de fusión o qué se entrega (Sección \ref{sec:gobernanza}), y el servicio nunca persiste el texto de una solicitud. Pero una organización que adoptara este sistema heredaría una pregunta que el proyecto no resuelve por sí solo: ¿quién firma la decisión de usar una traducción automática en una conversación que puede terminar en una sala de urgencias o en una corte? Nuestra posición, consistente con la limitación anterior, es que un sistema como este debería operar con un humano en el circuito en cualquier contexto de alto riesgo —como una herramienta que agiliza y sugiere, no que decide sola— y que la responsabilidad última no puede trasladarse al modelo. Hay también una pregunta de mantenimiento que ninguna organización puede ignorar: la jerga cambia más rápido que el español estándar, así que un modelo entrenado hoy con 100 semillas fijas empieza a envejecer desde el día en que se despliega; adoptar esto exige comprometerse a reentrenar y revalidar periódicamente, no a desplegarlo una vez y olvidarlo.
+
+\textbf{Filosófico.} Vale la pena ser honestos sobre qué tipo de ``conocimiento'' tiene en realidad este modelo. No aprendió jerga directamente de hablantes reales en conversación: aprendió, mayoritariamente, de variantes sintéticas que otros LLM generaron a partir de 100 semillas humanas (Sección \ref{sec:arquitectura}), y se evaluó, mayoritariamente, contra referencias que esos mismos LLM también escribieron (Sección \ref{sec:resultados}). Es una cadena de aproximaciones sucesivas a un fenómeno humano, no un acceso directo a él, y el proyecto completo —incluida la necesidad declarada de evaluación humana para cerrar PI1— es evidencia de que esa distancia importa y no se puede dar por descontada solo porque las métricas automáticas mejoren. Eso conecta con la pregunta más amplia que plantea este curso: que la inteligencia se vuelva ``un atributo arquitectónico'' de un sistema no significa que ese sistema entienda lo que procesa, sino que un componente estadístico, entrenado y evaluado con el cuidado suficiente, puede aproximar una tarea que antes exigía a una persona. Dónde está el límite de esa aproximación —y quién decide cuándo ya no es suficientemente buena para seguir usándose sin supervisión— sigue siendo, en última instancia, una decisión humana, no una propiedad que el modelo adquiera solo. El error de configuración que encontramos y corregimos en la fusión de modelos (Sección \ref{sec:resultados}) es, en ese sentido, un recordatorio concreto: automatizar una tarea no elimina la necesidad de que alguien entienda lo suficiente del sistema como para notar que algo salió mal y corregirlo —ese sigue siendo, con herramientas nuevas, el trabajo del ingeniero de sistemas.
 
 \section{Conclusiones}
 \label{sec:conclusiones}

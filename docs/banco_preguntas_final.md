@@ -4,7 +4,7 @@ Complementa `docs/banco_preguntas_fase2.md` (preguntas de datos, despliegue y
 Fase 2, que siguen vigentes). Mismas reglas: decir lo que los datos sostienen y
 nada más; "no lo medimos" es una respuesta válida. Cada respuesta cita la fuente.
 
-**Tiempo asignado a la sustentación:** NO CONOCIDO (anotarlo aquí cuando se sepa).
+**Tiempo asignado a la sustentación:** 5 minutos (syllabus, "Final Delivery"). Guion re-armado en `docs/guion_sustentacion_final.md`.
 **Ensayo cronometrado:** pendiente (humano).
 
 ## Resultados y fusión
@@ -68,6 +68,57 @@ nada más; "no lo medimos" es una respuesta válida. Cada respuesta cita la fuen
 
 **"¿Qué harían con más tiempo?"**
 > Evaluación humana nativa, más semillas de prueba, varias corridas por modelo, referencias humanas, traductores comerciales, cuantización de 4 bits.
+
+## Implicaciones éticas, organizacionales y filosóficas
+
+**"¿A quién puede perjudicar esto si falla?"**
+> A las mismas personas de la Sección 2 del paper: hablantes con dominio
+> limitado del otro idioma en contextos críticos (salud, justicia, servicios
+> esenciales), los profesionales que actúan sobre esa traducción sin poder
+> verificarla, e intérpretes informales que terminan asumiendo un riesgo que
+> no les corresponde. El caso de Willie Ramírez (un error de traducción que
+> lo dejó cuadripléjico) es el estándar contra el que medimos esto, no una
+> anécdota decorativa.
+
+**"¿Está listo para usarse en salud o justicia?"**
+> No sin supervisión humana. El sistema no comunica su propia incertidumbre
+> por traducción individual, solo métricas agregadas — eso es una limitación
+> ética, no solo técnica. Nuestra posición es que debería operar como
+> herramienta que asiste a una persona, no que decide sola, en cualquier
+> contexto de alto riesgo.
+
+**"Si una empresa adoptara esto, ¿quién es responsable de un error?"**
+> El proyecto no resuelve esa pregunta por sí solo — es justamente una de las
+> que una organización que lo adopte tiene que responder antes de usarlo.
+> Lo que sí ofrecemos es la base técnica para que esa responsabilidad sea
+> posible: el servicio nunca persiste el texto de una solicitud, y el
+> criterio para promover un modelo a "final" ya está documentado (Sección 6
+> del paper). La decisión de quién firma el uso en un caso de alto riesgo
+> sigue siendo humana y organizacional, no algo que el modelo resuelva.
+
+**"¿De dónde salen las semillas? ¿Tienen consentimiento de hablantes nativos?"**
+> Son jerga real, curada con el conocimiento lingüístico del equipo — no un
+> corpus recolectado con consentimiento explícito de hablantes nativos
+> pagados, ni documentado por un lingüista de campo. Lo decimos abiertamente:
+> es una tensión de origen que compartimos, en una escala mucho menor, con el
+> mismo problema que tienen los LLM grandes con sus datos de entrenamiento.
+
+**"¿Qué significa que la IA 'entienda' la jerga? ¿De verdad entiende?"**
+> No en el sentido fuerte. El modelo no aprendió de hablantes reales en
+> conversación: aprendió mayoritariamente de variantes sintéticas que otros
+> LLM generaron a partir de 100 semillas humanas, y se evaluó mayoritariamente
+> contra referencias que esos mismos LLM escribieron. Es una cadena de
+> aproximaciones a un fenómeno humano, no acceso directo a él — por eso
+> insistimos tanto en que la evaluación humana es necesaria para cerrar PI1,
+> no es un formalismo.
+
+**"¿Cuál es el rol del ingeniero de sistemas en un proyecto como este?"**
+> El mismo de siempre, con herramientas nuevas: automatizar algo no elimina
+> la necesidad de que alguien entienda lo suficiente del sistema como para
+> notar que algo salió mal y corregirlo. El ejemplo concreto es el error de
+> configuración en la fusión de modelos (sumar en vez de promediar, que bajó
+> el resultado a 35.3 BLEU): lo encontramos, lo investigamos y lo corregimos
+> nosotros mismos, y lo documentamos en vez de ocultarlo.
 
 ## Para ensayar
 
