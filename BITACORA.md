@@ -3157,3 +3157,16 @@ Qué se hizo: al traer la Sesión extra (22) de Mariana (réplica de la prueba d
 Decisiones tomadas: ninguna.
 
 Pendiente: lo mismo que ya constaba — evaluación humana, revisión del paper, numeración de sesiones, ensayo de la sustentación. Nota de seguridad de Mariana (Sesión 22) sigue abierta: regenerar el token de Hugging Face de la cuenta Andry891, compartido por chat del equipo.
+
+
+---
+
+## Sesión extra (24) — 2026-11-13 — Paula Lozano
+
+Qué se hizo: cierre de los 4 componentes que faltaban del entregable final (semana 16 del syllabus): (1) `paper/main.tex`, nueva subsección "Métricas de negocio" en Arquitectura empresarial (costo \$0, costo de cambiar de especialización, dependencia de terceros, comparación con DeepL, con tabla); (2) `docs/one_pager_ejecutivo.md`, nuevo, resumen de una página para audiencia no técnica; (3) `docs/guion_sustentacion_final.md`, reescrito de 6 bloques (~10 min) a 5 bloques (5:00 exactos), porque el syllabus confirma 5 minutos, no un tiempo desconocido; (4) `paper/main.tex`, nueva sección "Implicaciones éticas, organizacionales y filosóficas" (ético, organizacional, filosófico, cada uno con referencia a evidencia ya existente del proyecto) y 6 preguntas nuevas con respuesta en `docs/banco_preguntas_final.md`.
+
+Decisiones tomadas: el one-pager no promete cifras que no existen (no hay proyección de clientes/volumen, se dice explícitamente); la sección de implicaciones filosóficas se ancla en hechos ya verificados del proyecto (referencias mayoritariamente sintéticas, el error de configuración corregido en la fusión) en vez de generalidades.
+
+Hallazgo de paso: al revisar el paper para ubicar dónde insertar lo nuevo, se encontró que los 6 diagramas de arquitectura (TikZ) y las subsecciones "Diseño de la API", "Plan de despliegue en la nube" y "Diseño de seguridad" que se habían agregado en una sesión anterior ya no están — la reescritura de la Fase 3 condensó la Sección de Arquitectura a solo prosa, sin diagramas. No se tocó ni se restauró nada de eso en esta sesión: queda para que el equipo decida si se restaura.
+
+Pendiente: evaluación humana, revisión del paper por Mariana y Paula, numeración de sesiones, ensayo de la sustentación (ahora con el guion de 5 minutos), grabar el video del Plan B, y la nota de seguridad de Mariana sobre regenerar el token de Hugging Face de la cuenta Andry891.
