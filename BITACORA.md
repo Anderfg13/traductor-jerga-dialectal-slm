@@ -3135,3 +3135,25 @@ Qué se hizo: prueba de carga real del Space con token autenticado (`$env:HF_TOK
 Decisiones tomadas: no se probó bajar `duration` de `@spaces.GPU` para estirar la cuota — exigiría otro despliegue y gastar más cuota para volver a medir; queda como trabajo futuro, no como resultado.
 
 Pendiente: evaluación humana (Andina, Rioplatense y Chilena sin evaluadores todavía), revisión del paper por Mariana y Paula, numeración de sesiones, ensayo de la sustentación.
+
+
+---
+
+## Sesión extra (22) — 2026-11-09 — Mariana Malagón
+
+Qué se hizo: réplica independiente de la prueba de carga del Space (Sesión extra 21), desde otra máquina y otra red, con el mismo token autenticado y el mismo adaptador fusionado: `python api/prueba_carga_space.py --niveles 5 20 50`. Calentamiento correcto (5.70 s). Resultado: nivel 5 completo (5/5 OK, mediana 5.36 s), nivel 20 con 15/20 OK (mediana 7.85 s) y nivel 50 con 33/50 OK (mediana 14.9 s) — 53 de 75 solicitudes atendidas, casi el doble que las 28 de la corrida anterior, porque la cuota diaria se había reiniciado. Todos los fallos, otra vez, por cuota de ZeroGPU agotada y no por caída del servicio. Agregado como "Resultado 5" en `docs/pruebas_carga.md` y reflejado en `paper/main.tex` (Evidencia de prototipo, la fila/párrafo de latencia y el cierre de contribuciones).
+
+Decisiones tomadas: la corrida corrige una conclusión del Resultado 4 y así se dejó escrito, en vez de solo sumar números: la latencia **sí** empeora de forma clara con la concurrencia (mediana 5.36 s → 7.85 s → 14.9 s). El Resultado 4 concluía lo contrario por sesgo de supervivencia — con la cuota casi agotada solo completaban las solicitudes que tomaban turno de GPU temprano, y las que habrían esperado más en la cola fallaban antes de entrar al promedio. Se registró también, como observación sin verificar y no como resultado, que la cuota parece regenerarse de forma continua (el nivel 20 reportó "5s left" y el nivel 50, diez segundos después, "32s left").
+
+Pendiente: revocar y regenerar el token de Hugging Face de la cuenta Andry891 — se compartió por chat y debe considerarse filtrado. Sigue pendiente la evaluación humana (Andina, Rioplatense y Chilena sin evaluadores todavía), la revisión del paper, la numeración de sesiones y el ensayo de la sustentación.
+
+
+---
+
+## Sesión extra (23) — 2026-11-13 — Paula Lozano
+
+Qué se hizo: al traer la Sesión extra (22) de Mariana (réplica de la prueba de carga), `paper/main.tex` traía un byte de retorno de carro (CR, 0x0D) suelto en medio de una línea, en vez de la barra invertida de `\ref{sec:prototipo}` (quedó como `Sección <CR>ef{sec:prototipo}`). Probablemente un artefacto de copiar/pegar entre editores. LaTeX lo toleraba en silencio (compilaba igual, pero la referencia nunca se resolvía y el texto visual quedaba mal), y como un CR se ve idéntico a `\r` al imprimirlo, hizo falta inspeccionar los bytes del archivo directamente para encontrarlo. Corregido reemplazando esos 3 bytes exactos por `\ref`; verificado que no queda ningún otro CR en el archivo.
+
+Decisiones tomadas: ninguna.
+
+Pendiente: lo mismo que ya constaba — evaluación humana, revisión del paper, numeración de sesiones, ensayo de la sustentación. Nota de seguridad de Mariana (Sesión 22) sigue abierta: regenerar el token de Hugging Face de la cuenta Andry891, compartido por chat del equipo.
