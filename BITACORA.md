@@ -3146,3 +3146,14 @@ Qué se hizo: réplica independiente de la prueba de carga del Space (Sesión ex
 Decisiones tomadas: la corrida corrige una conclusión del Resultado 4 y así se dejó escrito, en vez de solo sumar números: la latencia **sí** empeora de forma clara con la concurrencia (mediana 5.36 s → 7.85 s → 14.9 s). El Resultado 4 concluía lo contrario por sesgo de supervivencia — con la cuota casi agotada solo completaban las solicitudes que tomaban turno de GPU temprano, y las que habrían esperado más en la cola fallaban antes de entrar al promedio. Se registró también, como observación sin verificar y no como resultado, que la cuota parece regenerarse de forma continua (el nivel 20 reportó "5s left" y el nivel 50, diez segundos después, "32s left").
 
 Pendiente: revocar y regenerar el token de Hugging Face de la cuenta Andry891 — se compartió por chat y debe considerarse filtrado. Sigue pendiente la evaluación humana (Andina, Rioplatense y Chilena sin evaluadores todavía), la revisión del paper, la numeración de sesiones y el ensayo de la sustentación.
+
+
+---
+
+## Sesión extra (23) — 2026-11-13 — Paula Lozano
+
+Qué se hizo: al traer la Sesión extra (22) de Mariana (réplica de la prueba de carga), `paper/main.tex` traía un byte de retorno de carro (CR, 0x0D) suelto en medio de una línea, en vez de la barra invertida de `\ref{sec:prototipo}` (quedó como `Sección <CR>ef{sec:prototipo}`). Probablemente un artefacto de copiar/pegar entre editores. LaTeX lo toleraba en silencio (compilaba igual, pero la referencia nunca se resolvía y el texto visual quedaba mal), y como un CR se ve idéntico a `\r` al imprimirlo, hizo falta inspeccionar los bytes del archivo directamente para encontrarlo. Corregido reemplazando esos 3 bytes exactos por `\ref`; verificado que no queda ningún otro CR en el archivo.
+
+Decisiones tomadas: ninguna.
+
+Pendiente: lo mismo que ya constaba — evaluación humana, revisión del paper, numeración de sesiones, ensayo de la sustentación. Nota de seguridad de Mariana (Sesión 22) sigue abierta: regenerar el token de Hugging Face de la cuenta Andry891, compartido por chat del equipo.
