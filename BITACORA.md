@@ -3170,3 +3170,14 @@ Decisiones tomadas: el one-pager no promete cifras que no existen (no hay proyec
 Hallazgo de paso: al revisar el paper para ubicar dónde insertar lo nuevo, se encontró que los 6 diagramas de arquitectura (TikZ) y las subsecciones "Diseño de la API", "Plan de despliegue en la nube" y "Diseño de seguridad" que se habían agregado en una sesión anterior ya no están — la reescritura de la Fase 3 condensó la Sección de Arquitectura a solo prosa, sin diagramas. No se tocó ni se restauró nada de eso en esta sesión: queda para que el equipo decida si se restaura.
 
 Pendiente: evaluación humana, revisión del paper por Mariana y Paula, numeración de sesiones, ensayo de la sustentación (ahora con el guion de 5 minutos), grabar el video del Plan B, y la nota de seguridad de Mariana sobre regenerar el token de Hugging Face de la cuenta Andry891.
+
+
+---
+
+## Sesión extra (25) — 2026-11-13 — Paula Lozano
+
+Qué se hizo: (1) `docs/sustentacion_final/`, carpeta nueva con solo los documentos de cierre de la entrega final (`one_pager_ejecutivo.md`, `guion_sustentacion_final.md`, `banco_preguntas_final.md`, movidos desde `docs/`, más `guia_completa_estudio.md`, copia versionada de la guía de estudio que antes solo existía fuera del repo); referencias cruzadas actualizadas en `docs/hoja_de_ruta_fin_proyecto.md` y `docs/LEEME_ESTADO_Y_PENDIENTES.md` (no se tocó `BITACORA.md`, es historial). (2) Se restauraron en `paper/main.tex` los 6 diagramas de arquitectura (TikZ) que se habían perdido en la reescritura de la Fase 3, con el contenido actualizado a los hechos actuales: los tres generadores ya procesados (no uno pendiente), el adaptador fusionado ya desplegado (no el del Generador 1), y la evaluación humana como único pendiente real en el ciclo de vida del modelo.
+
+Decisiones tomadas: ninguna nueva.
+
+Pendiente: lo mismo de antes, más armar la presentación (en curso, fuera del repo por ahora).
