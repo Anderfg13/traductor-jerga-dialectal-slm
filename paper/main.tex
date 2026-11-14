@@ -293,6 +293,25 @@ Antes de bajar a datos, aplicación y tecnología, vale la pena dejar explícito
 
 \textbf{Alineación con el modelo de negocio.} El diferenciador (portabilidad, no exposición de datos a la nube de un tercero, personalización por cliente, auditabilidad) es una consecuencia directa de una decisión ya tomada en la Fase 1 —usar un SLM en vez de envolver la API de un LLM grande—, no algo añadido en esta fase; lo que esta fase agrega es la evidencia de que esa decisión de negocio efectivamente se sostiene en un sistema real (Sección \ref{sec:prototipo}).
 
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+  node distance=0.5cm,
+  every node/.style={rectangle, draw, rounded corners, align=left, font=\scriptsize, text width=9.5cm, minimum height=1.0cm, inner sep=2mm},
+  arrow/.style={-{Stealth[length=1.8mm]}, thin}
+]
+\node (int) {\textbf{Interesados:} hablantes con dominio limitado del inglés o español en contextos críticos $\cdot$ profesionales que usan la traducción sin poder verificarla $\cdot$ intérpretes informales (a veces menores) $\cdot$ organización cliente, que opera la API y asume su gobernanza};
+\node (srv) [below=of int] {\textbf{Servicio de traducción de jerga y dialecto.} Qwen2.5-3B-Instruct + adaptador fusionado (PEFT, promedio normalizado de los tres generadores)};
+\node (cap) [below=of srv] {\textbf{Capacidad de negocio habilitada:} traducción dialectal auditable, desplegable dentro de la infraestructura del cliente, sin exponer datos sensibles a un tercero};
+\node (dif) [below=of cap, dashed, draw=orange!70!black, fill=orange!5] {\textbf{Diferenciadores} frente a Google Translate, DeepL y ChatGPT (Tabla \ref{tab:producto}): no necesita internet constante, los datos no salen a la nube de un tercero, se puede personalizar por cliente y es auditable};
+\draw[arrow] (int) -- (srv);
+\draw[arrow] (srv) -- (cap);
+\draw[arrow] (cap) -- (dif);
+\end{tikzpicture}
+\caption{Arquitectura empresarial: interesados, servicio, capacidad de negocio habilitada y diferenciadores frente a las alternativas existentes.}
+\label{fig:arq-empresarial}
+\end{figure}
+
 \subsection{Métricas de negocio}
 \label{sec:metricas-negocio}
 
@@ -330,9 +349,101 @@ El \textit{pipeline} de datos tiene cinco pasos, cada uno con su propio script y
 
 El banco de semillas cubre 100 semillas en 5 macro-variantes del español (caribeña, andina, rioplatense, mexicana y chilena). Las 100 pasaron por el resto del \textit{pipeline} con cada uno de los tres LLMs generadores (Groq, modelo \texttt{openai/gpt-oss-20b}; Cohere, \texttt{command-r-08-2024}; y Google, \texttt{gemini-3.5-flash-lite}), con la misma plantilla y el mismo filtro, y se reparten en 81, 10 y 9 semillas para entrenamiento, validación y prueba con un reparto fijo, idéntico para los tres generadores. Generaron 589, 632 y 625 variantes; el filtro descartó 2 (0.3\%), 0 y 0, muy por debajo del límite de 20\% fijado como criterio de calidad, lo que también significa que el filtro casi no distingue entre generadores. El Generador 3 pasó de \texttt{gemini-3.6-flash} a su versión \textit{lite} porque el nivel gratuito del primero permite solo 20 solicitudes por día. Somos explícitos sobre un hueco: las reglas de filtrado no detectan mezcla de dialectos, y una búsqueda simple del marcador rioplatense ``che'' encontró 6 variantes del Generador 1 en semillas caribeñas, andinas y chilenas, y ninguna en los otros dos; es un indicio con una heurística de un solo marcador, no una medición de la contaminación, y queda documentado como limitación conocida, no oculto.
 
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+  node distance=0.5cm,
+  every node/.style={rectangle, draw, rounded corners, align=left, font=\scriptsize, text width=9.5cm, minimum height=1.0cm, inner sep=2mm},
+  side/.style={rectangle, draw=black!60, fill=black!3, align=left, font=\scriptsize, text width=4.6cm, minimum height=1.0cm, inner sep=2mm},
+  arrow/.style={-{Stealth[length=1.8mm]}, thin}
+]
+\node (sem) {\textbf{1. Banco de semillas} (\texttt{seeds/}) — 100 semillas, 5 dialectos, reparto fijo 81/10/9 (train/val/test)};
+\node (der) [below=of sem] {\textbf{2. Derivación} (\texttt{generation/prompt\_derivacion.md}) — 5-8 variantes por semilla, mismo dialecto, salida en JSON};
+\node (gen) [below=of der] {\textbf{3. Generación sintética} — Groq 589 variantes, Cohere 632, Google 625, con reintentos y reanudable};
+\node (val) [below=of gen] {\textbf{4. Validación} (\texttt{validar.py}) — descartó 2 (Groq), 0 y 0; no detecta mezcla de dialectos (limitación conocida)};
+\node (spl) [below=of val] {\textbf{5. Splits y \textit{data card}} — 80/10/10 por semilla completa, estratificado por dialecto, idéntico para los tres generadores};
+\node (g3) [side, right=0.7cm of gen] {Generador 3: \texttt{gemini-3.6-flash} $\to$ \texttt{-lite} — el nivel gratuito del primero permite solo 20 solicitudes/día};
+\draw[arrow] (sem) -- (der);
+\draw[arrow] (der) -- (gen);
+\draw[arrow] (gen) -- (val);
+\draw[arrow] (val) -- (spl);
+\draw[arrow, dashed] (g3) -- (gen);
+\end{tikzpicture}
+\caption{Arquitectura de datos: pipeline de cinco pasos, ya ejecutado con los tres generadores sobre el mismo banco de semillas.}
+\label{fig:arq-datos}
+\end{figure}
+
 \subsection{Arquitectura de aplicación}
 
 El prototipo (Sección \ref{sec:prototipo}) es un servicio de \textbf{API REST} (FastAPI), no un script de entrenamiento local: expone traducción, salud, métricas y retroalimentación, con el modelo cargado una sola vez al iniciar el proceso. Sobre esa base se construyeron, en orden: contenerización (Docker/Podman), seguridad básica (límite de tasa por IP, validación de entrada, garantía verificable de que el servicio nunca persiste el texto de ninguna solicitud ni traducción), observabilidad (latencia y tasa de retroalimentación positiva desglosadas por dialecto, sin exponer nunca datos de una solicitud individual) y pruebas de carga.
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+  node distance=0.5cm,
+  every node/.style={rectangle, draw, rounded corners, align=left, font=\scriptsize, text width=9.5cm, minimum height=1.0cm, inner sep=2mm},
+  arrow/.style={-{Stealth[length=1.8mm]}, thin}
+]
+\node (cli) {\textbf{Cliente.} \texttt{curl} o la aplicación del cliente};
+\node (ep) [below=of cli] {\textbf{Endpoints} (\texttt{api/main.py}, uvicorn). \texttt{GET /salud} $\cdot$ \texttt{GET /metricas} $\cdot$ \texttt{POST /traducir} $\cdot$ \texttt{POST /retroalimentacion}};
+\node (ord) [below=of ep] {\textbf{Orden fijo de una solicitud a} \texttt{/traducir}. Validación de entrada (Pydantic) $\to$ límite de tasa por IP (10/60s) $\to$ generación};
+\node (mod) [below=of ord] {\textbf{Modelo en memoria.} Qwen2.5-3B-Instruct (\texttt{bfloat16}) + adaptador fusionado, cargado una sola vez al iniciar el proceso};
+\node (met) [below=of mod] {\textbf{Métricas y retroalimentación en memoria.} Contadores globales y por dialecto. Mapa \texttt{solicitud\_id} a dialecto (sin texto), se borra al usarse};
+\draw[arrow] (cli) -- (ep);
+\draw[arrow] (ep) -- (ord);
+\draw[arrow] (ord) -- (mod);
+\draw[arrow] (mod) -- (met);
+\end{tikzpicture}
+\caption{Arquitectura de aplicación: recorrido de una solicitud dentro del servicio FastAPI, desde el cliente hasta las métricas en memoria.}
+\label{fig:arq-aplicacion}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+  node distance=0.5cm and 0.4cm,
+  every node/.style={rectangle, draw, rounded corners, align=center, font=\scriptsize, text width=4.6cm, minimum height=1.3cm, inner sep=2mm},
+  wide/.style={rectangle, draw, rounded corners, align=center, font=\scriptsize, text width=6cm, minimum height=1.0cm, inner sep=2mm},
+  arrow/.style={-{Stealth[length=1.8mm]}, thin}
+]
+\node (col) {\textbf{Google Colab} (GPU T4/L4). Entrenamiento LoRA, fusiones, evaluación masiva};
+\node (loc) [right=of col] {\textbf{Contenedor local} (Docker/Podman). \texttt{python:3.11-slim}, \textit{torch} CPU — verificado de punta a punta};
+\node (hfs) [right=of loc] {\textbf{Hugging Face Spaces} (Gradio + ZeroGPU). Público, sirve el adaptador fusionado — verificado con traducciones reales};
+\node (gh) [wide, above=0.8cm of loc] {Repositorio GitHub. Fuente única del código};
+\node (cli2) [wide, below=0.8cm of loc] {Clientes};
+\draw[arrow] (gh) -- (col);
+\draw[arrow] (gh) -- (loc);
+\draw[arrow] (gh) -- (hfs);
+\draw[arrow] (loc) -- (cli2);
+\draw[arrow] (hfs) -- (cli2);
+\end{tikzpicture}
+\caption{Plan de despliegue: tres entornos alimentados desde el mismo repositorio, los tres en operación.}
+\label{fig:despliegue}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+  node distance=0.5cm,
+  every node/.style={rectangle, draw, rounded corners, align=left, font=\scriptsize, text width=9.5cm, minimum height=1.0cm, inner sep=2mm},
+  side/.style={rectangle, draw=orange!70!black, dashed, fill=orange!5, align=left, font=\scriptsize, text width=4.6cm, minimum height=1.6cm, inner sep=2mm},
+  arrow/.style={-{Stealth[length=1.8mm]}, thin}
+]
+\node (req) {Solicitud \texttt{POST /traducir}};
+\node (c1) [below=of req] {\textbf{Control 1, validación de entrada:} texto obligatorio, máx. 500 caracteres $\to$ \texttt{422}/\texttt{400}};
+\node (c2) [below=of c1] {\textbf{Control 2, límite de tasa por IP:} ventana deslizante, 10 solicitudes / 60s $\to$ \texttt{429} con \texttt{Retry-After}};
+\node (c3) [below=of c2] {\textbf{Control 3, manejo de errores:} excepción no prevista $\to$ \texttt{500} genérico, el \textit{traceback} nunca sale del servidor};
+\node (priv) [below=of c3] {\textbf{Privacidad por diseño:} nunca se guarda a disco ni a log el texto de la solicitud, la traducción ni el dialecto};
+\node (gap) [side, right=0.7cm of c2] {\textbf{Límites declarados:} sin autenticación de clientes $\cdot$ límite de tasa no compartido entre instancias $\cdot$ TLS depende de la plataforma};
+\draw[arrow] (req) -- (c1);
+\draw[arrow] (c1) -- (c2);
+\draw[arrow] (c2) -- (c3);
+\draw[arrow] (c3) -- (priv);
+\draw[arrow, dashed] (priv) -- (gap);
+\end{tikzpicture}
+\caption{Diseño de seguridad: controles aplicados en orden fijo sobre cada solicitud, privacidad por diseño y límites declarados.}
+\label{fig:seguridad}
+\end{figure}
 
 \subsection{Arquitectura de tecnología}
 
@@ -365,6 +476,38 @@ El prototipo (Sección \ref{sec:prototipo}) es un servicio de \textbf{API REST} 
 \end{table}
 
 Cada ejemplo de entrenamiento usa el mismo formato de instrucción (sistema/usuario/asistente vía la plantilla de chat nativa del tokenizador) tanto en entrenamiento como en inferencia, con la pérdida enmascarada sobre los tokens del \textit{prompt} para entrenar solo sobre la respuesta esperada —verificado decodificando tokens de un ejemplo real y confirmando que coincide carácter por carácter con el texto original.
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+  node distance=0.5cm,
+  every node/.style={rectangle, draw, rounded corners, align=left, font=\scriptsize, text width=9.5cm, minimum height=1.0cm, inner sep=2mm},
+  side/.style={rectangle, align=left, font=\scriptsize, text width=4.4cm, minimum height=0.9cm, inner sep=2mm},
+  pend/.style={side, dashed, draw=orange!70!black, fill=orange!5},
+  done/.style={side, draw=black},
+  arrow/.style={-{Stealth[length=1.8mm]}, thin}
+]
+\node (dat) {\texttt{train.json}/\texttt{val.json} de cada generador (81/10 semillas) y de la mezcla de los tres};
+\node (fmt) [below=of dat] {\textbf{Formato de instrucción.} Chat \textit{system/user/assistant}; pérdida enmascarada sobre el \textit{prompt}};
+\node (lora) [below=of fmt] {\textbf{Ajuste fino LoRA en Google Colab} — 4 adaptadores idénticos en configuración (\texttt{r=8}, \texttt{alpha=16}): Generador 1, 2, 3 y mezcla};
+\node (es) [below=of lora] {\textbf{Selección por mejor pérdida de validación} — \texttt{EarlyStopping} (se detectó sobreajuste en los cuatro)};
+\node (fus) [below=of es] {\textbf{Fusión de los tres adaptadores} — TIES, DARE+TIES, promedio lineal (PEFT) y destilación multi-maestro; mismas técnicas repetidas con \texttt{mergekit}};
+\node (ad) [below=of fus] {\textbf{Adaptador fusionado final} — promedio normalizado con PEFT};
+\node (srv) [below=of ad] {\textbf{Servicio de traducción} — \texttt{api/space/}, ya sirve este adaptador (Figura \ref{fig:despliegue})};
+\node (aut) [done, right=0.7cm of fus] {Evaluación automática — BLEU/chrF sobre 174 entradas, los 9 modelos comparados};
+\node (hum) [pend, below=0.4cm of aut] {Evaluación humana con hablantes nativos — pendiente};
+\draw[arrow] (dat) -- (fmt);
+\draw[arrow] (fmt) -- (lora);
+\draw[arrow] (lora) -- (es);
+\draw[arrow] (es) -- (fus);
+\draw[arrow] (fus) -- (ad);
+\draw[arrow] (ad) -- (srv);
+\draw[arrow] (fus) -- (aut);
+\draw[arrow, dashed] (fus) -- (hum);
+\end{tikzpicture}
+\caption{Ciclo de vida del modelo: de los cuatro datasets al servicio en producción, con la evaluación humana como único paso todavía pendiente.}
+\label{fig:ciclo-modelo}
+\end{figure}
 
 \subsection{Escenarios de atributos de calidad}
 \label{sec:escenarios-calidad}

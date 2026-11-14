@@ -12,7 +12,7 @@ Un traductor de jerga y dialectos latinoamericanos del español al inglés. Se a
 - Servicio desplegado y probado (`docs/despliegue.md`); pruebas, contenedor y observabilidad de la Fase 2. **Actualizado (2026-11-08)**: el Space público ya sirve el adaptador fusionado (PEFT, promedio normalizado de los tres generadores), no el del Generador 1 individual — verificado con una traducción real contra la URL pública.
 - Cuantización en GPU medida sobre las 174 entradas (`evaluation/pi3_cuantizacion_calidad.md`).
 - El paper compila (`paper/main.tex`, 20 páginas) con resultados, limitaciones, costos y trabajo futuro.
-- Borradores, guion de sustentación, banco de preguntas y figuras (`docs/fase3_*_borrador.md`, `docs/guion_sustentacion_final.md`, `docs/banco_preguntas_final.md`, `docs/figuras/`).
+- Borradores, guion de sustentación, banco de preguntas y figuras (`docs/fase3_*_borrador.md`, `docs/sustentacion_final/guion_sustentacion_final.md`, `docs/sustentacion_final/banco_preguntas_final.md`, `docs/figuras/`).
 - Comparaciones de PI3: contra LLM grandes, contra DeepL y un juez automático exploratorio (`evaluation/`).
 
 ## 3. Resultados en cinco líneas (BLEU / chrF, test común)
@@ -45,7 +45,7 @@ Sin esto no hay kappa ni respuesta completa a PI1.
 - Que alguien que no lo haya visto lo lea completo y anote referencias rotas o partes confusas.
 
 ### C. Sustentación
-- Averiguar el tiempo asignado y anotarlo en `docs/banco_preguntas_final.md` y `docs/guion_sustentacion_final.md`.
+- Averiguar el tiempo asignado y anotarlo en `docs/sustentacion_final/banco_preguntas_final.md` y `docs/sustentacion_final/guion_sustentacion_final.md`.
 - Ensayo cronometrado con las tres personas y la demo en vivo; cada integrante responde sin leer al menos una pregunta del banco.
 - Grabar el video del Plan B (30–40 s de una solicitud real al Space).
 - **No gastar la cuota de GPU del Space antes de la demo.**
