@@ -3181,3 +3181,16 @@ Qué se hizo: (1) `docs/sustentacion_final/`, carpeta nueva con solo los documen
 Decisiones tomadas: ninguna nueva.
 
 Pendiente: lo mismo de antes, más armar la presentación (en curso, fuera del repo por ahora).
+
+
+---
+
+## Sesión extra (14) — 2026-11-16 — Anderson García
+
+Qué se hizo: guion de 6 minutos y banco de preguntas para las diapositivas 11 a 14 del deck de sustentación (`docs/sustentacion_final/guion_diapositivas_11_a_14.md`), contrastando el texto de las 14 diapositivas con el repositorio. Incluye una demo opcional de 40 s y una tabla de cifras con su fuente.
+
+Hallazgos que se anotan en el documento (el deck no se modificó): (1) la diapositiva 13 dice que ninguna solicitud sale a la nube de un tercero, pero el demo público corre en Hugging Face (solo es cierto de una instalación propia); (2) la diapositiva 12 rotula 44.2/58.4 como "el modelo final", pero el Space sirve `peft_cat_norm` (43.6/58.2), equivalente a la fusión de mergekit; (3) la diapositiva 9 dice "hasta 50 solicitudes a la vez", pero con 50 concurrentes solo se atendieron 33 por la cuota de GPU (`docs/pruebas_carga.md`); (4) la clasificación 47/24/29 la hizo una sola persona; (5) la licencia de Qwen2.5-3B (Qwen Research License) podría limitar el uso comercial: no está verificada en el repositorio oficial.
+
+Decisiones tomadas: no se editó el deck de Google Drive; se dejaron las correcciones como recomendaciones. No se probó el demo en vivo (la cuota de GPU del Space es limitada).
+
+Pendiente: que quien presente corrija o aclare esos puntos; verificar la licencia de Qwen2.5-3B; probar el demo una vez y grabar el video del Plan B.
