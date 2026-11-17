@@ -3216,3 +3216,14 @@ Qué se hizo: segunda versión del guion de las diapositivas 11 a 14 con tono m�
 Decisiones tomadas: se cambió el tono, no los hechos: todas las cifras salen de los mismos archivos que el guion anterior. La versión previa (`guion_diapositivas_11_a_14.md`) se conserva como referencia y para el banco de preguntas.
 
 Pendiente: ensayo cronometrado; comprobar a mano en Google Translate que "vaca" se traduce mal antes de decirlo.
+
+
+---
+
+## Sesión extra (17) — 2026-11-17 — Anderson García
+
+Qué se hizo: corrección de un error mío. El commit anterior (`5323bee`) agregó por accidente, con `git add -A`, la carpeta `traductor-jerga-dialectal/` (el clon local del Space de Hugging Face, que es un repositorio git aparte) como referencia de repositorio incrustado. No subió el contenido, solo un puntero. Se quitó del índice (`git rm --cached`) y se añadió a `.gitignore`; la carpeta y sus archivos siguen intactos en el disco.
+
+Decisiones tomadas: se corrige con un commit nuevo, sin reescribir el historial ya publicado. En adelante se agregan los archivos por nombre y no con `git add -A` cuando haya clones u otros directorios ajenos al repositorio.
+
+Pendiente: nada.

@@ -68,3 +68,6 @@ evaluation/evaluacion_humana/*_PRIVADO.md
 
 # Resultado de la destilación multi-maestro (14.8 MB): se versiona para poder reproducir sin reentrenar (95 min en T4)
 !finetuning/checkpoints/destilacion/estudiante/*.safetensors
+
+# Clon local del Space de Hugging Face (repositorio aparte, no se versiona aqui)
+/traductor-jerga-dialectal/
