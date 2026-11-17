@@ -3205,3 +3205,14 @@ Qué se hizo: se probaron 15 frases nuevas (5 dialectos, con expresiones del ban
 Decisiones tomadas: Google Translate no se probó (sin clave); se pide verificarlo a mano antes de afirmar que falla. Los aciertos usan expresiones vistas en entrenamiento, así que no prueban generalización. Cada frase tarda ~1 min en CPU: la demo en vivo debe usar el Space.
 
 Pendiente: comprobar las candidatas en Google Translate a mano; probar 1-2 veces en el Space antes de la demo.
+
+
+---
+
+## Sesión extra (16) — 2026-11-17 — Anderson García
+
+Qué se hizo: segunda versión del guion de las diapositivas 11 a 14 con tono más seguro y narrativo (`docs/sustentacion_final/guion_jugoso_11_a_14.md`): abre cada diapositiva con un gancho, usa imágenes concretas y presenta lo pendiente como "siguiente paso". Incluye una tabla de reformulaciones de las limitaciones (mismo hecho, dicho hacia adelante), las "líneas rojas" que no se dicen porque serían falsas o desmentibles (ganar a DeepL, generalizar a todos los dialectos, uso listo para salud o justicia, "ningún dato sale a un tercero" sobre el demo público) y tres reflejos para las preguntas difíciles.
+
+Decisiones tomadas: se cambió el tono, no los hechos: todas las cifras salen de los mismos archivos que el guion anterior. La versión previa (`guion_diapositivas_11_a_14.md`) se conserva como referencia y para el banco de preguntas.
+
+Pendiente: ensayo cronometrado; comprobar a mano en Google Translate que "vaca" se traduce mal antes de decirlo.
