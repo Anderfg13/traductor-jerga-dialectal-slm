@@ -3194,3 +3194,14 @@ Hallazgos que se anotan en el documento (el deck no se modificó): (1) la diapos
 Decisiones tomadas: no se editó el deck de Google Drive; se dejaron las correcciones como recomendaciones. No se probó el demo en vivo (la cuota de GPU del Space es limitada).
 
 Pendiente: que quien presente corrija o aclare esos puntos; verificar la licencia de Qwen2.5-3B; probar el demo una vez y grabar el video del Plan B.
+
+
+---
+
+## Sesión extra (15) — 2026-11-16 — Anderson García
+
+Qué se hizo: se probaron 15 frases nuevas (5 dialectos, con expresiones del banco de entrenamiento en contextos nuevos) con el modelo desplegado en CPU y con DeepL para elegir frases de la demo (`evaluation/probar_frases_demo.py`, `docs/sustentacion_final/frases_demo.md`). El modelo base ya estaba en la caché local, no hizo falta descargar nada. Resultado: nuestro modelo acierta "vaca" (reunir dinero) y "estar pato" (sin plata) donde DeepL falla; falla "dar papaya", "ponte trucha" y "fome" donde DeepL acierta; en el resto quedan parecidos.
+
+Decisiones tomadas: Google Translate no se probó (sin clave); se pide verificarlo a mano antes de afirmar que falla. Los aciertos usan expresiones vistas en entrenamiento, así que no prueban generalización. Cada frase tarda ~1 min en CPU: la demo en vivo debe usar el Space.
+
+Pendiente: comprobar las candidatas en Google Translate a mano; probar 1-2 veces en el Space antes de la demo.
